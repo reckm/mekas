@@ -4,12 +4,13 @@ Diese Datei liest Claude Code bei jedem Start. Sie beschreibt, **was Mekas ist, 
 
 ## Was Mekas ist
 
-Eine Kamera im Browser, die das iPhone mechanisch filmen lässt wie eine Bolex H16. Gebaut mit Maris (Musiker, „electronic chamber pop“, macOS, filmt mit dem iPhone).
+Eine Kamera im Browser, die das iPhone mechanisch filmen lässt wie eine Bolex H16. Gebaut mit Maris (Musikerin, „electronic chamber pop“, macOS, filmt mit dem iPhone; Pronomen sie/ihr).
 
 Nicht Filter, sondern **Mechanik und Zeit** machen den Look. Farbe, Schärfe und Sensor bleiben iPhone. Nachgebaut wird, *wann* und *wie lange* belichtet wird, *wie der Film transportiert* wird und neu auch *wie sich die Linse bewegt*. Ziel ist ein Instrument zum Improvisieren, kein Effektgerät.
 
-- Live: `https://<github-name>.github.io/mekas/` (Adresse nach dem Einrichten hier eintragen)
-- Labor: dieselbe Adresse mit `?labor`
+- Live: https://reckm.github.io/mekas/
+- Labor: https://reckm.github.io/mekas/?labor
+- Repository: https://github.com/reckm/mekas (öffentlich, GitHub Pages aus `main` /)
 - Hintergrund und Begründungen: `docs/KONZEPT.md` und `docs/zwischen-den-frames.md` (Recherche mit den nummerierten Ideen 1–18)
 - Alter Gesamt-Handover (Detailwissen zum bestehenden Code): `docs/archiv/HANDOVER-mekas-2026-10-05.md`
 
