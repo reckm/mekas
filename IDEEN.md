@@ -45,3 +45,9 @@ Was später kommen könnte. Nummern in Klammern verweisen auf `docs/zwischen-den
 - **Automatisch in einen Ordner „Mekas“ sichern:** aus dem Browser nicht möglich. Weg über einen iOS-Kurzbefehl.
 - **Gangart des Greifers (6):** unregelmässiger Rhythmus als Metrum, eventuell im Tempo eines Stücks.
 - **Linsenwechsel (16):** Beim Zoomen springt das Bild leicht, weil eine andere Kamera übernimmt.
+
+## Aufgefallen in Runde 0 (2026-10-09, nicht auf der Karte, deshalb nicht angefasst)
+
+- **Labor: geteilte Ansicht** (links mit, rechts ohne Modul). Braucht die Kette zweimal pro Bild. Erst, wenn klar ist, wie viel Rechenzeit das iPhone übrig hat.
+- **Greifer-Pad und Blendenfader liegen über dem Einstellungsblatt** (auf dem Handy rechts unten). War in der alten `mekas.html` schon so.
+- **Veraltete Meldungen:** „Öffne die Datei direkt im Browser“ (Kamera gesperrt, Sichern) stammt aus der Zeit vor GitHub Pages. Die Texte im Menü sind schon angepasst.

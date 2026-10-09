@@ -29,34 +29,53 @@ Nicht Filter, sondern **Mechanik und Zeit** machen den Look. Farbe, Schärfe und
 ### Die Kette, durch die jedes Bild läuft
 
 ```
-Quelle → Belichtung → Entwickeln → Transport → Projektor → Aufnahme
-(Kamera,   (Blende,     (Helligkeit) (Greifer,   (Bildstand,   (MediaRecorder,
- Video,     Linse,                    Filmstreifen) Überblenden) IndexedDB)
- Demo)      Zeit sammeln)
+Takt → Quelle → Belichtung → Entwickeln → Transport → Projektor → Aufnahme
+(Kurbel, (Kamera,  (Blende,     (Helligkeit) (Greifer,   (Bildstand,   (MediaRecorder,
+ Hand-    Video,    Linse,                    Filmstreifen) Überblenden) IndexedDB)
+ kurbel)  Demo)     Zeit sammeln)
 ```
 
 Taktgeber ist die **Kurbel** (4–24 Kurbelbilder pro Sekunde). Kamerabilder kommen mit etwa 30 pro Sekunde. Ausgabe mit 24, 25 oder 30 pro Sekunde.
 
-### Module
+### Kern und Module
 
-Jede Funktion ist ein **Modul**: eine eigene Datei unter `src/module/`, die an genau einer Station der Kette ansetzt. Die genaue Schnittstelle legt Runde 0 fest und dokumentiert sie hier. Die Richtung ist diese:
+**Kern** (`src/kern/`, immer da): Kurbel mit fps-Skala, Zoom, Halten, Quellen, Doppel, Zeit-Modi, Klappe, Aufnahme, Speicher, Bedienung. **Module** (`src/module/`, im Labor schaltbar): Handkurbel, Schwenken, Blende, Kammblende (Grundstellung aus), Entwickeln mit Anlaufblitz, Greifer, Bildstand. Die Reihenfolge der Kette steht in `src/module/liste.js`.
+
+Jedes Modul ist eine eigene Datei, die an genau einer Station ansetzt (Schnittstelle seit Runde 0):
 
 ```js
 // src/module/beispiel.js
 export default {
   id: 'beispiel',
   titel: 'Beispiel',            // so heisst es im Labor
-  station: 'belichtung',        // quelle | belichtung | entwickeln | transport | projektor
-  params: {                     // erscheinen im Labor automatisch als Regler
-    staerke: { min: 0, max: 1, def: 0.5, titel: 'Stärke' },
+  station: 'belichtung',        // takt | quelle | belichtung | entwickeln | transport | projektor
+  an: true,                     // Grundstellung (false: nur im Labor einschaltbar)
+  params: {                     // erscheinen im Labor automatisch als Regler; aktuelle Werte in this.p
+    staerke: { min: 0, max: 1, def: 0.5, schritt: 0.01, titel: 'Stärke', einheit: '' },
+    blitz: { typ: 'schalter', def: true, titel: 'Blitz' },
   },
-  anstoss: ['y'],               // optional: reagiert auf Anstossen (Achsen x/y)
-  setup(ctx) {},                // einmal
-  tick(ctx, dt) {},             // Physik, jedes Animationsbild
-  apply(ctx, bild) {},          // Bildverarbeitung an seiner Station
-  reset(ctx) {},
+  anstoss: ['y'],               // ab Runde 1: reagiert auf Anstossen (Achsen x/y)
+  setup(ctx) {},                // einmal beim Start
+  reset(ctx) {},                // neue Bildgrösse (auch wenn das Modul aus ist)
+  ein(ctx) {},                  // optional: beim Einschalten
+  tick(ctx, dt) {},             // Physik, jedes Animationsbild, nur wenn an
+  apply(ctx, bild) {},          // an seiner Station, nur wenn an
+  hinweis(ctx) {},              // optional: kurzer Text im Kurbel-Label, z. B. „schwenkt“
 };
 ```
+
+Was `bild` an jeder Station ist (das Modul verändert es, der Kern macht weiter):
+
+| Station | wann | `bild` | ohne Modul |
+|---|---|---|---|
+| takt | Anfang jedes Kurbelbilds | `{ T, abstand }` in ms bis zum nächsten | gleichmässig |
+| quelle | jedes Abtasten der Quelle | `{ dw, dh, dx, dy }`, Lage der Quelle | Mitte |
+| belichtung | Anfang jedes Kurbelbilds | `{ t0, T, winkel, fenster: [[a, b], …] ms, stops, deckung }` | feste 135° |
+| entwickeln | Blende schliesst | `{ g, roh, E, zyklus }`: in `g` liegt schon das Rohbild, `roh` ist das gesammelte Licht, `E` die Belichtung in s | Rohbild; danach legt der Kern `deckung` (Abblenden) darüber |
+| transport | nach dem Entwickeln | `{ belichtet, g, zyklus }`: `g` ist das Bildfenster | Bild liegt genau im Fenster |
+| projektor | jedes Ausgabebild | `{ lage: { x, y, s } }` | Bild sitzt fest |
+
+Gemeinsamer Zustand `ctx` (nur lesen): `jetzt, dt, W, H, kurbel {x, y, fps}, zoom, halten, ausgabeFps, quelle, zeitModus, aufnahme, anlauf {nr, doppel}, bildNr, eingabe {greiferHaelt, einrichten}, bildfenster`. Erlaubt sind dazu `ctx.sag(text)` (Meldung) und `ctx.zeichne()` (neues Ausgabebild). Regler der Bedienung und des Labors schreiben dieselben Modulwerte über `kette.setze(id, name, wert)`, Gesten stehen in `ctx.eingabe`. Ein Modul schreibt nur seine eigenen Werte.
 
 Regeln für Module:
 - **Jedes Modul lässt sich einzeln ein- und ausschalten**, und Mekas läuft auch ohne es.
@@ -68,40 +87,45 @@ Regeln für Module:
 ### Dateien
 
 ```
-index.html          Mekas für Maris (aufgeräumte Bedienung)
-src/kern/           Kette, Kurbel, Aufnahme, Speicher, Bedienung
-src/module/         ein Modul pro Datei
+index.html          Mekas für Maris (nur Markup), lädt src/stil.css und src/main.js
+src/main.js         Start: Module einrichten, Einstellungen zurückholen, Schleife starten
+src/kern/           zustand (ctx), kette, kurbel, quelle, ton, aufnahme, rekorder, filme, speicher, bedienung, mechanik, version
+src/module/         ein Modul pro Datei, Reihenfolge in liste.js
 src/labor/          Labor-Oberfläche (nur mit ?labor geladen)
-tests/              Playwright: Rauchtest und Kontaktbögen
+tests/              Python-Playwright: rauch.py, bogen.py
+tools/version.py    Version erhöhen
 referenz/           Maris’ Referenzmaterial (NICHT im Repository, siehe .gitignore)
-docs/               Konzept, Recherche, Archiv
+docs/               Konzept, Recherche, Archiv (dort auch die alte mekas.html zum Vergleich)
 ```
 
-Keine Build-Stufe: reine ES-Module, direkt von GitHub Pages ausgeliefert. Lokal mit `python3 -m http.server`. Eine Einzeldatei zum Mitnehmen kann später ein Skript erzeugen.
+Keine Build-Stufe: reine ES-Module, direkt von GitHub Pages ausgeliefert. Lokal mit `python3 -m http.server 8765` (`.claude/launch.json` „bolex“). Von der Festplatte geöffnet laufen ES-Module nicht. Eine Einzeldatei zum Mitnehmen kann später ein Skript erzeugen.
 
 ### Version und Cache
 
-- `src/kern/version.js` enthält die Version, zum Beispiel `0.1.3` (Runde.Modul.Stand). **Bei jeder Veröffentlichung erhöhen.**
+- `src/kern/version.js` enthält die Version, zum Beispiel `0.1.3` (Runde.Modul.Stand). **Bei jeder Veröffentlichung erhöhen**, immer mit `python3 tools/version.py <neu>`.
 - Die Version steht klein in den Einstellungen und im Labor. So sieht Maris auf dem iPhone, ob sie die neueste hat.
-- GitHub Pages lässt Dateien einige Minuten im Cache. Deshalb lädt `index.html` die Skripte mit `?v=<version>`.
-- Gespeicherte Filme (IndexedDB `kurbel`) und Einstellungen (localStorage `kurbel.v3`) behalten ihre alten Namen, damit nichts verloren geht.
+- GitHub Pages lässt Dateien einige Minuten im Cache. ES-Module geben die Abfrage `?v=` nicht an ihre eigenen Importe weiter, deshalb trägt **jeder relative Import** `?v=<version>` (auch dynamische Importe und `new URL(…)`). `tools/version.py` ersetzt alle auf einmal, der Rauchtest prüft, dass keiner fehlt.
+- Gespeicherte Filme (IndexedDB `kurbel`) und Einstellungen (localStorage `kurbel.v3`) behalten ihre alten Namen, damit nichts verloren geht. Das Labor speichert nur in `mekas.labor`.
 
 ## Das Labor
 
 Erreichbar über `?labor`. Maris’ normale Bedienung bleibt davon unberührt.
 
 - Liste aller Module mit Ein/Aus und allen `params` als rohe Regler.
-- **Vergleich:** Gedrückt halten zeigt das Bild ohne das gewählte Modul. Oder eine geteilte Ansicht, wenn das auf dem iPhone flüssig genug läuft.
+- **Vergleich:** Modulnamen antippen wählt es, der Knopf „Ohne … (halten)“ zeigt das Bild ohne dieses Modul, solange er gedrückt ist. (Geteilte Ansicht: später, siehe `IDEEN.md`.)
 - **Quellen:** Kamera, Demo, Video laden. Die Referenzvideos lädt Maris dort selbst.
 - **Schnappschuss:** speichert das Bild als PNG und alle Werte als JSON. Maris schickt beides, wenn ihr etwas gefällt oder missfällt.
-- Rechenzeit pro Modul.
+- Rechenzeit pro Modul in ms pro Animationsbild, dazu Licht sammeln, Projektor und gesamt.
+- Speichert nur in `mekas.labor` (beim ersten Öffnen aus `kurbel.v3` vorbelegt). Für Tests gibt es dort `window.mekas` (`setze`, `schalte`, `vergleiche`, `module`, `werte`).
 
 Ein Modul kommt erst in die normale Bedienung, wenn Maris es abgenommen hat (Status in `MODULE.md`).
 
 ## Testen
 
-1. **Rauchtest** (`tests/rauch`): Demo → Aufnehmen → Pause → Doppel → Fertig, ohne Konsolenfehler. Nach jeder Änderung.
-2. **Kontaktbogen** (`tests/bogen`): Spielt eine Referenz als falsche Kamera ein (Chromium `--use-file-for-fake-video-capture`, dafür das Video mit ffmpeg nach `.y4m` wandeln), schaltet das Modul mit mehreren Werten durch und schreibt eine HTML-Seite mit Standbildern und einen kurzen Clip nach `tests/out/` (nicht ins Repository). Wenn es eine Referenz gibt, steht das Referenzbild daneben.
+Einmal einrichten: `python3 -m venv .venv && .venv/bin/pip install -r tests/requirements.txt`. Die Tests nehmen das installierte Google Chrome (sonst `.venv/bin/playwright install chromium`).
+
+1. **Rauchtest** (`.venv/bin/python tests/rauch.py`): Demo → Aufnehmen → Pause → Doppel → Doppel starten → Fertig, ohne Konsolenfehler, normal und mit `?labor`. Prüft auch, dass jeder Import `?v=<version>` trägt und das Labor alle Module zeigt. Nach jeder Änderung.
+2. **Kontaktbogen** (`.venv/bin/python tests/bogen.py --modul blende --param winkel --werte 30,135,240,360`): schaltet das Modul ein, stellt die Werte nacheinander ein und schreibt eine HTML-Seite mit Standbildern und kurzen Clips nach `tests/out/` (nicht ins Repository). `--quelle <video>` spielt ein Video als falsche Kamera ein (ffmpeg wandelt es nach `.y4m`, Chrome `--use-file-for-fake-video-capture`). `--referenz <bild>` stellt ein Referenzbild daneben. `--alt` legt die alte `mekas.html` daneben, für Werte, die sie schon kannte (vorher/nachher). Der Zufall ist in beiden gleich gesät.
 3. **Selbst hinschauen:** Bevor Maris etwas sieht, die Standbilder selbst ansehen und an den Erfolgskriterien der Modulkarte messen.
 4. **iPhone:** Nur Maris. Dafür veröffentlichen und ihr sagen, was sie prüfen soll (höchstens fünf Punkte).
 
@@ -111,7 +135,7 @@ Ein Modul kommt erst in die normale Bedienung, wenn Maris es abgenommen hat (Sta
 2. Bauen, Rauchtest, Kontaktbogen, selbst prüfen.
 3. Maris den Kontaktbogen zeigen. Bei „passt“: Version erhöhen, committen, pushen, warten bis die Seite online ist.
 4. Maris nennen, was sie auf dem iPhone prüfen soll.
-5. Sein Feedback auf der Modulkarte eintragen. Entscheide mit Datum in `ENTSCHEIDE.md`, neue Ideen in `IDEEN.md`. Committen.
+5. Ihr Feedback auf der Modulkarte eintragen. Entscheide mit Datum in `ENTSCHEIDE.md`, neue Ideen in `IDEEN.md`. Committen.
 
 **Höchstens ein bis zwei Module pro Runde.** Nichts nebenbei „mit verbessern“, was nicht auf der Karte steht. Fällt etwas auf, kommt es in `IDEEN.md`.
 

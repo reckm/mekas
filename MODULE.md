@@ -6,11 +6,12 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ---
 
-## Bestand (heute in `mekas.html`, wird in Runde 0 zu Modulen)
+## Bestand (seit Runde 0 als Kern und Module, siehe `CLAUDE.md`)
 
 | Modul | Station | Status | Bemerkung |
 |---|---|---|---|
-| Kurbel | Takt | abgenommen | 4–24 fps, 4–12 auf 0–80 % des Wegs, Handkurbel-Unregelmässigkeit |
+| Kurbel | Takt (Kern) | abgenommen | 4–24 fps, 4–12 auf 0–80 % des Wegs |
+| Handkurbel | Takt | abgenommen | eigenes Modul seit Runde 0: Unregelmässigkeit in der Mikrozeit |
 | Blende | Belichtung | abgenommen | 0–360°, unter 36° gegen Schwarz. **Seitwärts-Achse (Schlitze) entfällt** |
 | Kammblende | Belichtung | verworfen als Bedienung | Code bleibt als Modul, im Labor schaltbar, nicht in der Bedienung |
 | Entwickeln | Entwickeln | abgenommen | Belichtung → Helligkeit, Anlaufblitz |
@@ -25,7 +26,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ## Runde 0: Fundament
 
-**Status:** in Arbeit
+**Status:** veröffentlicht als 0.0.1 (2026-10-09), Maris prüft auf dem iPhone
 
 **Ziel:** Mekas sieht danach aus und verhält sich wie heute, nur aufgeräumt, aus Modulen gebaut, online über https und mit Labor und Tests. **Keine neuen Bildeffekte in dieser Runde.**
 
@@ -53,6 +54,9 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 5. Schwenken mit dem Telefon: Richtung und Stärke stimmen.
 
 **Notizen:**
+- 2026-10-09: Gebaut und von Maris abgenommen („passt“). Kontaktbogen Blende 30°/135°/240°/360° mit der Demo: neu und alte `mekas.html` sehen gleich aus, mittlere Helligkeit gleich (Abweichung ≤ 0,05 von 255). Kammblende ebenso. Rauchtest grün, „Unterdreht“ einmal durchgespielt.
+- Nicht auf der Karte, deshalb in `IDEEN.md`: geteilte Ansicht im Labor, Pad und Fader über dem Einstellungsblatt (war schon so), veraltete Meldungen „Datei direkt öffnen“.
+- iPhone-Test: offen.
 
 ---
 

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d0c10">
+<title>Mekas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Karla:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="src/stil.css?v=0.0.1">
+</head>
+<body>
+
+<div class="app" id="app">
+  <div class="stage" id="stage" aria-label="Sucher. Seitwärts wischen verändert die Bildrate, hoch und runter den Zoom. Zwei Finger halten das Bild an.">
+    <canvas id="out" width="1280" height="720"></canvas>
+    <div class="padarea">
+      <div class="xline" id="xline"></div>
+      <div class="yline" id="yline"></div>
+      <div class="puck" id="puck"></div>
+      <div class="plabel" id="plabel">12 fps</div>
+    </div>
+    <div class="frozen" id="frozen" hidden>HÄLT</div>
+    <div class="hint" id="hint"><b>Spiel mit der Zeit.</b><span>Wisch übers Bild: seitwärts ist die Kurbel, hoch und runter der Zoom. Zwei Finger halten das Bild an.</span></div>
+  </div>
+
+  <div class="bar top">
+    <button class="srcbtn" id="btnSrc" type="button" aria-label="Kamera an">
+      <svg viewBox="0 0 24 24"><path d="M4 8.5h3l1.6-2.2h6.8L17 8.5h3v10H4z"/><path d="M9.2 13.4a2.8 2.8 0 0 1 4.9-1.8M14.8 13.6a2.8 2.8 0 0 1-4.9 1.8"/><path d="M14.4 10.4v1.4h-1.4M9.6 16.6v-1.4H11"/></svg>
+      <span id="srcLabel">DEMO</span>
+    </button>
+    <div class="chips">
+      <span class="chip" id="chipTime" hidden>00:00</span>
+      <span class="chip sky" id="chipDoppel" hidden>DOPPEL</span>
+    </div>
+    <button class="iconbtn" id="btnFilms" type="button" aria-label="Filme">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 9.5h4M3 14.5h4M17 9.5h4M17 14.5h4"/></svg>
+      <span class="count" id="filmCount" hidden>0</span>
+    </button>
+    <button class="iconbtn" id="btnSettings" type="button" aria-label="Einstellungen">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>
+    </button>
+  </div>
+
+  <div class="gripper">
+    <div class="ctl">
+      <div class="readout" id="gRead"></div>
+      <div class="gpad" id="gpad" role="group" tabindex="0" aria-label="Greifer: hoch und runter ist der Filmzug pro Bild. Doppeltippen richtet ihn wieder ein.">
+        <div class="hline" id="gZline"></div><div class="knob" id="gknob"></div>
+        <span class="ends t">mehr</span><span class="ends b">steht</span>
+      </div>
+      <span class="slotlabel">Greifer</span>
+    </div>
+    <div class="ctl">
+      <div class="readout" id="vRead"></div>
+      <div class="vfader" id="vfader" role="slider" tabindex="0" aria-label="Blende: hoch öffnet, runter schliesst, ganz unten ist sie zu" aria-valuemin="0" aria-valuemax="360" aria-valuenow="135">
+        <div class="fill" id="vfill"></div><div class="limit" id="vlimit"></div><div class="knob" id="vknob"></div>
+        <span class="ends t">offen</span><span class="ends b">zu</span>
+      </div>
+      <span class="slotlabel" id="vLabel">Blende</span>
+    </div>
+  </div>
+
+  <div class="scrub" id="scrub" hidden>
+    <div class="scrubhead"><b>Doppel ab</b><span id="scrubVal">0:00,0 von 0:00,0</span></div>
+    <input type="range" id="scrubber" min="0" max="1000" step="1" value="0" aria-label="Stelle im Film, ab der doppelt belichtet wird">
+    <small>Such die Stelle im Film. Aufnehmen legt dein neues Bild ab hier darüber. Auf- und abblenden machst du selbst mit der Belichtung.</small>
+  </div>
+
+  <div class="bar bottom">
+    <div class="slot" id="slotDoppel">
+      <button class="round" id="btnDoppel" type="button" aria-pressed="false" aria-label="Doppel: zurückspulen und darüber belichten">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="5.5"/><circle cx="15" cy="12" r="5.5"/></svg>
+      </button>
+      <span class="slotlabel">Doppel</span>
+    </div>
+    <div class="recwrap">
+      <button class="recbtn" id="btnRec" type="button" aria-label="Aufnehmen"><span class="core"><span class="bars"><i></i><i></i></span></span></button>
+      <span class="slotlabel" id="recLabel">Aufnehmen</span>
+    </div>
+    <div class="slot">
+      <button class="round" id="btnDone" type="button" aria-label="Film beenden und speichern" disabled>
+        <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </button>
+      <span class="slotlabel">Fertig</span>
+    </div>
+  </div>
+
+  <div class="develop" id="develop" hidden>
+    <b>Film wird entwickelt</b>
+    <div class="progress"><i id="devBar"></i></div>
+    <span id="devVal" class="val">bereitet vor …</span>
+    <button class="pill ghost" id="devCancel" type="button">Abbrechen</button>
+  </div>
+
+  <div class="result" id="result" hidden>
+    <b id="resTitle">Film fertig</b>
+    <video id="resVideo" controls playsinline></video>
+    <button class="pill primary" id="resSave" type="button">Film aufs iPhone sichern</button>
+    <button class="pill" id="resSaveTon" type="button" hidden>Tonspur sichern</button>
+    <button class="pill ghost" id="resClose" type="button">Weiterfilmen</button>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <div class="startcard" id="startcard">
+    <h2>Lass los und film.</h2>
+    <p>Eine Kamera wie eine alte Bolex. Du spielst die Zeit mit dem Finger, Fehler gehören dazu.</p>
+    <button class="pill primary" id="cardCam" type="button">Kamera an</button>
+    <label class="pill" for="cardFile">Video laden<input type="file" id="cardFile" accept="video/*"></label>
+    <button class="pill ghost" id="cardDemo" type="button">Erst mal mit der Demo spielen</button>
+  </div>
+
+  <div class="backdrop" id="backdrop"></div>
+
+  <aside class="sheet" id="settings" aria-labelledby="setTitle" aria-hidden="true">
+    <div class="grip"></div>
+    <div class="sheethead"><h2 id="setTitle">Einstellungen</h2><button class="close" type="button" data-close aria-label="Schliessen">×</button></div>
+    <div class="sec">
+      <h3>Zeit</h3>
+      <div class="rowset col">
+        <div class="seg" id="segTime"><button type="button" data-v="hold" aria-pressed="true">Bild steht nach</button><button type="button" data-v="under">Unterdreht</button></div>
+        <p class="note" id="timeNote"></p>
+      </div>
+    </div>
+    <div class="sec">
+      <h3>Quelle</h3>
+      <div class="btnrow">
+        <button class="pill primary" id="btnCam" type="button">Kamera an</button>
+        <label class="pill" for="fileIn">Video laden<input type="file" id="fileIn" accept="video/*"></label>
+        <button class="pill" id="btnDemo" type="button">Demo</button>
+      </div>
+      <div class="rowset" id="rowMirror"><div class="t">Sucher spiegeln<small>nur die Anzeige, wie ein Spiegel</small></div><input type="checkbox" class="switch" id="mirrorView"></div>
+      <div class="rowset" id="rowMirrorRec"><div class="t">Aufnahme spiegeln<small>die Datei seitenverkehrt</small></div><input type="checkbox" class="switch" id="mirrorRec"></div>
+      <div class="rowset" id="rowSwivel"><div class="t">Schwenken mit dem Telefon<small>im Zoom wandert der Ausschnitt mit, wie beim Abfilmen eines Fernsehers. Mitte ist, wie du das Telefon beim Start der Aufnahme hältst.</small></div><input type="checkbox" class="switch" id="swivel" checked></div>
+      <div class="rowset" id="rowFile" hidden><div class="t">Geladenes Video</div><div class="btnrow"><button class="pill" id="btnRestart" type="button">Von vorn</button></div></div>
+    </div>
+    <div class="sec">
+      <h3>Mechanik</h3>
+      <p class="note">Unten rechts die <b>Blende</b>: hoch und runter, wie lange sie pro Bild offen ist, ganz unten ist sie zu. Über der gestrichelten Linie ist die Blende noch offen, während der Greifer den Film schon zieht: helle Stellen ziehen Schlieren.<br>Darüber der <b>Greifer</b>: hoch und runter, wie weit er den Film pro Bild zieht. Unten steht der Film und die Bilder stapeln sich, knapp neben der Mitte rutscht der Bildstrich langsam durchs Bild, oben bleiben Lücken. Loslassen: Der Greifer läuft in seiner Richtung weiter, bis er wieder in der Perforation sitzt. Doppeltippen richtet ihn sofort ein.</p>
+      <div class="rowset col"><div class="t">Handkurbel <span class="val" id="jitterVal">75</span><small>wie unregelmässig die Bilder kommen</small></div><input type="range" id="jitter" min="0" max="100" step="1" value="75" aria-label="Handkurbel"></div>
+      <div class="rowset"><div class="t">Anlaufblitz<small>überbelichtet die ersten Bilder nach jedem Start</small></div><input type="checkbox" class="switch" id="startFlash" checked></div>
+      <div class="rowset col"><div class="t">Bildstand <span class="val" id="weaveVal">35</span><small>jedes neue Bild sitzt minimal anders im Bildfenster</small></div><input type="range" id="weave" min="0" max="100" step="1" value="35" aria-label="Bildstand"></div>
+    </div>
+    <div class="sec">
+      <h3>Aufnahme</h3>
+      <div class="rowset col"><div class="t">Vorführtempo der Datei<small>passend zur Final-Cut-Timeline</small></div>
+        <div class="seg" id="segFps"><button type="button" data-v="24" aria-pressed="true">24</button><button type="button" data-v="25">25</button><button type="button" data-v="30">30</button></div>
+      </div>
+      <div class="rowset col"><div class="t">Auflösung<small>720p läuft auf dem iPhone flüssiger</small></div>
+        <div class="seg" id="segRes"><button type="button" data-v="1280" aria-pressed="true">720p</button><button type="button" data-v="1920">1080p</button></div>
+      </div>
+      <div class="rowset"><div class="t">Ton aufnehmen</div><input type="checkbox" class="switch" id="ton" checked></div>
+      <div class="rowset col"><div class="t">Mikrofon verzögern <span class="val" id="delayVal">0 ms</span><small>Einmal vor der Kamera klatschen und in Final Cut prüfen. Kommt der Klatscher vor dem Bild, hier nachziehen.</small></div><input type="range" id="avDelay" min="0" max="300" step="5" value="0" aria-label="Mikrofon verzögern"></div>
+      <div class="rowset"><div class="t">Klappe<small>weisser Blitz mit Piepton im laufenden Film</small></div><button class="pill" id="btnClap" type="button">Klappe</button></div>
+    </div>
+    <div class="sec">
+      <h3>Am Rechner</h3>
+      <div class="rowset"><div class="t">MIDI-Knopf als Kurbel<small id="midiStatus">in Chrome am Rechner</small></div><button class="pill" id="btnMidi" type="button">Verbinden</button></div>
+      <p class="note">Tastatur: R nimmt auf und pausiert, Leertaste gedrückt hält das Bild an, Pfeiltasten bewegen Kurbel und Zoom.</p>
+      <p class="note">Damit Safari auf dem iPhone nicht jedes Mal nach Kamera und Mikrofon fragt: Einstellungen › Apps › Safari › Kamera und Mikrofon auf „Erlauben“.</p>
+    </div>
+    <p class="note version">Mekas <span id="version"></span></p>
+  </aside>
+
+  <aside class="sheet" id="filmsSheet" aria-labelledby="filmsTitle" aria-hidden="true">
+    <div class="grip"></div>
+    <div class="sheethead"><h2 id="filmsTitle">Filme</h2><button class="close" type="button" data-close aria-label="Schliessen">×</button></div>
+    <div class="filmlist" id="films"></div>
+    <p class="empty" id="noFilms">Noch kein Film. Mit dem Haken „Fertig“ landet ein Film hier.</p>
+    <div class="filmsfoot" id="filmsFoot" hidden>
+      <p class="note">Die Filme liegen nur hier im Browser, nicht in deinen Fotos. Was du behalten willst, zuerst sichern.</p>
+      <button class="pill" id="btnDropAll" type="button">Alle löschen</button>
+    </div>
+  </aside>
+</div>
+
+<script type="module" src="src/main.js?v=0.0.1"></script>
+</body>
+</html>

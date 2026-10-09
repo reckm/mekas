@@ -4,6 +4,11 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 ## 2026-10-09
 
+- **Kern und Module (Runde 0):** Kern sind Kurbel (fps-Skala), Zoom, Halten, Quellen, Doppel, Zeit-Modi, Klappe. Module sind Handkurbel, Schwenken, Blende, Kammblende (aus), Entwickeln mit Anlaufblitz, Greifer, Bildstand. **Handkurbel und Bildstand sind eigene Module**, weil beide analoge Unregelmässigkeit simulieren, in Mikrozeit und Mikroraum. Dafür hat die Kette vorne die Station **Takt**. Schnittstelle in `CLAUDE.md`.
+- **Labor speichert getrennt** (`mekas.labor`). Die normale Bedienung liest das nie.
+- **Name Maris, Pronomen sie/ihr.** Commits im öffentlichen Repository mit der anonymen GitHub-Adresse und dem Namen Maris Reck.
+- **Die alte `mekas.html`** bleibt als `docs/archiv/mekas-2026-10-05.html` online, zum Vergleich.
+
 - **Der unsynchrone Film (Zug ≠ 1, rollender Bildstrich) bleibt spielbar.** Er war nicht das Problem. Gestört haben das Durchlaufen ohne Finger und die automatische Rückkehr. Neu auf dem Greifer-Pad: **Tippen = Stoss, Halten = Schlupf** (der Film läuft unsynchron, solange der Finger liegt), **Loslassen = Feder rastet ein.**
 
 ## 2026-10-08

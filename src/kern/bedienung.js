@@ -1,0 +1,270 @@
+// Bedienung: Wischen übers Bild (Kurbel und Zoom), Halten, Blendenfader, Greifer-Pad, Blätter, Einstellungen, Tastatur, MIDI.
+import { ctx, intern, einst, $ } from './zustand.js?v=0.0.1';
+import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=0.0.1';
+import { VERSION } from './version.js?v=0.0.1';
+import { wert, setze, istAn, schalte, hinweise, setSize } from './kette.js?v=0.0.1';
+import { fpsOf, zoomOf } from './kurbel.js?v=0.0.1';
+import { persist } from './speicher.js?v=0.0.1';
+import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=0.0.1';
+import { setAvDelay } from './ton.js?v=0.0.1';
+import { onRec, renderControls } from './aufnahme.js?v=0.0.1';
+import { zugOf } from '../module/greifer.js?v=0.0.1';
+
+let toastTimer = 0;
+export function say(text, warn){
+  const t = $('#toast'); t.textContent = text; t.classList.toggle('warn', !!warn); t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), warn ? 6000 : 3400);
+}
+ctx.sag = say;
+
+/* ---------- welcome ---------- */
+let hintTimer = 0;
+export function hideHint(){ clearTimeout(hintTimer); $('#hint').classList.add('gone'); }
+export function hideCard(){ $('#startcard').hidden = true; }
+
+/* ---------- the pad on the picture: crank and zoom ---------- */
+let lastLabel = '';
+export function vergissLabel(){ lastLabel = ''; }
+export function renderPad(){
+  const xC = ctx.kurbel.x, yC = ctx.kurbel.y;
+  const px = xC * 100, py = (1 - yC) * 100;
+  $('#puck').style.left = px + '%'; $('#puck').style.top = py + '%';
+  $('#xline').style.left = px + '%'; $('#yline').style.top = py + '%';
+  const pl = $('#plabel');
+  pl.style.left = px + '%'; pl.style.top = py + '%';
+  pl.classList.toggle('flip', xC > 0.5); pl.classList.toggle('below', yC > 0.82);
+  const f = fpsOf(xC), z = 'Zoom ' + comma(zoomOf(yC).toFixed(1)) + '×';
+  const r = ctx.ausgabeFps / f, tempo = f >= ctx.ausgabeFps - 0.3 ? 'echtes Tempo' : (r < 10 ? comma(r.toFixed(1)) : String(Math.round(r))) + '× schneller';
+  const top = ctx.halten ? 'hält' : fmtFps(f) + ' fps';
+  const h = hinweise(), zz = h.length ? z + ' · ' + h.join(' · ') : z;
+  const sub = ctx.zeitModus === 'under' && !ctx.halten ? tempo + ' · ' + zz : zz;
+  const lbl = top + '|' + sub;
+  if (lbl !== lastLabel){
+    pl.textContent = top + '\n';
+    const sm = document.createElement('small'); sm.textContent = sub; pl.appendChild(sm);
+    lastLabel = lbl;
+  }
+  renderGrip();
+}
+
+/* ---------- readouts next to the faders ---------- */
+function showRead(id, text){ const r = $(id); r.textContent = text; r.classList.add('show'); }
+function hideRead(id){ $(id).classList.remove('show'); }
+
+/* ---------- shutter fader: open .. closed ---------- */
+const expo = () => (wert('blende', 'winkel') ?? REF_ANGLE) / 360;
+export function renderExpo(){
+  const e = expo(), a = Math.round(e * 360), vf = $('#vfader');
+  $('#vfill').style.height = (e * 100) + '%';
+  $('#vknob').style.top = ((1 - e) * 100) + '%';
+  $('#vlimit').style.top = ((1 - (360 - TRANSPORT) / 360) * 100) + '%';
+  vf.classList.toggle('closed', e < 0.01);
+  vf.setAttribute('aria-valuenow', String(a));
+  vf.setAttribute('aria-valuetext', a === 0 ? 'zu' : a + ' Grad');
+}
+function vReadText(){
+  const a = Math.round(expo() * 360);
+  const schlieren = istAn('greifer') && transportOverlap(expo() * 360, wert('greifer', 'takt') ?? 0) > 0;
+  return (a === 0 ? 'zu' : a + '°') + (schlieren ? ' · Schlieren' : '');
+}
+
+/* ---------- Greifer pad: up/down = pull per frame ---------- */
+let lastGrip = '';
+export function renderGrip(){
+  const v = wert('greifer', 'zug') ?? 0.6, key = v.toFixed(4);
+  if (key === lastGrip) return;
+  lastGrip = key;
+  $('#gknob').style.left = '50%';
+  $('#gknob').style.top = ((1 - v) * 100) + '%';
+  $('#gZline').style.top = ((1 - 0.6) * 100) + '%';
+  $('#gpad').classList.toggle('off', zugOf(v) !== 1);
+}
+function gReadText(){
+  const Z = zugOf(wert('greifer', 'zug') ?? 0.6);
+  return Z === 1 ? 'Zug 1' : Z < 0.02 ? 'Film steht' : 'Zug ' + comma(Z.toFixed(2));
+}
+
+/* ---------- sheets ---------- */
+export function openSheet(id){
+  closeSheets();
+  $(id).classList.add('show'); $(id).setAttribute('aria-hidden', 'false'); $('#backdrop').classList.add('show');
+  const f = $(id).querySelector('.close'); if (f) f.focus({ preventScroll: true });
+}
+export function closeSheets(){
+  document.querySelectorAll('.sheet.show').forEach(s => { s.classList.remove('show'); s.setAttribute('aria-hidden', 'true'); });
+  $('#backdrop').classList.remove('show');
+}
+function seg(id, value, onPick){
+  const g = $(id);
+  const mark = v => g.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(v))));
+  mark(value);
+  g.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (ctx.aufnahme !== 'idle'){ say('Das geht erst, wenn der Film fertig ist.'); return; }
+    mark(b.dataset.v); onPick(b.dataset.v); persist();
+  });
+  return mark;
+}
+export function renderTimeNote(){
+  $('#timeNote').textContent = ctx.zeitModus === 'under'
+    ? 'Wie bei der Bolex: Jedes belichtete Bild wird genau einmal vorgeführt. Langsam gedreht, läuft die Zeit im Film schneller ab. Die Kamera läuft, solange du den Auslöser hältst, kurz tippen gibt einen Stoss von vier Bildern. Der Ton läuft wie ein separates Tonband in Echtzeit mit und kommt als eigene Spur dazu.'
+    : 'Die Zeit läuft echt weiter. Jedes Bild steht nach, bis das nächste kommt. Ton und Bild bleiben synchron.';
+}
+// Menüregler zeigen die Werte der Module (Handkurbel, Anlaufblitz, Bildstand)
+export function renderMenuWerte(){
+  const j = Math.round((wert('handkurbel', 'unruhe') ?? 0.75) * 100), w = Math.round((wert('bildstand', 'staerke') ?? 0.35) * 100);
+  $('#jitter').value = j; $('#jitterVal').textContent = String(j);
+  $('#weave').value = w; $('#weaveVal').textContent = String(w);
+  $('#startFlash').checked = wert('entwickeln', 'anlaufblitz') ?? true;
+  $('#swivel').checked = istAn('schwenken');
+  $('#avDelay').value = einst.avDelayMs; $('#delayVal').textContent = einst.avDelayMs + ' ms';
+}
+export const markiere = {};
+
+export function initBedienung(){
+  $('#version').textContent = VERSION;
+  hintTimer = setTimeout(hideHint, 6000);
+
+  /* XY pad on the picture, relative; two fingers hold the picture */
+  const stage = $('#stage'), pointers = new Map();
+  let primaryId = null, dragFrom = null, keyHold = false;
+  function updateFrozen(){
+    const f = pointers.size >= 2 || keyHold;
+    if (f !== ctx.halten){ ctx.halten = f; $('#frozen').hidden = !f; if (!f) intern.nextAt = 0; }
+  }
+  stage.addEventListener('pointerdown', e => {
+    pointers.set(e.pointerId, true);
+    try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+    if (pointers.size === 1){
+      primaryId = e.pointerId; dragFrom = { x: e.clientX, y: e.clientY, vx: ctx.kurbel.zielX, vy: ctx.kurbel.zielY };
+      stage.classList.add('playing'); hideHint(); hideCard();
+    }
+    updateFrozen();
+  });
+  stage.addEventListener('pointermove', e => {
+    if (e.pointerId !== primaryId || !dragFrom) return;
+    const r = stage.getBoundingClientRect(), k = ctx.kurbel;
+    k.zielX = clamp01(dragFrom.vx + (e.clientX - dragFrom.x) / (r.width * 0.55));
+    k.zielY = clamp01(dragFrom.vy - (e.clientY - dragFrom.y) / (r.height * 0.5));
+    if (k.zielX === 0 || k.zielX === 1){ dragFrom.x = e.clientX; dragFrom.vx = k.zielX; }
+    if (k.zielY === 0 || k.zielY === 1){ dragFrom.y = e.clientY; dragFrom.vy = k.zielY; }
+  });
+  const lift = e => {
+    pointers.delete(e.pointerId);
+    if (e.pointerId === primaryId){ primaryId = null; dragFrom = null; }
+    if (!pointers.size){ stage.classList.remove('playing'); persist(); }
+    updateFrozen();
+  };
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => stage.addEventListener(ev, lift));
+
+  /* shutter fader: up and down only */
+  const vf = $('#vfader');
+  let vReadTimer = 0, vfFrom = null;
+  vf.addEventListener('pointerdown', e => { e.preventDefault(); try { vf.setPointerCapture(e.pointerId); } catch (_) {} vfFrom = { y: e.clientY, v: expo() }; hideHint(); showRead('#vRead', vReadText()); });
+  vf.addEventListener('pointermove', e => {
+    if (!vfFrom) return;
+    setze('blende', 'winkel', clamp01(vfFrom.v - (e.clientY - vfFrom.y) / 200) * 360);
+    renderExpo(); showRead('#vRead', vReadText());
+  });
+  ['pointerup', 'pointercancel'].forEach(ev => vf.addEventListener(ev, () => { if (vfFrom){ vfFrom = null; persist(); clearTimeout(vReadTimer); vReadTimer = setTimeout(() => hideRead('#vRead'), 900); } }));
+  vf.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp') setze('blende', 'winkel', clamp01(expo() + 0.03) * 360);
+    else if (e.key === 'ArrowDown') setze('blende', 'winkel', clamp01(expo() - 0.03) * 360);
+    else return;
+    e.preventDefault(); e.stopPropagation(); renderExpo(); persist();
+  });
+
+  /* Greifer pad: up and down only; let go and the claw finds the perforation again; double tap sets it up */
+  const gp = $('#gpad');
+  let gReadTimer = 0, gFrom = null, gLastTap = 0;
+  function resetGrip(){
+    setze('greifer', 'zug', 0.6); ctx.eingabe.einrichten++;
+    renderGrip(); showRead('#gRead', 'eingerichtet'); clearTimeout(gReadTimer); gReadTimer = setTimeout(() => hideRead('#gRead'), 900);
+  }
+  gp.addEventListener('pointerdown', e => {
+    e.preventDefault(); try { gp.setPointerCapture(e.pointerId); } catch (_) {}
+    const now = performance.now();
+    if (now - gLastTap < 320){ gLastTap = 0; gFrom = null; resetGrip(); return; }
+    gLastTap = now;
+    ctx.eingabe.greiferHaelt = true; gFrom = { x: e.clientX, y: e.clientY, v: wert('greifer', 'zug') ?? 0.6 }; hideHint(); showRead('#gRead', gReadText());
+  });
+  gp.addEventListener('pointermove', e => {
+    if (!gFrom) return;
+    if (Math.abs(e.clientX - gFrom.x) + Math.abs(e.clientY - gFrom.y) > 6) gLastTap = 0;
+    setze('greifer', 'zug', clamp01(gFrom.v - (e.clientY - gFrom.y) / 220));
+    renderGrip(); showRead('#gRead', gReadText());
+  });
+  ['pointerup', 'pointercancel'].forEach(ev => gp.addEventListener(ev, () => { if (gFrom){ gFrom = null; ctx.eingabe.greiferHaelt = false; clearTimeout(gReadTimer); gReadTimer = setTimeout(() => hideRead('#gRead'), 900); } }));
+  gp.addEventListener('keydown', e => {
+    const v = wert('greifer', 'zug') ?? 0.6;
+    if (e.key === 'ArrowUp') setze('greifer', 'zug', clamp01(v + 0.02));
+    else if (e.key === 'ArrowDown') setze('greifer', 'zug', clamp01(v - 0.02));
+    else if (e.key === 'Enter' || e.key === ' ') resetGrip();
+    else return;
+    e.preventDefault(); e.stopPropagation(); renderGrip();
+  });
+
+  /* sheets */
+  $('#btnSettings').addEventListener('click', () => openSheet('#settings'));
+  $('#btnFilms').addEventListener('click', () => openSheet('#filmsSheet'));
+  $('#backdrop').addEventListener('click', closeSheets);
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeSheets));
+
+  /* settings wiring */
+  $('#btnCam').addEventListener('click', () => { closeSheets(); startCam(false); });
+  $('#btnDemo').addEventListener('click', () => { setMode('demo'); closeSheets(); });
+  $('#mirrorView').addEventListener('change', e => { einst.mirrorView[ctx.facing] = e.target.checked; renderSrc(); persist(); });
+  $('#mirrorRec').addEventListener('change', e => { einst.mirrorRec = e.target.checked; renderSrc(); persist(); });
+  $('#jitter').addEventListener('input', e => { setze('handkurbel', 'unruhe', +e.target.value / 100); $('#jitterVal').textContent = e.target.value; });
+  $('#jitter').addEventListener('change', persist);
+  $('#startFlash').addEventListener('change', e => { setze('entwickeln', 'anlaufblitz', e.target.checked); persist(); });
+  $('#weave').addEventListener('input', e => { setze('bildstand', 'staerke', +e.target.value / 100); $('#weaveVal').textContent = e.target.value; });
+  $('#weave').addEventListener('change', persist);
+  $('#swivel').addEventListener('change', e => { schalte('schwenken', e.target.checked); persist(); });
+  $('#ton').addEventListener('change', persist);
+  $('#avDelay').addEventListener('input', e => { setAvDelay(+e.target.value); $('#delayVal').textContent = einst.avDelayMs + ' ms'; });
+  $('#avDelay').addEventListener('change', persist);
+  markiere.time = seg('#segTime', ctx.zeitModus, v => { ctx.zeitModus = v === 'under' ? 'under' : 'hold'; renderTimeNote(); renderControls(); lastLabel = ''; });
+  markiere.fps = seg('#segFps', ctx.ausgabeFps, v => { ctx.ausgabeFps = +v; lastLabel = ''; });
+  markiere.res = seg('#segRes', einst.resCap, v => {
+    einst.resCap = +v;
+    if (ctx.quelle === 'demo') setSize(1280, 720); else vergissGroesse();
+    if (ctx.quelle === 'cam') startCam(true);
+  });
+  $('#cardCam').addEventListener('click', () => startCam(false));
+  $('#cardDemo').addEventListener('click', () => { hideCard(); });
+
+  /* keyboard */
+  document.addEventListener('keydown', e => {
+    const tag = e.target && e.target.tagName, k = ctx.kurbel;
+    if (e.metaKey || e.ctrlKey || e.altKey || (tag === 'INPUT' && e.target.type === 'range')) return;
+    if (e.key === 'Escape'){ closeSheets(); return; }
+    if (document.querySelector('.sheet.show')) return;
+    if (e.key === 'r' || e.key === 'R'){ e.preventDefault(); onRec(); }
+    else if (e.code === 'Space' && !e.repeat && tag !== 'BUTTON'){ e.preventDefault(); keyHold = true; updateFrozen(); }
+    else if (e.target === vf || e.target === gp) return;
+    else if (e.key === 'ArrowLeft'){ k.zielX = clamp01(k.zielX - 0.04); hideHint(); }
+    else if (e.key === 'ArrowRight'){ k.zielX = clamp01(k.zielX + 0.04); hideHint(); }
+    else if (e.key === 'ArrowUp'){ k.zielY = clamp01(k.zielY + 0.05); hideHint(); e.preventDefault(); }
+    else if (e.key === 'ArrowDown'){ k.zielY = clamp01(k.zielY - 0.05); hideHint(); e.preventDefault(); }
+  });
+  document.addEventListener('keyup', e => { if (e.code === 'Space'){ keyHold = false; updateFrozen(); } });
+
+  /* MIDI: a knob is the crank */
+  let learnCC = null, midiAccess = null;
+  function onMidi(m){
+    const d = m.data; if (!d || d.length < 3 || (d[0] & 0xf0) !== 0xb0) return;
+    if (learnCC === null){ learnCC = d[1]; $('#midiStatus').textContent = 'CC ' + learnCC + ' ist die Kurbel'; }
+    if (d[1] === learnCC){ ctx.kurbel.zielX = d[2] / 127; hideHint(); }
+  }
+  function hookMidi(){
+    let n = 0; midiAccess.inputs.forEach(i => { i.onmidimessage = onMidi; n++; });
+    if (learnCC === null) $('#midiStatus').textContent = n ? 'Dreh jetzt den Knopf, der die Kurbel sein soll' : 'Kein MIDI-Gerät gefunden';
+  }
+  $('#btnMidi').addEventListener('click', async () => {
+    learnCC = null;
+    if (!navigator.requestMIDIAccess){ $('#midiStatus').textContent = 'MIDI gibt es hier nicht, Chrome kann es'; return; }
+    try { if (!midiAccess){ midiAccess = await navigator.requestMIDIAccess(); midiAccess.onstatechange = hookMidi; } hookMidi(); }
+    catch (e) { $('#midiStatus').textContent = 'MIDI ist hier gesperrt'; }
+  });
+}
