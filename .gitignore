@@ -1,0 +1,11 @@
+# Privates Referenzmaterial (Personen, Wohnung): nie ins Repository
+referenz/
+
+# Ausgaben der Tests (Kontaktbögen, Clips)
+tests/out/
+
+# System und Werkzeuge
+.DS_Store
+.venv/
+__pycache__/
+.claude/settings.local.json

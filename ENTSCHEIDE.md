@@ -1,0 +1,44 @@
+# Entscheide
+
+Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder aufmachen ohne neuen Anlass.
+
+## 2026-10-09
+
+- **Der unsynchrone Film (Zug ≠ 1, rollender Bildstrich) bleibt spielbar.** Er war nicht das Problem. Gestört haben das Durchlaufen ohne Finger und die automatische Rückkehr. Neu auf dem Greifer-Pad: **Tippen = Stoss, Halten = Schlupf** (der Film läuft unsynchron, solange der Finger liegt), **Loslassen = Feder rastet ein.**
+
+## 2026-10-08
+
+- **Hosting über GitHub Pages, Repository öffentlich.** Https für Kamera, Gyroskop und gemerkte Erlaubnis. Claude im Chat kann den Stand direkt lesen. Referenzmaterial bleibt lokal (`referenz/` in `.gitignore`).
+- **Arbeitsweise:** Mekas wird ein Baukasten aus Modulen mit einem Labor (`?labor`). Ein bis zwei Module pro Runde, jede Runde mit Kontaktbogen und iPhone-Test. Statt eines langen Handovers gibt es `CLAUDE.md`, `MODULE.md`, `IDEEN.md` und `ENTSCHEIDE.md`.
+
+## 2026-10-06
+
+- **Bauweise B:** Module sauber einzeln entwickeln und testen. Langfristiges Ziel ist ein einziges Instrument mit allen Funktionen. Kopplungen zwischen den Modulen, Doppelfunktionen und Gehäuse (Kameramodelle) kommen in einem zweiten Schritt.
+- **Alles für alles:** Vorerst ist jedes Modul mit jeder Quelle möglich. Video laden funktioniert genau wie Live, abgesehen vom Schwenken mit dem Telefon.
+- **Takt (Greifer seitwärts) und Schlitze (Blende seitwärts) fliegen aus der Bedienung.** Kaum wahrnehmbar, rechtfertigen keine Achse.
+- **Greifer:** kein Dauerzug, kein Durchlaufen, keine automatische Rückkehr. Stattdessen Anstossen. Danach **rastet er wieder ein, zum nächsten stabilen Ort, auf dem kürzesten Weg, wie eine Feder mit Einschwingen.**
+- **Anstossen ist ein Stoss, keine Neigung.** XY-Pad für Richtung und Stärke, **immer mit Gyroskop gekoppelt.**
+- **Kein Ton aus der Mechanik** (kein Singen der Linse, kein Rattern).
+- **Fliessendes Standbild (11) gestrichen:** im Kern Datamosh, digital.
+- **LED-Streifen (17) gestrichen.** Das Prinzip der zeilenweisen Zeit lebt in der Linse weiter.
+- **Röhre atmen kommt auf die Ideenliste**, ebenso **Blitz und Strobo**.
+- **Unterdreht:** später.
+- **Linse:** Die erste Rechnung (grobe Zacken) sah nicht aus wie Maris’ Foto. Dort ist alles filigraner: feine Striche nur senkrecht, dazu grosse Fokuswellen. Daran wird die Linse gemessen.
+
+## 2026-10-05
+
+- **Name Mekas** (vorher Kurbel). IndexedDB `kurbel` und localStorage `kurbel.v3` behalten ihre Namen.
+
+## Früher verworfen (aus dem alten Handover)
+
+- Kurbel unter 4 fps.
+- Schwarzer Steg zwischen den Bildern (variierte, wirkte digital).
+- Federwerk mit 28-s-Grenze und Aufziehen: nervt.
+- Einzelbild- und Ton-Auslöser bei 0 fps: kein Ausdruck.
+- Automatische Auf- und Abblende bei Doppel: Maris blendet selbst.
+- Automatische Doppelblende.
+- Lartigue-Slit-Scan: sah digital aus.
+- Kurbel-Geste (Kreise auf dem Bildschirm).
+- Begriff „Raffen“, stattdessen „Unterdreht“.
+- Farbfilter, Grain-Overlays, Texturen.
+- Takt-Streifen als sichtbare Streifen: zu digital, jetzt nur Schlieren aus Lichtern.

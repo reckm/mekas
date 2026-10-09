@@ -1,0 +1,1732 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d0c10">
+<title>Mekas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Karla:wght@400;500;700&display=swap">
+<style>
+/* Layout: the whole screen is the viewfinder and the instrument. Drag anywhere (relative): sideways = frame rate, up/down = zoom. Top left: camera switch. Bottom: shutter fader (down to closed), big release, Doppel, Fertig. Films and settings live in sheets. Single dark look on purpose. */
+:root{
+  --velvet:#0d0c10;
+  --plate:#18171d;
+  --line:#2e2c37;
+  --paper:#efecf3;
+  --muted:#9a96a8;
+  --sky:#a9cbe8;
+  --sky-soft:rgba(169,203,232,.16);
+  --rec:#ec4a3f;
+  --type:"Courier Prime","Courier New",ui-monospace,monospace;
+  --body:"Karla",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--velvet);color:var(--paper);overflow:hidden}
+body{font-family:var(--body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+.app{position:relative;height:100%;width:100%;overflow:hidden}
+button{font-family:inherit;color:inherit}
+
+.stage{position:absolute;inset:0;background:#000;touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none}
+.stage.playing{cursor:grabbing}
+#out{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+#out.mirror{transform:scaleX(-1)}
+.padarea{position:absolute;left:24px;right:96px;top:calc(84px + env(safe-area-inset-top,0px));bottom:calc(196px + env(safe-area-inset-bottom,0px));pointer-events:none}
+.xline,.yline{position:absolute;pointer-events:none;background:var(--sky);opacity:.12;transition:opacity .3s}
+.xline{top:0;bottom:0;width:1px}.yline{left:0;right:0;height:1px}
+.puck{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:2px solid var(--sky);pointer-events:none;box-shadow:0 0 0 6px var(--sky-soft);opacity:.75;transition:background .2s,transform .2s,opacity .3s}
+.stage.playing .puck{background:var(--sky-soft);transform:scale(1.15);opacity:1}
+.stage.playing .xline,.stage.playing .yline{opacity:.3}
+.plabel{position:absolute;pointer-events:none;font-family:var(--type);font-size:.95rem;line-height:1.25;font-variant-numeric:tabular-nums;background:rgba(13,12,16,.6);padding:4px 12px;border-radius:12px;white-space:pre;transform:translate(20px,-64px)}
+.plabel small{font-size:.78rem;opacity:.8}
+.plabel.flip{transform:translate(calc(-100% - 20px),-64px)}
+.plabel.below{margin-top:96px}
+.frozen{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--type);font-weight:700;letter-spacing:.3em;font-size:1rem;color:var(--velvet);background:var(--sky);padding:6px 14px;border-radius:999px;pointer-events:none}
+.hint{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:min(320px,calc(100% - 48px));text-align:center;pointer-events:none;text-shadow:0 1px 4px #000;transition:opacity .6s}
+.hint b{display:block;font-family:var(--type);font-size:1.15rem;margin-bottom:6px}
+.hint span{font-size:.92rem;opacity:.85}
+.hint.gone{opacity:0}
+
+.bar{position:absolute;left:0;right:0;display:flex;align-items:center;gap:10px;padding-inline:16px;pointer-events:none}
+.bar > *{pointer-events:auto}
+.top{top:0;padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:28px;background:linear-gradient(rgba(0,0,0,.55),transparent)}
+.srcbtn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px 0 12px;border-radius:999px;border:1px solid rgba(239,236,243,.35);background:rgba(13,12,16,.55);font-family:var(--type);font-weight:700;letter-spacing:.12em;font-size:.85rem;cursor:pointer;flex:none}
+.srcbtn svg{width:20px;height:20px;stroke:var(--paper);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.srcbtn:active{background:var(--sky);color:var(--velvet)}
+.srcbtn:active svg{stroke:var(--velvet)}
+.chips{display:flex;gap:8px;align-items:center;flex:1;min-width:0;pointer-events:none;flex-wrap:wrap}
+.chip{font-family:var(--type);font-size:.82rem;padding:3px 10px;border-radius:999px;background:rgba(13,12,16,.6);white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip.rec{background:var(--rec);color:#fff;font-weight:700;letter-spacing:.04em}
+.chip.paused{background:var(--paper);color:var(--velvet);font-weight:700}
+.chip.sky{background:var(--sky);color:var(--velvet);font-weight:700}
+.iconbtn{width:48px;height:48px;border-radius:50%;border:0;background:rgba(13,12,16,.55);display:grid;place-items:center;cursor:pointer;flex:none;position:relative}
+.iconbtn svg{width:24px;height:24px;stroke:var(--paper);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn .count{position:absolute;top:-2px;right:-2px;min-width:20px;height:20px;border-radius:10px;background:var(--sky);color:var(--velvet);font-weight:700;font-size:.72rem;display:grid;place-items:center;padding:0 5px}
+:focus-visible{outline:2px solid var(--sky);outline-offset:3px}
+
+.bottom{bottom:0;justify-content:flex-start;align-items:flex-end;gap:10px;padding-right:92px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));padding-top:50px;background:linear-gradient(transparent,rgba(0,0,0,.65))}
+.slot{display:flex;flex-direction:column;align-items:center;gap:6px;width:72px}
+.slotlabel{font-size:.74rem;opacity:.85;text-align:center;min-height:1.1em;white-space:nowrap}
+.recbtn{position:relative;width:112px;height:112px;border-radius:50%;border:4px solid var(--paper);background:rgba(13,12,16,.35);cursor:pointer;touch-action:none;flex:none}
+.recbtn .core{position:absolute;left:50%;top:50%;width:82px;height:82px;margin:-41px 0 0 -41px;border-radius:50%;background:var(--rec);transition:all .16s ease;display:grid;place-items:center}
+.recbtn .bars{display:none;gap:10px}
+.recbtn .bars i{display:block;width:10px;height:30px;border-radius:3px;background:#fff}
+.recbtn.live .core{width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:18px}
+.recbtn.live .bars{display:flex}
+.recbtn.paused{border-color:var(--rec);animation:breathe 1.6s ease-in-out infinite}
+.recbtn.fading{border-color:var(--sky)}
+@keyframes breathe{50%{box-shadow:0 0 0 10px rgba(236,74,63,.18)}}
+.recwrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+.round{width:64px;height:64px;border-radius:50%;border:2px solid rgba(239,236,243,.75);background:rgba(13,12,16,.55);display:grid;place-items:center;cursor:pointer}
+.round svg{width:26px;height:26px;stroke:var(--paper);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.round[aria-pressed="true"]{background:var(--sky);border-color:var(--sky)}
+.round[aria-pressed="true"] svg{stroke:var(--velvet)}
+.round:disabled{opacity:.3;cursor:default}
+.slot.invisible{visibility:hidden}
+
+.vfader{position:relative;width:56px;height:140px;border-radius:26px;background:rgba(13,12,16,.55);border:2px solid rgba(239,236,243,.5);touch-action:none;cursor:ns-resize;overflow:hidden}
+.vfader .fill{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(to top,rgba(169,203,232,.2),rgba(169,203,232,.6))}
+.vfader .knob{position:absolute;left:6px;right:6px;height:6px;border-radius:3px;background:var(--paper);margin-top:-3px}
+.vfader .ends{position:absolute;left:0;right:0;text-align:center;font-size:.62rem;letter-spacing:.06em;opacity:.8;pointer-events:none}
+.vfader .ends.t{top:6px}.vfader .ends.b{bottom:6px}
+.vfader.closed{border-color:var(--sky)}
+.vfader .limit{position:absolute;left:0;right:0;height:0;border-top:1px dashed rgba(239,236,243,.55);pointer-events:none}
+.fwrap{position:relative}
+.readout{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);font-family:var(--type);font-size:.85rem;font-variant-numeric:tabular-nums;white-space:nowrap;background:rgba(13,12,16,.8);border:1px solid var(--line);padding:4px 10px;border-radius:10px;pointer-events:none;opacity:0;transition:opacity .2s}
+.readout.show{opacity:1}
+.ctl{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.gripper{position:absolute;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:12px;z-index:2}
+.gpad{position:relative;width:56px;height:140px;border-radius:30px;background:rgba(13,12,16,.55);border:2px solid rgba(239,236,243,.5);touch-action:none;cursor:move;overflow:hidden}
+.gpad .hline{position:absolute;left:8px;right:8px;height:0;border-top:1px dashed rgba(239,236,243,.45)}
+.gpad .vline{position:absolute;top:10px;bottom:10px;width:0;left:50%;border-left:1px dashed rgba(239,236,243,.3)}
+.gpad .knob{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:var(--paper);box-shadow:0 0 0 5px rgba(239,236,243,.15)}
+.gpad.off{border-color:var(--sky)}
+.gpad.off .knob{background:var(--sky)}
+.gpad .ends{position:absolute;left:0;right:0;text-align:center;font-size:.6rem;letter-spacing:.04em;opacity:.75;pointer-events:none}
+.gpad .ends.t{top:8px}.gpad .ends.b{bottom:8px}
+.gripper .readout{bottom:auto;top:40%;left:auto;right:calc(100% + 12px);transform:translateY(-50%)}
+.slotlabel small{display:block;font-size:.66rem;opacity:.8}
+#vLabel{min-height:2.3em}
+
+.scrub{position:absolute;left:16px;right:92px;bottom:calc(172px + env(safe-area-inset-bottom,0px));background:rgba(24,23,29,.9);border:1px solid var(--line);border-radius:18px;padding:12px 16px 8px;display:flex;flex-direction:column;gap:4px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);max-width:640px;margin-inline:auto}
+.scrubhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.scrubhead b{font-family:var(--type);font-size:1rem}
+.scrubhead span{font-family:var(--type);color:var(--sky);font-variant-numeric:tabular-nums}
+.scrub small{color:var(--muted);font-size:.82rem}
+.develop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(320px,calc(100% - 32px));background:rgba(24,23,29,.92);border:1px solid var(--line);border-radius:20px;padding:20px;text-align:center;display:flex;flex-direction:column;gap:12px}
+.develop b{font-family:var(--type);font-size:1.15rem}
+.progress{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--sky)}
+.result{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto;background:rgba(24,23,29,.95);border:1px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:10px;text-align:center}
+.result video{width:100%;max-height:36vh;border-radius:12px;background:#000;object-fit:contain}
+.result b{font-family:var(--type);font-size:1.1rem}
+
+.toast{position:absolute;left:50%;top:calc(76px + env(safe-area-inset-top,0px));transform:translate(-50%,-8px);max-width:min(440px,calc(100% - 32px));background:rgba(24,23,29,.94);border:1px solid var(--line);padding:10px 16px;border-radius:14px;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.warn{border-color:var(--rec)}
+.startcard{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(340px,calc(100% - 32px));background:rgba(24,23,29,.92);border:1px solid var(--line);border-radius:20px;padding:22px 20px 14px;display:flex;flex-direction:column;gap:10px;text-align:center;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.startcard h2{margin:0;font-family:var(--type);font-size:1.35rem;text-wrap:balance}
+.startcard p{margin:0 0 6px;color:var(--muted);font-size:.92rem;text-wrap:pretty}
+.pill{min-height:50px;border-radius:999px;border:1px solid var(--line);background:var(--velvet);font-size:1rem;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:0 18px}
+.pill.primary{background:var(--sky);color:var(--velvet);border-color:var(--sky);font-weight:700}
+.pill.ghost{background:transparent;border-color:transparent;color:var(--muted);min-height:40px}
+.pill input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s}
+.backdrop.show{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:50%;bottom:0;width:min(560px,100%);max-height:84%;overflow:auto;overscroll-behavior:contain;transform:translate(-50%,105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);background:var(--plate);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;padding:6px 18px calc(26px + env(safe-area-inset-bottom,0px))}
+.sheet.show{transform:translate(-50%,0)}
+.grip{width:40px;height:5px;border-radius:3px;background:var(--line);margin:6px auto 10px}
+.sheethead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sheethead h2{margin:0;font-family:var(--type);font-size:1.15rem;letter-spacing:.06em}
+.close{border:0;background:var(--velvet);width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1.3rem;line-height:1}
+.sec{margin-top:16px}
+.sec h3{margin:0 0 6px;font-size:.72rem;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:500}
+.rowset{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:54px;border-bottom:1px solid var(--line)}
+.rowset:last-child{border-bottom:0}
+.rowset .t{display:flex;flex-direction:column;min-width:0}
+.rowset .t small{color:var(--muted);font-size:.8rem}
+.rowset.col{flex-direction:column;align-items:stretch;padding-block:10px;gap:8px}
+.seg{display:flex;background:var(--velvet);border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;min-height:42px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-weight:500;cursor:pointer;font-size:.92rem}
+.seg button[aria-pressed="true"]{background:var(--sky);color:var(--velvet);font-weight:700}
+.switch{-webkit-appearance:none;appearance:none;width:52px;height:32px;border-radius:16px;background:var(--line);position:relative;cursor:pointer;flex:none;transition:background .2s;margin:0}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:var(--paper);transition:transform .2s}
+.switch:checked{background:var(--sky)}
+.switch:checked::after{transform:translateX(20px)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:40px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--line)}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-12px;border-radius:50%;background:var(--sky);border:0}
+input[type=range]::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:var(--sky);border:0}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px}
+.btnrow .pill{flex:1 1 140px;min-height:46px;font-size:.95rem}
+.val{font-family:var(--type);color:var(--sky);font-variant-numeric:tabular-nums}
+.note{color:var(--muted);font-size:.84rem;margin:8px 0 0;text-wrap:pretty}
+.filmlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:8px}
+.film{background:var(--velvet);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.film video{width:100%;aspect-ratio:16/9;background:#000;object-fit:contain;display:block}
+.film .meta{padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px}
+.film .info{font-family:var(--type);font-size:.85rem;font-variant-numeric:tabular-nums}
+.film .acts{display:flex;gap:6px;flex-wrap:wrap}
+.film .pill{min-height:40px;font-size:.88rem;flex:1 1 auto;padding:0 12px}
+.empty{color:var(--muted);margin:12px 0}
+.filmsfoot{margin-top:20px;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+#btnDropAll.armed{background:var(--rec);border-color:var(--rec);color:#fff}
+@media (prefers-reduced-motion:reduce){.sheet,.toast,.backdrop,.puck,.hint{transition:none}.recbtn.paused{animation:none}}
+</style>
+</head>
+<body>
+
+
+<div class="app" id="app">
+  <div class="stage" id="stage" aria-label="Sucher. Seitwärts wischen verändert die Bildrate, hoch und runter den Zoom. Zwei Finger halten das Bild an.">
+    <canvas id="out" width="1280" height="720"></canvas>
+    <div class="padarea">
+      <div class="xline" id="xline"></div>
+      <div class="yline" id="yline"></div>
+      <div class="puck" id="puck"></div>
+      <div class="plabel" id="plabel">12 fps</div>
+    </div>
+    <div class="frozen" id="frozen" hidden>HÄLT</div>
+    <div class="hint" id="hint"><b>Spiel mit der Zeit.</b><span>Wisch übers Bild: seitwärts ist die Kurbel, hoch und runter der Zoom. Zwei Finger halten das Bild an.</span></div>
+  </div>
+
+  <div class="bar top">
+    <button class="srcbtn" id="btnSrc" type="button" aria-label="Kamera an">
+      <svg viewBox="0 0 24 24"><path d="M4 8.5h3l1.6-2.2h6.8L17 8.5h3v10H4z"/><path d="M9.2 13.4a2.8 2.8 0 0 1 4.9-1.8M14.8 13.6a2.8 2.8 0 0 1-4.9 1.8"/><path d="M14.4 10.4v1.4h-1.4M9.6 16.6v-1.4H11"/></svg>
+      <span id="srcLabel">DEMO</span>
+    </button>
+    <div class="chips">
+      <span class="chip" id="chipTime" hidden>00:00</span>
+      <span class="chip sky" id="chipDoppel" hidden>DOPPEL</span>
+    </div>
+    <button class="iconbtn" id="btnFilms" type="button" aria-label="Filme">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 9.5h4M3 14.5h4M17 9.5h4M17 14.5h4"/></svg>
+      <span class="count" id="filmCount" hidden>0</span>
+    </button>
+    <button class="iconbtn" id="btnSettings" type="button" aria-label="Einstellungen">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5"/></svg>
+    </button>
+  </div>
+
+  <div class="gripper">
+    <div class="ctl">
+      <div class="readout" id="gRead"></div>
+      <div class="gpad" id="gpad" role="group" tabindex="0" aria-label="Greifer: hoch und runter ist der Filmzug, seitwärts der Takt zur Blende. Doppeltippen richtet alles wieder ein.">
+        <div class="hline" id="gZline"></div><div class="vline"></div><div class="knob" id="gknob"></div>
+        <span class="ends t">mehr</span><span class="ends b">steht</span>
+      </div>
+      <span class="slotlabel">Greifer</span>
+    </div>
+    <div class="ctl">
+      <div class="readout" id="vRead"></div>
+      <div class="vfader" id="vfader" role="slider" tabindex="0" aria-label="Blende: hoch und runter öffnet, seitwärts von verwaschen zu fragmentiert" aria-valuemin="0" aria-valuemax="360" aria-valuenow="135">
+        <div class="fill" id="vfill"></div><div class="limit" id="vlimit"></div><div class="knob" id="vknob"></div>
+        <span class="ends t">offen</span><span class="ends b">zu</span>
+      </div>
+      <span class="slotlabel" id="vLabel">Blende</span>
+    </div>
+  </div>
+
+  <div class="scrub" id="scrub" hidden>
+    <div class="scrubhead"><b>Doppel ab</b><span id="scrubVal">0:00,0 von 0:00,0</span></div>
+    <input type="range" id="scrubber" min="0" max="1000" step="1" value="0" aria-label="Stelle im Film, ab der doppelt belichtet wird">
+    <small>Such die Stelle im Film. Aufnehmen legt dein neues Bild ab hier darüber. Auf- und abblenden machst du selbst mit der Belichtung.</small>
+  </div>
+
+  <div class="bar bottom">
+    <div class="slot" id="slotDoppel">
+      <button class="round" id="btnDoppel" type="button" aria-pressed="false" aria-label="Doppel: zurückspulen und darüber belichten">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="12" r="5.5"/><circle cx="15" cy="12" r="5.5"/></svg>
+      </button>
+      <span class="slotlabel">Doppel</span>
+    </div>
+    <div class="recwrap">
+      <button class="recbtn" id="btnRec" type="button" aria-label="Aufnehmen"><span class="core"><span class="bars"><i></i><i></i></span></span></button>
+      <span class="slotlabel" id="recLabel">Aufnehmen</span>
+    </div>
+    <div class="slot">
+      <button class="round" id="btnDone" type="button" aria-label="Film beenden und speichern" disabled>
+        <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </button>
+      <span class="slotlabel">Fertig</span>
+    </div>
+  </div>
+
+  <div class="develop" id="develop" hidden>
+    <b>Film wird entwickelt</b>
+    <div class="progress"><i id="devBar"></i></div>
+    <span id="devVal" class="val">bereitet vor …</span>
+    <button class="pill ghost" id="devCancel" type="button">Abbrechen</button>
+  </div>
+
+  <div class="result" id="result" hidden>
+    <b id="resTitle">Film fertig</b>
+    <video id="resVideo" controls playsinline></video>
+    <button class="pill primary" id="resSave" type="button">Film aufs iPhone sichern</button>
+    <button class="pill" id="resSaveTon" type="button" hidden>Tonspur sichern</button>
+    <button class="pill ghost" id="resClose" type="button">Weiterfilmen</button>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <div class="startcard" id="startcard">
+    <h2>Lass los und film.</h2>
+    <p>Eine Kamera wie eine alte Bolex. Du spielst die Zeit mit dem Finger, Fehler gehören dazu.</p>
+    <button class="pill primary" id="cardCam" type="button">Kamera an</button>
+    <label class="pill" for="cardFile">Video laden<input type="file" id="cardFile" accept="video/*"></label>
+    <button class="pill ghost" id="cardDemo" type="button">Erst mal mit der Demo spielen</button>
+  </div>
+
+  <div class="backdrop" id="backdrop"></div>
+
+  <aside class="sheet" id="settings" aria-labelledby="setTitle" aria-hidden="true">
+    <div class="grip"></div>
+    <div class="sheethead"><h2 id="setTitle">Einstellungen</h2><button class="close" type="button" data-close aria-label="Schliessen">×</button></div>
+    <div class="sec">
+      <h3>Zeit</h3>
+      <div class="rowset col">
+        <div class="seg" id="segTime"><button type="button" data-v="hold" aria-pressed="true">Bild steht nach</button><button type="button" data-v="under">Unterdreht</button></div>
+        <p class="note" id="timeNote"></p>
+      </div>
+    </div>
+    <div class="sec">
+      <h3>Quelle</h3>
+      <div class="btnrow">
+        <button class="pill primary" id="btnCam" type="button">Kamera an</button>
+        <label class="pill" for="fileIn">Video laden<input type="file" id="fileIn" accept="video/*"></label>
+        <button class="pill" id="btnDemo" type="button">Demo</button>
+      </div>
+      <div class="rowset" id="rowMirror"><div class="t">Sucher spiegeln<small>nur die Anzeige, wie ein Spiegel</small></div><input type="checkbox" class="switch" id="mirrorView"></div>
+      <div class="rowset" id="rowMirrorRec"><div class="t">Aufnahme spiegeln<small>die Datei seitenverkehrt</small></div><input type="checkbox" class="switch" id="mirrorRec"></div>
+      <div class="rowset" id="rowSwivel"><div class="t">Schwenken mit dem Telefon<small>im Zoom wandert der Ausschnitt mit, wie beim Abfilmen eines Fernsehers. Mitte ist, wie du das Telefon beim Start der Aufnahme hältst.</small></div><input type="checkbox" class="switch" id="swivel" checked></div>
+      <div class="rowset" id="rowFile" hidden><div class="t">Geladenes Video</div><div class="btnrow"><button class="pill" id="btnRestart" type="button">Von vorn</button></div></div>
+    </div>
+    <div class="sec">
+      <h3>Mechanik</h3>
+      <p class="note">Unten rechts die <b>Blende</b>: hoch und runter, wie lange sie pro Bild offen ist. Seitwärts drehst du eine zweite geschlitzte Scheibe dagegen: links bleibt die Öffnung ein durchgehendes, verwaschenes Fenster, nach rechts wird sie in schmale Schlitze zerhackt, und aus der Schliere werden einzelne scharfe Fragmente. Am deutlichsten bei langsamem Kurbeln. Über der gestrichelten Linie ist die Blende noch offen, während der Greifer den Film schon zieht: helle Stellen ziehen Schlieren.<br>Darüber der <b>Greifer</b>: hoch und runter, wie weit er den Film pro Bild zieht. Unten steht der Film und die Bilder stapeln sich, knapp neben der Mitte rutscht der Bildstrich langsam durchs Bild, oben bleiben Lücken. Seitwärts verschiebst du den Takt zur Blende. Loslassen: Der Greifer läuft in seiner Richtung weiter, bis er wieder in der Perforation sitzt.</p>
+      <div class="rowset col"><div class="t">Handkurbel <span class="val" id="jitterVal">75</span><small>wie unregelmässig die Bilder kommen</small></div><input type="range" id="jitter" min="0" max="100" step="1" value="75" aria-label="Handkurbel"></div>
+      <div class="rowset"><div class="t">Anlaufblitz<small>überbelichtet die ersten Bilder nach jedem Start</small></div><input type="checkbox" class="switch" id="startFlash" checked></div>
+      <div class="rowset col"><div class="t">Bildstand <span class="val" id="weaveVal">35</span><small>jedes neue Bild sitzt minimal anders im Bildfenster</small></div><input type="range" id="weave" min="0" max="100" step="1" value="35" aria-label="Bildstand"></div>
+    </div>
+    <div class="sec">
+      <h3>Aufnahme</h3>
+      <div class="rowset col"><div class="t">Vorführtempo der Datei<small>passend zur Final-Cut-Timeline</small></div>
+        <div class="seg" id="segFps"><button type="button" data-v="24" aria-pressed="true">24</button><button type="button" data-v="25">25</button><button type="button" data-v="30">30</button></div>
+      </div>
+      <div class="rowset col"><div class="t">Auflösung<small>720p läuft auf dem iPhone flüssiger</small></div>
+        <div class="seg" id="segRes"><button type="button" data-v="1280" aria-pressed="true">720p</button><button type="button" data-v="1920">1080p</button></div>
+      </div>
+      <div class="rowset"><div class="t">Ton aufnehmen</div><input type="checkbox" class="switch" id="ton" checked></div>
+      <div class="rowset col"><div class="t">Mikrofon verzögern <span class="val" id="delayVal">0 ms</span><small>Einmal vor der Kamera klatschen und in Final Cut prüfen. Kommt der Klatscher vor dem Bild, hier nachziehen.</small></div><input type="range" id="avDelay" min="0" max="300" step="5" value="0" aria-label="Mikrofon verzögern"></div>
+      <div class="rowset"><div class="t">Klappe<small>weisser Blitz mit Piepton im laufenden Film</small></div><button class="pill" id="btnClap" type="button">Klappe</button></div>
+    </div>
+    <div class="sec">
+      <h3>Am Rechner</h3>
+      <div class="rowset"><div class="t">MIDI-Knopf als Kurbel<small id="midiStatus">in Chrome mit der Datei, direkt geöffnet</small></div><button class="pill" id="btnMidi" type="button">Verbinden</button></div>
+      <p class="note">Tastatur: R nimmt auf und pausiert, Leertaste gedrückt hält das Bild an, Pfeiltasten bewegen Kurbel und Zoom.</p>
+      <p class="note">Kamera und Mikrofon sind in der Claude-Vorschau gesperrt. Öffne die Datei direkt im Browser. Damit Safari auf dem iPhone nicht jedes Mal fragt: Einstellungen › Apps › Safari › Kamera und Mikrofon auf „Erlauben“.</p>
+    </div>
+  </aside>
+
+  <aside class="sheet" id="filmsSheet" aria-labelledby="filmsTitle" aria-hidden="true">
+    <div class="grip"></div>
+    <div class="sheethead"><h2 id="filmsTitle">Filme</h2><button class="close" type="button" data-close aria-label="Schliessen">×</button></div>
+    <div class="filmlist" id="films"></div>
+    <p class="empty" id="noFilms">Noch kein Film. Mit dem Haken „Fertig“ landet ein Film hier.</p>
+    <div class="filmsfoot" id="filmsFoot" hidden>
+      <p class="note">Die Filme liegen nur hier im Browser, nicht in deinen Fotos. Was du behalten willst, zuerst sichern.</p>
+      <button class="pill" id="btnDropAll" type="button">Alle löschen</button>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const mk = () => { const c = document.createElement('canvas'); return [c, c.getContext('2d', { alpha: false })]; };
+  const mkVideo = muted => { const v = document.createElement('video'); v.playsInline = true; v.setAttribute('playsinline', ''); v.muted = !!muted; v.preload = 'auto'; return v; };
+  const out = $('#out'), octx = out.getContext('2d', { alpha: false, desynchronized: true });
+  const [hold, hctx] = mk(), [acc, actx] = mk(), [tmp, tctx] = mk();
+  const vidCam = mkVideo(true), vidFile = mkVideo(false);
+    const stage = $('#stage');
+  const REF_ANGLE = 135, ZOOM_MAX = 3, FADE_MS = 900, SPOOL = 4000;
+  const inViewer = !!(window.claude && typeof window.claude.use === 'function');
+
+  let mode = 'demo', facing = 'environment', camStream = null, micStream = null;
+  let outFps = 24, jitter = 0.75, expo = 0.375, timeMode = 'hold';
+  let xT = 0.78, yT = 0, xC = 0.78, yC = 0, frozen = false;
+  let W = 1280, H = 720, srcW = 0, srcH = 0, resCap = 1280;
+  let startFlash = true, flashQ = [];
+  let audioCtx = null, audioDest = null, recBus = null, recDelay = null, fileNode = null, micNode = null, micToRec = false, avDelayMs = 0;
+  let open = false, ex = null, accN = 0, curE = 0, curAngle = REF_ANGLE, curOv = 0, curTravel = 0, slitsH = 0, zugV = 0.6, taktH = 0.5, framOff = 0, nextAt = 0, have = false, dirty = false, projNext = 0, clapFrames = 0;
+  let weaveAmt = 0.35, wx = 0, wy = 0, ws = 1;
+  let mirrorView = { user: true, environment: false }, mirrorRec = false;
+  let fileURL = null, lastNow = performance.now();
+
+  // film state
+  let state = 'idle';            // idle | rec | paused | scrub | busy | developing
+  let passes = [], cur = null, scrubPos = 0, films = [], filmN = 0;
+  let env = 1, envStart = 0, fadingOut = false, fadeOutAt = 0;
+  let sid = '', passNo = 0, captureNext = false, totalCaptured = 0, aRec = null, ul = { want: -1, img: null };
+
+  const dlPromise = inViewer ? window.claude.use('downloads') : Promise.resolve(undefined);
+  dlPromise.catch(() => {});
+  const comma = s => String(s).replace('.', ',');
+  const mmss = s => { s = Math.max(0, s); const m = Math.floor(s / 60); return m + ':' + comma((s - m * 60).toFixed(1)).padStart(4, '0'); };
+  const mmssShort = s => { s = Math.max(0, Math.floor(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+
+  let toastTimer = 0;
+  function say(text, warn){
+    const t = $('#toast'); t.textContent = text; t.classList.toggle('warn', !!warn); t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), warn ? 6000 : 3400);
+  }
+
+  /* ---------- remembered settings ---------- */
+  const KEY = 'kurbel.v3'; const KEY_VER = 4;
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+  function persist(){
+    const s = { outFps, expo, jitter, startFlash, weave: Math.round(weaveAmt * 100), ton: $('#ton').checked, lastMode: mode, facing, res: resCap, mirrorView, mirrorRec, avDelay: avDelayMs, x: xT, y: yT, swivel: swivelOn, timeMode, slits: slitsH, v: KEY_VER };
+    try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+  }
+
+  // the film strip near the gate: three frame pitches; exposures land at the gate, the projector window can slip
+  const [expC, ectx] = mk(), [hiC, hictx] = mk();
+  let stripA = document.createElement('canvas'), stripB = document.createElement('canvas');
+  let sa = stripA.getContext('2d', { alpha: false }), sb = stripB.getContext('2d', { alpha: false });
+  let P = 0, GY = 0;
+  function setSize(w, h){
+    const s = Math.min(1, resCap / Math.max(w, h));
+    W = Math.max(2, Math.round(w * s / 2) * 2); H = Math.max(2, Math.round(h * s / 2) * 2);
+    for (const c of [out, hold, acc, tmp, expC, hiC]){ c.width = W; c.height = H; }
+    P = H; GY = P;                       // frames sit flush, no black bar between them
+    for (const c of [stripA, stripB]){ c.width = W; c.height = P * 3; }
+    sa.fillStyle = '#000'; sa.fillRect(0, 0, W, P * 3); framOff = 0;
+    have = false;
+  }
+  setSize(1280, 720);
+
+  /* ---------- instrument mapping ---------- */
+  // crank scale: 4-12 fps across most of the travel, 12 up to full speed at the end
+  function fpsOf(x){
+    x = clamp01(x);
+    const pts = [[0, 4], [0.8, 12], [1, Math.max(13, outFps)]];
+    for (let i = 1; i < pts.length; i++){
+      const [x0, f0] = pts[i - 1], [x1, f1] = pts[i];
+      if (x <= x1) return f0 * Math.pow(f1 / f0, (x - x0) / (x1 - x0));
+    }
+    return outFps;
+  }
+  const zoomOf = y => 1 + clamp01(y) * (ZOOM_MAX - 1);
+  const angleOf = e => clamp01(e) * 360;          // fader: 0° (closed, black) .. 360°
+  const TRANSPORT = 120;                          // degrees of each cycle in which the claw pulls the film
+  // two slotted discs on one axis: turned against each other, the open window gets chopped into narrow slits
+  const combOf = h => clamp01((clamp01(h) - 0.04) / 0.96);         // 0 = one continuous window
+  const slitsN = () => combOf(slitsH) <= 0 ? 1 : 2 + Math.round(combOf(slitsH) * 4);
+  const dutyOf = () => 1 - 0.85 * combOf(slitsH);
+  function zugOf(v){
+    const c = 0.6, d = v >= c ? (v - c) / (1 - c) : (v - c) / c, dz = 0.07;
+    if (Math.abs(d) < dz) return 1;
+    const s = Math.pow((Math.abs(d) - dz) / (1 - dz), 2.4);
+    return d < 0 ? 1 - s : 1 + 0.5 * s;
+  }
+  function taktOf(h){      // phase shift of the shutter against the claw, in degrees
+    const d = (h - 0.5) * 2, dz = 0.08;
+    if (Math.abs(d) < dz) return 0;
+    return Math.sign(d) * Math.pow((Math.abs(d) - dz) / (1 - dz), 2) * 180;
+  }
+  // how much of the open sector falls into the transport (both on a 360° circle)
+  function transportOverlap(angle, phase){
+    if (angle <= 0) return 0;
+    const c = 240 + phase, a0 = c - angle / 2, a1 = c + angle / 2;
+    let ov = 0;
+    for (let k = -2; k <= 2; k++){ const t0 = 360 * k, t1 = t0 + TRANSPORT; ov += Math.max(0, Math.min(a1, t1) - Math.max(a0, t0)); }
+    return Math.min(TRANSPORT, ov);
+  }
+  const fadeOf = a => clamp01(a / 36);            // below 36° the variable shutter fades towards black
+  const fmtFps = f => f < 10 ? comma(f.toFixed(1)) : String(Math.round(f));
+  function exposureStops(E){
+    const ref = (REF_ANGLE / 360) / outFps;
+    return Math.max(-2, Math.min(1.2, Math.log2(Math.max(1e-4, E) / ref) * 0.3));
+  }
+
+  let lastLabel = '';
+  function renderPad(){
+    const px = xC * 100, py = (1 - yC) * 100;
+    $('#puck').style.left = px + '%'; $('#puck').style.top = py + '%';
+    $('#xline').style.left = px + '%'; $('#yline').style.top = py + '%';
+    const pl = $('#plabel');
+    pl.style.left = px + '%'; pl.style.top = py + '%';
+    pl.classList.toggle('flip', xC > 0.5); pl.classList.toggle('below', yC > 0.82);
+    const f = fpsOf(xC), z = 'Zoom ' + comma(zoomOf(yC).toFixed(1)) + '×';
+    const r = outFps / f, tempo = f >= outFps - 0.3 ? 'echtes Tempo' : (r < 10 ? comma(r.toFixed(1)) : String(Math.round(r))) + '× schneller';
+    const top = frozen ? 'hält' : fmtFps(f) + ' fps';
+    const zz = swivelLive && swivelFor(mode) && zoomOf(yC) > 1.05 ? z + ' · schwenkt' : z;
+    const sub = timeMode === 'under' && !frozen ? tempo + ' · ' + zz : zz;
+    const lbl = top + '|' + sub;
+    if (lbl !== lastLabel){
+      pl.textContent = top + '\n';
+      const sm = document.createElement('small'); sm.textContent = sub; pl.appendChild(sm);
+      lastLabel = lbl;
+    }
+  }
+
+  /* ---------- welcome ---------- */
+  let hintTimer = setTimeout(hideHint, 6000);
+  function hideHint(){ clearTimeout(hintTimer); $('#hint').classList.add('gone'); }
+  function hideCard(){ $('#startcard').hidden = true; }
+
+  /* ---------- XY pad, relative ---------- */
+  const pointers = new Map();
+  let primaryId = null, dragFrom = null, keyHold = false;
+  function updateFrozen(){
+    const f = pointers.size >= 2 || keyHold;
+    if (f !== frozen){ frozen = f; $('#frozen').hidden = !f; if (!f) nextAt = 0; }
+  }
+  stage.addEventListener('pointerdown', e => {
+    pointers.set(e.pointerId, true);
+    try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+    if (pointers.size === 1){
+      primaryId = e.pointerId; dragFrom = { x: e.clientX, y: e.clientY, vx: xT, vy: yT };
+      stage.classList.add('playing'); hideHint(); hideCard();
+    }
+    updateFrozen();
+  });
+  stage.addEventListener('pointermove', e => {
+    if (e.pointerId !== primaryId || !dragFrom) return;
+    const r = stage.getBoundingClientRect();
+    xT = clamp01(dragFrom.vx + (e.clientX - dragFrom.x) / (r.width * 0.55));
+    yT = clamp01(dragFrom.vy - (e.clientY - dragFrom.y) / (r.height * 0.5));
+    if (xT === 0 || xT === 1){ dragFrom.x = e.clientX; dragFrom.vx = xT; }
+    if (yT === 0 || yT === 1){ dragFrom.y = e.clientY; dragFrom.vy = yT; }
+  });
+  const lift = e => {
+    pointers.delete(e.pointerId);
+    if (e.pointerId === primaryId){ primaryId = null; dragFrom = null; }
+    if (!pointers.size){ stage.classList.remove('playing'); persist(); }
+    updateFrozen();
+  };
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => stage.addEventListener(ev, lift));
+
+  /* ---------- shutter fader: open .. closed ---------- */
+  const vf = $('#vfader');
+  let vReadTimer = 0;
+  function showRead(id, text){ const r = $(id); r.textContent = text; r.classList.add('show'); }
+  function hideRead(id){ $(id).classList.remove('show'); }
+  function renderExpo(){
+    const a = angleOf(expo), N = slitsN();
+    $('#vfill').style.height = (expo * 100) + '%';
+    const duty = dutyOf(), w = (100 / N).toFixed(2), o = (100 / N * duty).toFixed(2);
+    $('#vfill').style.backgroundImage = N > 1
+      ? 'repeating-linear-gradient(to right, rgba(169,203,232,.75) 0, rgba(169,203,232,.75) ' + o + '%, rgba(169,203,232,.08) ' + o + '%, rgba(169,203,232,.08) ' + w + '%)'
+      : '';
+    $('#vknob').style.top = ((1 - expo) * 100) + '%';
+    $('#vlimit').style.top = ((1 - (360 - TRANSPORT) / 360) * 100) + '%';
+    vf.classList.toggle('closed', expo < 0.01);
+    vf.setAttribute('aria-valuenow', String(Math.round(a)));
+    vf.setAttribute('aria-valuetext', Math.round(a) + ' Grad, ' + (N > 1 ? N + ' Fragmente' : 'durchgehend'));
+    $('#vLabel').innerHTML = 'Blende' + (N > 1 ? '<small>' + N + ' Fragmente</small>' : '');
+  }
+  function vReadText(){
+    const a = Math.round(angleOf(expo)), N = slitsN(), ov = transportOverlap(angleOf(expo), taktOf(taktH));
+    return (a === 0 ? 'zu' : a + '°') + ' · ' + (N > 1 ? N + ' Fragmente' : 'verwaschen') + (ov > 0 ? ' · Schlieren' : '');
+  }
+  let vfFrom = null;
+  vf.addEventListener('pointerdown', e => { e.preventDefault(); try { vf.setPointerCapture(e.pointerId); } catch (_) {} vfFrom = { x: e.clientX, y: e.clientY, v: expo, h: slitsH }; hideHint(); showRead('#vRead', vReadText()); });
+  vf.addEventListener('pointermove', e => {
+    if (!vfFrom) return;
+    expo = clamp01(vfFrom.v - (e.clientY - vfFrom.y) / 200);
+    slitsH = clamp01(vfFrom.h + (e.clientX - vfFrom.x) / 120);
+    renderExpo(); showRead('#vRead', vReadText());
+  });
+  ['pointerup', 'pointercancel'].forEach(ev => vf.addEventListener(ev, () => { if (vfFrom){ vfFrom = null; persist(); clearTimeout(vReadTimer); vReadTimer = setTimeout(() => hideRead('#vRead'), 900); } }));
+  vf.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp') expo = clamp01(expo + 0.03);
+    else if (e.key === 'ArrowDown') expo = clamp01(expo - 0.03);
+    else if (e.key === 'ArrowRight') slitsH = clamp01(slitsH + 0.1);
+    else if (e.key === 'ArrowLeft') slitsH = clamp01(slitsH - 0.1);
+    else return;
+    e.preventDefault(); e.stopPropagation(); renderExpo(); persist();
+  });
+
+  /* ---------- Greifer pad (2D): up/down = pull per frame, sideways = timing against the shutter ---------- */
+  const gp = $('#gpad');
+  let gReadTimer = 0, gFrom = null, gLastTap = 0, gRelax = false, gRelaxDir = 0, gRelaxV = 0;
+  function gReadText(){
+    const Z = zugOf(zugV), ph = taktOf(taktH);
+    const z = Z === 1 ? 'Zug 1' : Z < 0.02 ? 'Film steht' : 'Zug ' + comma(Z.toFixed(2));
+    return z + ' · ' + (ph === 0 ? 'im Takt' : 'Takt ' + (ph > 0 ? '+' : '−') + Math.abs(Math.round(ph)) + '°');
+  }
+  function renderGrip(){
+    $('#gknob').style.left = (taktH * 100) + '%';
+    $('#gknob').style.top = ((1 - zugV) * 100) + '%';
+    $('#gZline').style.top = ((1 - 0.6) * 100) + '%';
+    gp.classList.toggle('off', zugOf(zugV) !== 1 || taktOf(taktH) !== 0);
+  }
+  // let go: the claw finds its way back into the perforation, the frame line glides to the edge
+  function relaxGrip(dt){
+    const k = 1 - Math.exp(-dt / 0.35);
+    zugV += (0.6 - zugV) * k; taktH += (0.5 - taktH) * k;
+    let aligned = true;
+    if (P && framOff !== 0){
+      // keep slipping the same way, slowing down, until the next frame line reaches the edge
+      const dir = gRelaxDir || (framOff < -P / 2 ? -1 : 1);
+      const left = dir < 0 ? framOff + P : -framOff;          // distance still to go
+      gRelaxV = Math.min(P * 8, gRelaxV + (P * 2.5 + gRelaxV * 2) * dt);   // ease in: from the slip speed, faster until it catches
+      const stepPx = Math.min(left, gRelaxV * dt);
+      framOff += dir * stepPx;
+      if (left - stepPx < 0.5) framOff = 0; else aligned = false;
+    }
+    if (aligned && Math.abs(zugV - 0.6) < 0.002 && Math.abs(taktH - 0.5) < 0.002){
+      zugV = 0.6; taktH = 0.5; framOff = 0; gRelax = false;
+    }
+    if (P){ hctx.drawImage(stripA, 0, Math.round(GY + framOff), W, H, 0, 0, W, H); dirty = true; }
+    renderGrip();
+  }
+  function resetGrip(){ gRelax = false; zugV = 0.6; taktH = 0.5; framOff = 0; renderGrip(); showRead('#gRead', 'eingerichtet'); clearTimeout(gReadTimer); gReadTimer = setTimeout(() => hideRead('#gRead'), 900); }
+  gp.addEventListener('pointerdown', e => {
+    e.preventDefault(); try { gp.setPointerCapture(e.pointerId); } catch (_) {}
+    const now = performance.now();
+    if (now - gLastTap < 320){ gLastTap = 0; gFrom = null; resetGrip(); return; }
+    gLastTap = now;
+    gRelax = false; gFrom = { x: e.clientX, y: e.clientY, v: zugV, h: taktH }; hideHint(); showRead('#gRead', gReadText());
+  });
+  gp.addEventListener('pointermove', e => {
+    if (!gFrom) return;
+    if (Math.abs(e.clientX - gFrom.x) + Math.abs(e.clientY - gFrom.y) > 6) gLastTap = 0;
+    zugV = clamp01(gFrom.v - (e.clientY - gFrom.y) / 220);
+    taktH = clamp01(gFrom.h + (e.clientX - gFrom.x) / 110);
+    renderGrip(); showRead('#gRead', gReadText());
+  });
+  ['pointerup', 'pointercancel'].forEach(ev => gp.addEventListener(ev, () => { if (gFrom){ gFrom = null; const z = zugOf(zugV); gRelaxDir = z < 1 ? -1 : z > 1 ? 1 : 0; gRelaxV = Math.max(P * 0.15, Math.abs(z - 1) * P * (frozen ? 0 : fpsOf(xC))); if (Math.abs(framOff) < 1) framOff = 0; gRelax = true; clearTimeout(gReadTimer); gReadTimer = setTimeout(() => hideRead('#gRead'), 900); } }));
+  gp.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp') zugV = clamp01(zugV + 0.02);
+    else if (e.key === 'ArrowDown') zugV = clamp01(zugV - 0.02);
+    else if (e.key === 'ArrowRight') taktH = clamp01(taktH + 0.03);
+    else if (e.key === 'ArrowLeft') taktH = clamp01(taktH - 0.03);
+    else if (e.key === 'Enter' || e.key === ' ') resetGrip();
+    else return;
+    e.preventDefault(); e.stopPropagation(); renderGrip();
+  });
+
+  /* ---------- gate weave: a new position only when a new frame arrives ---------- */
+  function newWeave(now){
+    if (weaveAmt <= 0){ wx = wy = 0; ws = 1; return; }
+    const A = H * 0.006 * weaveAmt, t = now / 1000;
+    wy = A * (0.55 * Math.sin(t * 2.1) + 0.25 * Math.sin(t * 5.3 + 1.3) + 0.35 * (Math.random() * 2 - 1));
+    wx = A * 0.35 * (0.6 * Math.sin(t * 1.3 + 0.7) + 0.5 * (Math.random() * 2 - 1));
+    ws = 1 + 2.5 * A / Math.min(W, H);
+  }
+  function drawWeaved(ctx, src){
+    ctx.save(); ctx.translate(W / 2 + wx, H / 2 + wy); ctx.scale(ws, ws);
+    ctx.drawImage(src, -W / 2, -H / 2, W, H); ctx.restore();
+  }
+
+  /* ---------- sources ---------- */
+  function drawDemo(c, t){
+    c.fillStyle = '#0d0c10'; c.fillRect(0, 0, W, H);
+    const cx = W / 2, cy = H / 2, r = Math.min(W, H) * 0.3;
+    c.strokeStyle = 'rgba(169,203,232,.22)'; c.lineWidth = 2;
+    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.stroke();
+    const a = t / 3000 * Math.PI * 2;
+    c.fillStyle = '#a9cbe8';
+    c.beginPath(); c.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, r * 0.16, 0, Math.PI * 2); c.fill();
+    const b = t / 1500 * Math.PI * 2;
+    c.strokeStyle = '#efecf3'; c.lineWidth = Math.max(2, W / 320); c.lineCap = 'round';
+    c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(b) * r * 0.78, cy + Math.sin(b) * r * 0.78); c.stroke();
+    c.fillStyle = '#efecf3'; c.font = '700 ' + Math.round(H * 0.06) + 'px "Courier Prime", "Courier New", monospace';
+    c.fillText((t / 1000).toFixed(2) + ' s', W * 0.06, H * 0.2);
+  }
+  const srcVideo = () => mode === 'cam' ? vidCam : vidFile;
+  const filmGoing = () => !!cur || passes.length > 0;
+  function sourceReady(){
+    if (mode === 'demo') return true;
+    const v = srcVideo();
+    if (v.readyState < 2 || !v.videoWidth) return false;
+    if ((v.videoWidth !== srcW || v.videoHeight !== srcH) && !filmGoing() && !open){
+      srcW = v.videoWidth; srcH = v.videoHeight; setSize(srcW, srcH);
+    }
+    return true;
+  }
+  function drawCover(ctx, v, zoom){
+    const vw = v.videoWidth || v.width, vh = v.videoHeight || v.height; if (!vw) return;
+    const s = Math.max(W / vw, H / vh) * (zoom || 1), dw = vw * s, dh = vh * s;
+    ctx.drawImage(v, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  }
+  /* ---------- swivel: zoomed into a video, the phone looks around like a camera filming a TV ----------
+     turning the phone turns the view; the gyroscope's rotation is added up while filming.
+     Starting a take takes the phone's current position as the middle. */
+  const SWIVEL_FOV = 60;                      // degrees the whole video spans, as if the TV filled the view at zoom 1
+  let swivelOn = true, swivelAsked = false, swivelLive = false, panX = 0, panY = 0, rateU = 0, rateR = 0;
+  function swivelFor(m){ return swivelOn && (m === 'file' || m === 'demo'); }
+  function centerSwivel(){ panX = panY = 0; }
+  function onMotion(e){
+    const r = e.rotationRate; if (!r || r.beta === null) return;
+    swivelLive = true;
+    const a = ((screen.orientation && screen.orientation.angle) || window.orientation || 0) * Math.PI / 180;
+    const b = r.beta || 0, g = r.gamma || 0;
+    // rotation about the screen's up and right axes, whatever way the phone is held
+    const up = b * Math.sin(a) + g * Math.cos(a), right = b * Math.cos(a) - g * Math.sin(a);
+    rateU += (up - rateU) * 0.5; rateR += (right - rateR) * 0.5;
+    const dt = Math.min(0.05, (e.interval > 1 ? e.interval / 1000 : e.interval) || 0.016);
+    const dead = v => Math.abs(v) < 0.6 ? 0 : v;          // ignore the gyro's own creep
+    panX -= dead(rateU) * dt; panY -= dead(rateR) * dt;
+  }
+  let swivelAsking = false;
+  async function askSwivel(){
+    if (swivelAsked || swivelAsking || !swivelOn) return;
+    if (typeof DeviceMotionEvent === 'undefined'){ swivelAsked = true; return; }
+    swivelAsking = true;
+    try {
+      if (typeof DeviceMotionEvent.requestPermission === 'function'){
+        const r = await DeviceMotionEvent.requestPermission();
+        if (r !== 'granted'){
+          swivelAsked = true;
+          say('Der Bewegungssensor ist gesperrt. Safari fragt erst wieder nach dem Löschen der Website-Daten (Einstellungen › Apps › Safari › Erweitert › Website-Daten).', true);
+          return;
+        }
+      }
+      swivelAsked = true;
+      window.addEventListener('devicemotion', onMotion);
+      setTimeout(() => {
+        if (swivelLive) say('Schwenken an: zoom rein und dreh das Telefon.');
+        else if (!isSecureContext) say('Den Bewegungssensor gibt Safari nur über https frei.', true);
+      }, 1200);
+    } catch (e) {
+      // not inside a real tap yet: try again with the next one
+    } finally { swivelAsking = false; }
+  }
+  // iPhone hands out the motion sensor only when a finger is lifted (a real tap), not when it touches down
+  ['touchend', 'click'].forEach(ev => document.addEventListener(ev, () => { if (swivelFor(mode)) askSwivel(); }, true));
+  function swivelShift(dw, dh){
+    if (!swivelFor(mode) || !swivelLive) return [0, 0];
+    const fovV = SWIVEL_FOV * dh / dw;           // same degrees per pixel both ways
+    const mx = SWIVEL_FOV * (dw - W) / (2 * dw), my = fovV * (dh - H) / (2 * dh);
+    panX = Math.max(-mx, Math.min(mx, panX)); panY = Math.max(-my, Math.min(my, panY));   // the edge of the picture is a wall
+    return [-panX / SWIVEL_FOV * dw, -panY / fovV * dh];
+  }
+  function drawSwivel(ctx, v, zoom){
+    const vw = v.videoWidth || v.width, vh = v.videoHeight || v.height; if (!vw) return;
+    const s = Math.max(W / vw, H / vh) * (zoom || 1), dw = vw * s, dh = vh * s;
+    const [sx, sy] = swivelShift(dw, dh);
+    ctx.drawImage(v, (W - dw) / 2 + sx, (H - dh) / 2 + sy, dw, dh);
+  }
+  function sampleRaw(ctx, t){
+    const z = zoomOf(yC);
+    if (mode === 'demo'){ drawDemo(tctx, t); drawSwivel(ctx, tmp, z); }
+    else if (mode === 'file'){ drawSwivel(ctx, vidFile, z); }
+    else if (mode === 'cam' && mirrorRec){ ctx.save(); ctx.translate(W, 0); ctx.scale(-1, 1); drawCover(ctx, vidCam, z); ctx.restore(); }
+    else drawCover(ctx, srcVideo(), z);
+  }
+  function sampleInto(ctx, alpha, t){
+    ctx.globalAlpha = alpha;
+    sampleRaw(ctx, t);
+    ctx.globalAlpha = 1;
+  }
+
+  function renderSrc(){
+    const cam = mode === 'cam';
+    $('#srcLabel').textContent = cam ? (facing === 'user' ? 'VORNE' : 'HINTEN') : mode === 'demo' ? 'DEMO' : 'VIDEO';
+    $('#btnSrc').setAttribute('aria-label', cam ? (facing === 'user' && fileURL ? 'Zurück zum Video' : 'Kamera wechseln, jetzt ' + (facing === 'user' ? 'vorne' : 'hinten')) : 'Kamera an');
+    $('#rowMirror').hidden = $('#rowMirrorRec').hidden = !cam;
+    $('#rowFile').hidden = mode !== 'file';
+    $('#rowSwivel').hidden = cam;
+    $('#btnCam').textContent = cam ? 'Kamera neu starten' : 'Kamera an';
+    $('#mirrorView').checked = !!mirrorView[facing];
+    $('#mirrorRec').checked = mirrorRec;
+    out.classList.toggle('mirror', cam && !!mirrorView[facing] !== mirrorRec);
+  }
+  function setMode(m){
+    if (m !== 'file') vidFile.pause();
+    if (m !== 'cam') stopCam();
+    mode = m; srcW = srcH = 0; open = false; ex = null; nextAt = 0;
+    if (!filmGoing()){ have = false; if (m === 'demo') setSize(1280, 720); }
+    if (m !== 'demo') hideCard();
+    renderSrc(); persist();
+  }
+  function stopCam(){ if (camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; } vidCam.srcObject = null; }
+
+  const audioConstraints = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
+  const micLive = () => !!(micStream && micStream.getAudioTracks().some(t => t.readyState === 'live'));
+  async function startCam(quiet){
+    if (state === 'developing') return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      if (!quiet) say('Hier gibt der Browser keine Kamera frei. Öffne die Datei direkt in Safari oder Chrome.', true);
+      return;
+    }
+    const big = resCap > 1280;
+    const video = { facingMode: facing, width: { ideal: big ? 1920 : 1280 }, height: { ideal: big ? 1080 : 720 }, frameRate: { ideal: 30 } };
+    const needMic = !micLive();
+    try {
+      stopCam();
+      let s;
+      try { s = await navigator.mediaDevices.getUserMedia({ video, audio: needMic ? audioConstraints : false }); }
+      catch (e1) { if (!needMic) throw e1; s = await navigator.mediaDevices.getUserMedia({ video, audio: false }); }
+      const at = s.getAudioTracks();
+      if (at.length){ if (micLive()) at.forEach(t => t.stop()); else { micStream = new MediaStream(at); micNode = null; } }
+      camStream = new MediaStream(s.getVideoTracks());
+      vidCam.srcObject = camStream; await vidCam.play();
+      if (mode !== 'cam') setMode('cam'); else { renderSrc(); persist(); }
+      if (!quiet) say('Kamera läuft. Spiel los.');
+    } catch (err) {
+      renderSrc();
+      if (quiet) return;
+      const n = err && err.name;
+      if (n === 'NotAllowedError' || n === 'SecurityError') say('Die Kamera ist hier gesperrt (in der Claude-Vorschau immer). Öffne die Datei direkt im Browser. Videos laden geht hier trotzdem.', true);
+      else if (n === 'NotFoundError' || n === 'OverconstrainedError') say('Keine passende Kamera gefunden.', true);
+      else say('Die Kamera konnte nicht starten (' + (n || 'unbekannter Fehler') + ').', true);
+    }
+  }
+  $('#btnSrc').addEventListener('click', () => {
+    hideCard();
+    if (mode === 'cam'){
+      if (facing === 'user' && fileURL){ facing = 'environment'; setMode('file'); if (state === 'rec') startFile(); return; }
+      facing = facing === 'environment' ? 'user' : 'environment'; renderSrc(); startCam(true);
+    }
+    else startCam(false);
+  });
+
+  /* ---------- audio graph ---------- */
+  function ensureCtx(){
+    if (!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+      audioDest = audioCtx.createMediaStreamDestination();
+      recBus = audioCtx.createGain(); recDelay = audioCtx.createDelay(1);
+      recDelay.delayTime.value = avDelayMs / 1000;
+      recBus.connect(recDelay); recDelay.connect(audioDest);
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function ensureFileAudio(){ try { ensureCtx(); if (!fileNode){ fileNode = audioCtx.createMediaElementSource(vidFile); fileNode.connect(audioCtx.destination); fileNode.connect(audioDest); } } catch (e) {} }
+  function decodeAB(ab){ return new Promise((res, rej) => { const r = audioCtx.decodeAudioData(ab, res, rej); if (r && r.then) r.then(res, rej); }); }
+  function decodePass(p){
+    if (p.bufP) return p.bufP;
+    p.bufP = (async () => { try { ensureCtx(); p.buf = await decodeAB(await p.blob.arrayBuffer()); } catch (e) { p.buf = null; } })();
+    return p.bufP;
+  }
+  async function getMic(){
+    if (!micLive()){ micStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints }); micNode = null; }
+    ensureCtx();
+    if (!micNode) micNode = audioCtx.createMediaStreamSource(micStream);
+    return micNode;
+  }
+  async function connectMic(){
+    if (!$('#ton').checked || mode === 'file' || micToRec) return;
+    try { (await getMic()).connect(recBus); micToRec = true; }
+    catch (e) { if (mode === 'cam') say('Kein Mikrofon, gefilmt wird ohne Ton.'); }
+  }
+  function disconnectMic(){ if (micToRec && micNode){ try { micNode.disconnect(recBus); } catch (e) {} } micToRec = false; }
+
+  // separate sound for the "unterdreht" mode: runs in real time like a Nagra next to the camera
+  function startAudioRec(){
+    if (aRec || !$('#ton').checked || !audioDest || typeof MediaRecorder === 'undefined') return;
+    let mime = '';
+    for (const t of ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm']){ try { if (MediaRecorder.isTypeSupported(t)){ mime = t; break; } } catch (e) {} }
+    try {
+      const rec = new MediaRecorder(new MediaStream(audioDest.stream.getAudioTracks()), mime ? { mimeType: mime } : undefined), chunks = [];
+      rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      rec.start(1000); aRec = { rec, chunks, mime: rec.mimeType || mime };
+    } catch (e) { aRec = null; }
+  }
+  const pauseAudio = () => { try { if (aRec && aRec.rec.state === 'recording') aRec.rec.pause(); } catch (e) {} };
+  const resumeAudio = () => { try { if (aRec && aRec.rec.state === 'paused') aRec.rec.resume(); } catch (e) {} };
+  function stopAudioRec(){
+    return new Promise(res => {
+      if (!aRec) return res(null);
+      const a = aRec; aRec = null;
+      a.rec.onstop = () => res(a.chunks.length ? new Blob(a.chunks, { type: a.mime }) : null);
+      try { a.rec.stop(); } catch (e) { res(null); }
+    });
+  }
+  async function toWav(blob){
+    try {
+      ensureCtx();
+      const buf = await decodeAB(await blob.arrayBuffer());
+      const ch = Math.min(2, buf.numberOfChannels), sr = buf.sampleRate, n = buf.length;
+      const dv = new DataView(new ArrayBuffer(44 + n * ch * 2));
+      const w = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+      w(0, 'RIFF'); dv.setUint32(4, 36 + n * ch * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+      dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, ch, true); dv.setUint32(24, sr, true);
+      dv.setUint32(28, sr * ch * 2, true); dv.setUint16(32, ch * 2, true); dv.setUint16(34, 16, true); w(36, 'data'); dv.setUint32(40, n * ch * 2, true);
+      const data = []; for (let c = 0; c < ch; c++) data.push(buf.getChannelData(c));
+      let o = 44;
+      for (let i = 0; i < n; i++) for (let c = 0; c < ch; c++){ const s = Math.max(-1, Math.min(1, data[c][i])); dv.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7fff, true); o += 2; }
+      return new Blob([dv], { type: 'audio/wav' });
+    } catch (e) { return null; }
+  }
+
+  /* ---------- loading a video ---------- */
+  function loadFile(f){
+    if (!f || state === 'developing') return;
+    if (fileURL) URL.revokeObjectURL(fileURL);
+    fileURL = URL.createObjectURL(f);
+    vidFile.src = fileURL; vidFile.load(); ensureFileAudio(); setMode('file');
+    primeFile();
+    say('Video geladen. Es läuft, solange du aufnimmst, und endet den Film mit seinem Ende.');
+  }
+  // the video is the film being projected: it only runs while the camera records
+  let filePriming = false, fileStarting = false;
+  function primeFile(){            // Safari decodes nothing before play: start muted, stop at once, show the first frame
+    filePriming = true; vidFile.muted = true;
+    const settle = () => {
+      if (!filePriming) return;
+      filePriming = false; vidFile.muted = false;
+      if (!(state === 'rec' && mode === 'file')){ vidFile.pause(); try { vidFile.currentTime = 0; } catch (e) {} }
+    };
+    vidFile.addEventListener('playing', settle, { once: true });
+    vidFile.play().catch(() => {}).finally(settle);
+    setTimeout(settle, 1200);      // never leave it running if Safari keeps the promise open
+  }
+  function startFile(){            // called inside the tap, so Safari lets it play with sound
+    if (mode !== 'file' || !fileURL) return;
+    fileStarting = true; filePriming = false; ensureFileAudio();
+    // where the projector starts: a new film from the top, Doppel at the chosen spot of the film, otherwise where it stopped
+    let at = null;
+    if (state === 'idle') at = 0;
+    else if (state === 'scrub' && timeMode !== 'under') at = scrubPos;
+    else if (state === 'scrub') at = scrubPos / outFps;
+    if (vidFile.ended || (vidFile.duration && vidFile.currentTime >= vidFile.duration - 0.05)) at = at === null ? 0 : at;
+    if (at !== null) try { vidFile.currentTime = vidFile.duration ? Math.min(at, Math.max(0, vidFile.duration - 0.1)) : at; } catch (e) {}
+    vidFile.muted = false;
+    vidFile.play().catch(() => { vidFile.muted = true; vidFile.play().catch(() => {}); });
+  }
+  function syncFile(){             // every frame: video runs exactly while recording
+    if (mode !== 'file' || fileStarting || !fileURL) return;
+    if (filePriming){ if (vidFile.currentTime > 0.6) vidFile.pause(); return; }
+    const run = state === 'rec';
+    if (!run && !vidFile.paused) vidFile.pause();
+    else if (run && vidFile.paused && !vidFile.ended) vidFile.play().catch(() => {});
+  }
+  vidFile.addEventListener('ended', () => { if (mode === 'file' && state === 'rec'){ say('Das Video ist zu Ende, der Film auch.'); onDone(); } });
+  ['#fileIn', '#cardFile'].forEach(id => $(id).addEventListener('change', e => { loadFile(e.target.files && e.target.files[0]); e.target.value = ''; closeSheets(); }));
+  vidFile.addEventListener('error', () => say('Dieses Video kann der Browser nicht abspielen. MP4 oder MOV vom iPhone gehen meistens.', true));
+  $('#btnRestart').addEventListener('click', () => { vidFile.currentTime = 0; });
+
+  /* ---------- frame store for "unterdreht": every exposed frame kept once (IndexedDB) ---------- */
+  let dbP = null;
+  function idb(){
+    if (!dbP) dbP = new Promise((res, rej) => {
+      try {
+        const r = indexedDB.open('kurbel', 2);
+        r.onupgradeneeded = () => { const d = r.result; if (!d.objectStoreNames.contains('films')) d.createObjectStore('films', { keyPath: 'id' }); if (!d.objectStoreNames.contains('frames')) d.createObjectStore('frames'); };
+        r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+      } catch (e) { rej(e); }
+    });
+    return dbP;
+  }
+  async function idbReq(store, rw, fn){
+    const d = await idb();
+    return new Promise((res, rej) => {
+      const tx = d.transaction(store, rw ? 'readwrite' : 'readonly'); const req = fn(tx.objectStore(store)); let outv;
+      req.onsuccess = () => { outv = req.result; };
+      tx.oncomplete = () => res(outv); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error);
+    });
+  }
+  const FS = {
+    mem: new Map(), dbOk: true, pending: new Set(),
+    put(key, blob){
+      if (!blob) return;
+      if (!this.dbOk){ this.mem.set(key, blob); return; }
+      const p = idbReq('frames', true, s => s.put(blob, key)).catch(() => { this.dbOk = false; this.mem.set(key, blob); });
+      this.pending.add(p); p.finally(() => this.pending.delete(p));
+    },
+    async get(key){
+      if (this.mem.has(key)) return this.mem.get(key);
+      if (!this.dbOk) return null;
+      try { return await idbReq('frames', false, s => s.get(key)); } catch (e) { return null; }
+    },
+    flush(){ return Promise.all([...this.pending]); },
+    async clear(){ this.mem.clear(); try { await idbReq('frames', true, s => s.clear()); } catch (e) {} }
+  };
+  const fkey = (pass, k) => sid + '/' + pass + '/' + k;
+  function keyAt(idx){
+    for (let i = passes.length - 1; i >= 0; i--){ const p = passes[i]; if (p.kind === 'frames' && idx >= p.start && idx < p.start + p.count) return fkey(p.pass, idx - p.start); }
+    return null;
+  }
+  async function frameImage(idx){
+    const k = keyAt(idx); if (!k) return null;
+    const b = await FS.get(k); if (!b) return null;
+    try { return await createImageBitmap(b); }
+    catch (e) { return await new Promise(res => { const img = new Image(); img.onload = () => res(img); img.onerror = () => res(null); img.src = URL.createObjectURL(b); }); }
+  }
+  const closeImg = i => { if (i && i.close) try { i.close(); } catch (e) {} };
+  function wantUnderlay(idx){
+    ul.want = idx;
+    frameImage(idx).then(img => {
+      if (ul.want !== idx){ closeImg(img); return; }
+      closeImg(ul.img); ul.img = img; dirty = true;
+    });
+  }
+  function clearUnderlay(){ ul.want = -1; closeImg(ul.img); ul.img = null; }
+  function captureFrame(){
+    if (!cur || cur.kind !== 'frames') return;
+    const key = fkey(cur.pass, cur.count);
+    cur.count++; totalCaptured++;
+    try { out.toBlob(b => FS.put(key, b), 'image/jpeg', 0.84); } catch (e) {}
+    if (cur.doppel) wantUnderlay(cur.start + cur.count);
+    if (burstLeft > 0 && --burstLeft === 0 && state === 'rec'){
+      if (cur.doppel) endDoppelPass(); else { pausePass(); renderControls(); }
+      return;
+    }
+    if (totalCaptured >= SPOOL){
+      say('Die Spule ist voll: 100 Fuss, 4000 Bilder. Mit dem Haken entwickeln.');
+      if (cur.doppel) endDoppelPass(); else { pausePass(); renderControls(); }
+    }
+  }
+
+  /* ---------- the roll for "Bild steht nach": recorded passes on one timeline, the latest wins ---------- */
+  function filmEnd(){
+    let e = 0;
+    for (const p of passes) e = Math.max(e, p.kind === 'frames' ? p.start + p.count : p.pos + p.dur);
+    if (cur) e = Math.max(e, cur.kind === 'frames' ? cur.start + cur.count : cur.pos + cur.dur);
+    return e;
+  }
+  const filmSeconds = () => timeMode === 'under' ? filmEnd() / outFps : filmEnd();
+  function segments(){
+    let segs = [];
+    for (const p of passes){
+      const a = p.pos, b = p.pos + p.dur, next = [];
+      for (const s of segs){
+        if (s.b <= a || s.a >= b) next.push(s);
+        else { if (s.a < a) next.push({ a: s.a, b: a, p: s.p }); if (s.b > b) next.push({ a: b, b: s.b, p: s.p }); }
+      }
+      next.push({ a, b, p }); segs = next.sort((x, y) => x.a - y.a);
+    }
+    return segs.filter(s => s.b - s.a > 0.01);
+  }
+  // a recorded pass as a silent video; played once briefly, because Safari shows nothing of a video that never ran
+  function passVideo(url){
+    const el = mkVideo(true); el.src = url;
+    el.play().then(() => { if (el !== roll.el || !roll.playing) el.pause(); }).catch(() => {});
+    return el;
+  }
+  const vidReady = v => !!v && !!(v.videoWidth || v.width) && !v.seeking && (v.readyState === undefined || v.readyState >= 2);
+  const roll = {
+    segs: [], idx: -1, el: null, playing: false, start: 0, t0: 0, t: 0, onEnd: null, sources: [],
+    find(t){ const i = this.segs.findIndex(s => t >= s.a && t < s.b); return i >= 0 ? i : (this.segs.length && t >= this.segs[this.segs.length - 1].b ? -1 : 0); },
+    preview(t){
+      this.stop(); this.segs = segments();
+      let i = this.find(Math.min(t, filmEnd() - 0.05)); if (i < 0) i = this.segs.length - 1;
+      const s = this.segs[i]; if (!s){ this.el = null; return; }
+      const el = this.el = s.p.el, target = Math.max(0, t - s.p.pos);
+      const seek = () => { try { el.currentTime = target; } catch (e) {} };
+      if (el.readyState >= 1) seek(); else el.addEventListener('loadedmetadata', seek, { once: true });
+    },
+    play(from, onEnd){
+      this.segs = segments(); this.onEnd = onEnd || null;
+      const i = this.find(from);
+      if (i < 0 || !this.segs.length){ this.playing = false; this.el = null; if (onEnd) onEnd(); return; }
+      this.start = from; this.t0 = performance.now(); this.t = from; this.playing = true;
+      this.scheduleSound(from); this.activate(i, from);
+    },
+    scheduleSound(from){
+      this.silence(); if (!audioCtx) return;
+      const base = audioCtx.currentTime;
+      for (const s of this.segs){
+        if (s.b <= from || !s.p.buf) continue;
+        const a = Math.max(s.a, from), off = a - s.p.pos, dur = s.b - a;
+        if (off >= s.p.buf.duration) continue;
+        const src = audioCtx.createBufferSource(); src.buffer = s.p.buf;
+        src.connect(audioCtx.destination); src.connect(audioDest);
+        try { src.start(base + (a - from), Math.max(0, off), Math.max(0.01, dur)); this.sources.push(src); } catch (e) {}
+      }
+    },
+    silence(){ this.sources.forEach(s => { try { s.stop(); } catch (e) {} try { s.disconnect(); } catch (e) {} }); this.sources = []; },
+    activate(i, t){
+      const s = this.segs[i], off = Math.max(0, t - s.p.pos);
+      if (this.el && this.el !== s.p.el) this.el.pause();
+      // iPhone Safari often fails to seek its own recordings backwards and stays black: start from a fresh copy instead
+      if (off < 0.05 && s.p.el.currentTime > 0.1) s.p.el = passVideo(s.p.url);
+      this.idx = i; this.el = s.p.el;
+      if (Math.abs(this.el.currentTime - off) > 0.04) try { this.el.currentTime = off; } catch (e) {}
+      this.el.play().catch(() => {});
+    },
+    tick(now){
+      if (!this.playing) return;
+      this.t = this.start + (now - this.t0) / 1000;
+      const s = this.segs[this.idx];
+      if (this.t >= s.b){
+        if (this.idx + 1 < this.segs.length) this.activate(this.idx + 1, this.segs[this.idx + 1].a);
+        else { this.stop(); this.el = null; if (this.onEnd){ const f = this.onEnd; this.onEnd = null; f(); } }
+      }
+    },
+    stop(){ this.playing = false; this.silence(); if (this.el) this.el.pause(); }
+  };
+
+  /* ---------- shutter: expose, accumulate, develop ---------- */
+  // one camera cycle: the open sector of the disc, split into N slits with gaps between them
+  function startExposure(now, T, angle){
+    const N = slitsN(), duty = dutyOf(), sector = T * angle / 360;
+    // the opening sets how long the window is; the comb decides whether it is one smear or separate fragments
+    const slot = sector / N, slit = slot * duty;
+    ex = { t0: now, slot, slit, N, duty, end: now + (N - 1) * slot + slit, lastSlit: -1 };
+    open = true; accN = 0;
+    curAngle = angle; curE = (slit * N) / 1000;
+    const Z = zugOf(zugV), ov = transportOverlap(angle, taktOf(taktH));
+    curOv = angle > 0 ? ov / angle : 0;
+    curTravel = Z * P * (ov / TRANSPORT);
+  }
+  function sampleExposure(now){
+    const rel = now - ex.t0, i = Math.min(ex.N - 1, Math.max(0, Math.floor(rel / Math.max(0.001, ex.slot))));
+    const inSlit = rel - i * ex.slot <= ex.slit;
+    if (i > ex.lastSlit || inSlit){ ex.lastSlit = Math.max(ex.lastSlit, i); accN++; sampleInto(actx, 1 / accN, now); }
+    if (now >= ex.end) closeShutter(now);
+  }
+  function develop(stops, fade){
+    ectx.globalCompositeOperation = 'source-over'; ectx.globalAlpha = 1;
+    ectx.drawImage(acc, 0, 0);
+    if (stops > 0.01){
+      ectx.globalCompositeOperation = 'screen';
+      for (let r = stops; r > 0.01; r -= 1){ ectx.globalAlpha = Math.min(1, r); ectx.drawImage(acc, 0, 0); }
+    } else if (stops < -0.01){
+      ectx.globalAlpha = 1 - Math.pow(2, stops); ectx.fillStyle = '#000'; ectx.fillRect(0, 0, W, H);
+    }
+    ectx.globalCompositeOperation = 'source-over';
+    if (fade < 1){ ectx.globalAlpha = 1 - fade; ectx.fillStyle = '#000'; ectx.fillRect(0, 0, W, H); }
+    ectx.globalAlpha = 1;
+  }
+  // the claw pulls the strip by Z pitches, the new exposure lands at the gate as light; what the projector shows can slip
+  function transportAndExpose(){
+    const Z = zugOf(zugV);
+    if (Z > 0.001){
+      sb.globalCompositeOperation = 'source-over'; sb.globalAlpha = 1;
+      sb.fillStyle = '#000'; sb.fillRect(0, 0, W, P * 3);
+      sb.drawImage(stripA, 0, -Z * P);
+      [stripA, stripB] = [stripB, stripA]; [sa, sb] = [sb, sa];
+    }
+    const still = 1 - 0.5 * curOv;
+    sa.globalCompositeOperation = 'screen'; sa.globalAlpha = still;
+    sa.drawImage(expC, 0, GY);
+    if (curOv > 0.01 && curTravel > 1){
+      // exposure while the film is moving: only bright parts leave a trace, fading out like a tail
+      hictx.globalCompositeOperation = 'source-over'; hictx.globalAlpha = 1;
+      hictx.drawImage(expC, 0, 0);
+      hictx.globalCompositeOperation = 'multiply'; hictx.drawImage(expC, 0, 0); hictx.drawImage(expC, 0, 0); hictx.drawImage(expC, 0, 0);
+      hictx.globalCompositeOperation = 'source-over';
+      const m = Math.min(28, Math.max(6, Math.round(curTravel / 4)));
+      sa.globalCompositeOperation = 'lighter';
+      for (let k = 1; k <= m; k++){ const fall = Math.pow(1 - k / (m + 1), 1.6); sa.globalAlpha = 2.2 * curOv * fall / m; sa.drawImage(hiC, 0, GY + curTravel * k / m); }
+    }
+    sa.globalCompositeOperation = 'source-over'; sa.globalAlpha = 1;
+    framOff += (Z - 1) * P;
+    while (framOff > 0) framOff -= P;
+    while (framOff <= -P) framOff += P;
+    if (Math.abs(framOff) < 0.5) framOff = 0;
+    hctx.globalCompositeOperation = 'source-over'; hctx.globalAlpha = 1;
+    hctx.drawImage(stripA, 0, Math.round(GY + framOff), W, H, 0, 0, W, H);
+  }
+  function closeShutter(now){
+    let stops = exposureStops(curE);
+    if (ex && ex.duty < 1) stops += Math.log2(1 / ex.duty) * 0.8;   // fragments brought up to full light: phases bright, still parts burn
+    if (flashQ.length) stops += flashQ.shift();
+    develop(stops, fadeOf(curAngle));
+    transportAndExpose();
+    open = false; ex = null; have = true; dirty = true;
+    newWeave(now);
+    if (state === 'rec' && cur && cur.kind === 'frames') captureNext = true;
+  }
+
+  function underlay(){
+    if (timeMode === 'under'){
+      if (state === 'scrub' || (state === 'rec' && cur && cur.doppel)) return ul.img;
+      return null;
+    }
+    if (state === 'scrub') return roll.el;
+    if (state === 'rec' && cur && cur.doppel && roll.playing) return roll.el;
+    return null;
+  }
+  let lastUnder = null;            // last good frame of the old film, shown while Safari is still seeking
+  function composeBase(){
+    octx.globalCompositeOperation = 'source-over'; octx.globalAlpha = 1;
+    if (state === 'developing' && dev){
+      const src = dev.kind === 'frames' ? dev.img : roll.el;
+      if (vidReady(src)){ octx.fillStyle = '#000'; octx.fillRect(0, 0, W, H); drawCover(octx, src, 1); }
+      return;                                       // not ready (seeking): keep the last picture rather than black
+    }
+    const doppelNow = cur && cur.doppel && (state === 'rec');
+    const e = doppelNow ? env : 1;
+    const u0 = underlay(), u = vidReady(u0) ? u0 : (u0 && lastUnder) || null;
+    if (u0 && u === u0 && u0.tagName === 'VIDEO'){ lastUnder = lastUnder || document.createElement('canvas'); if (lastUnder.width !== W || lastUnder.height !== H){ lastUnder.width = W; lastUnder.height = H; } lastUnder.getContext('2d').drawImage(u0, 0, 0, W, H); }
+    if (!u || !(u.videoWidth || u.width)){
+      if (!have) return;
+      if (e < 1){ octx.fillStyle = '#000'; octx.fillRect(0, 0, W, H); octx.globalAlpha = e; }
+      drawWeaved(octx, hold); octx.globalAlpha = 1;
+      return;
+    }
+    // old film underneath, the new exposure added on top like light; when the new one is faded out, the old one stays untouched
+    const G = (state === 'scrub' ? 0.6 : fadeOf(angleOf(expo)) * e);
+    octx.fillStyle = '#000'; octx.fillRect(0, 0, W, H);
+    drawCover(octx, u, 1);
+    const wo = 1 - 0.4 * G;
+    if (wo < 1){ octx.globalAlpha = 1 - wo; octx.fillRect(0, 0, W, H); }
+    if (have && state !== 'scrub'){ octx.globalCompositeOperation = 'lighter'; octx.globalAlpha = 0.6 * e; drawWeaved(octx, hold); }
+    else if (have && state === 'scrub'){ octx.globalCompositeOperation = 'lighter'; octx.globalAlpha = 0.6; drawWeaved(octx, hold); }
+    octx.globalCompositeOperation = 'source-over'; octx.globalAlpha = 1;
+  }
+  function compose(){
+    composeBase();
+    if (clapFrames > 0){
+      octx.fillStyle = '#ffffff'; octx.fillRect(0, 0, W, H);
+      octx.fillStyle = '#0d0c10'; octx.font = '700 ' + Math.round(H * 0.12) + 'px "Courier Prime", "Courier New", monospace';
+      octx.textAlign = 'center'; octx.textBaseline = 'middle';
+      octx.fillText('KLAPPE ' + (filmN + 1), W / 2, H / 2);
+      octx.textAlign = 'start'; octx.textBaseline = 'alphabetic';
+    }
+  }
+
+  let uiTick = 0;
+  function loop(now){
+    const dt = Math.min(0.1, (now - lastNow) / 1000); lastNow = now;
+    const k = 1 - Math.exp(-dt / 0.11);
+    xC += (xT - xC) * k; yC += (yT - yC) * k;
+    if (state === 'rec' && cur && cur.kind !== 'frames') cur.dur += dt;
+    roll.tick(now);
+    if (gRelax) relaxGrip(dt);
+    syncFile();
+
+    // fade envelope for Doppel: fade in at the start, fade out before stopping
+
+    if (state !== 'developing'){
+      const ready = sourceReady();
+      const f = frozen ? 0 : fpsOf(xC);
+      const angle = angleOf(expo);
+      if (ready && f > 0 && !open && (!nextAt || now >= nextAt)){
+        const T = 1000 / f;
+        startExposure(now, T, angle);
+        const iv = T * (1 + (Math.random() * 2 - 1) * 0.6 * jitter);
+        nextAt = (!nextAt || now - nextAt > T) ? now + iv : nextAt + iv;
+      }
+      if (open && ready && ex) sampleExposure(now);
+    }
+
+    const step = 1000 / outFps, tick = now >= projNext;
+    if (tick) projNext = (now - projNext > 200) ? now + step : projNext + step;
+    if (state === 'developing' && dev){
+      if (tick){
+        let advanced = true;
+        if (dev.kind === 'frames') advanced = devFramesTick();
+        compose();
+        if (advanced && dev && dev.vtrack) dev.vtrack.requestFrame();
+        if (dev && dev.kind === 'frames' && dev.i >= dev.total && !dev.finishing) finishDevelopFrames();
+      }
+    } else if (tick || dirty || state === 'scrub'){
+      compose(); dirty = false;
+      if (captureNext){ captureNext = false; captureFrame(); }
+      if (tick){
+        if (clapFrames > 0) clapFrames--;
+        if (state === 'rec' && cur && cur.vtrack) cur.vtrack.requestFrame();
+      }
+    }
+
+    renderPad();
+    if (++uiTick % 5 === 0) renderTime();
+    if (state === 'developing' && dev) renderDev();
+    requestAnimationFrame(loop);
+  }
+
+  /* ---------- recorder ---------- */
+  function pickMime(){
+    if (typeof MediaRecorder === 'undefined') return null;
+    const c = ['video/mp4;codecs=avc1.42E01F,mp4a.40.2', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+    for (const m of c){ try { if (MediaRecorder.isTypeSupported(m)) return m; } catch (e) {} }
+    return '';
+  }
+  function makeRecorder(withAudio){
+    const mime = pickMime();
+    if (mime === null || !out.captureStream) return null;
+    let stream = out.captureStream(0), vtrack = stream.getVideoTracks()[0] || null;
+    if (!vtrack || typeof vtrack.requestFrame !== 'function'){ stream.getTracks().forEach(t => t.stop()); stream = out.captureStream(outFps); vtrack = null; }
+    if (withAudio && audioDest) audioDest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
+    const opts = { videoBitsPerSecond: 10000000 }; if (mime) opts.mimeType = mime;
+    try {
+      const rec = new MediaRecorder(stream, opts), chunks = [];
+      rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      return { rec, chunks, mime: rec.mimeType || mime || 'video/webm', stream, vtrack };
+    } catch (e) { stream.getVideoTracks().forEach(t => t.stop()); return null; }
+  }
+  function finishRecorder(r){
+    return new Promise(res => {
+      let done = false;
+      const fin = () => { if (done) return; done = true; r.stream.getVideoTracks().forEach(t => t.stop()); res(new Blob(r.chunks, { type: r.mime })); };
+      r.rec.onstop = () => setTimeout(fin, 0);       // let a last dataavailable land first
+      if (r.rec.state === 'inactive'){ fin(); return; }
+      // Safari loses the take when a paused recorder is stopped: wake it up and hand it one frame first
+      if (r.rec.state === 'paused'){ try { r.rec.resume(); } catch (e) {} if (r.vtrack) try { r.vtrack.requestFrame(); } catch (e) {} }
+      setTimeout(() => { try { if (r.rec.state !== 'inactive') r.rec.stop(); } catch (e) { fin(); } }, r.rec.state === 'recording' ? 120 : 0);
+      setTimeout(fin, 5000);                           // never hang on a recorder that does not answer
+    });
+  }
+
+  /* ---------- film flow ---------- */
+  function newFilmIfNeeded(){
+    if (filmGoing()) return;
+    sid = 'f' + Date.now(); passNo = 0; totalCaptured = 0;
+  }
+  async function startPass(pos, doppel){
+    newFilmIfNeeded();
+    const withTon = $('#ton').checked;
+    if (withTon){ ensureCtx(); if (mode === 'file') ensureFileAudio(); await connectMic(); }
+    if (timeMode === 'under'){
+      if (totalCaptured >= SPOOL){ say('Die Spule ist voll. Mit dem Haken entwickeln.'); return false; }
+      cur = { kind: 'frames', pass: ++passNo, start: Math.round(pos), count: 0, doppel: !!doppel };
+      if (withTon){ if (aRec) resumeAudio(); else startAudioRec(); }
+      if (doppel) wantUnderlay(cur.start);
+    } else {
+      if (doppel && withTon) await Promise.all(passes.map(decodePass));
+      const r = makeRecorder(withTon);
+      if (!r){ say('Aufnehmen klappt in diesem Browser nicht. Versuch es mit Safari oder Chrome.', true); disconnectMic(); return false; }
+      cur = Object.assign(r, { kind: 'video', pos, dur: 0, doppel: !!doppel });
+      if (doppel) roll.play(pos, () => {});
+      cur.rec.start(1000);
+    }
+    if (startFlash && !doppel) flashQ = [1.6, 0.9, 0.4];
+    nextAt = 0; env = 1; fadingOut = false;
+    projNext = 0; state = 'rec'; centerSwivel();
+    return true;
+  }
+  async function finalizePass(){
+    if (!cur) return;
+    const c = cur; cur = null;
+    if (c.kind === 'frames'){ if (c.count > 0) passes.push(c); clearUnderlay(); return; }
+    state = 'busy'; renderControls();
+    if (c.doppel) roll.stop();
+    const blob = await finishRecorder(c);
+    if (blob.size && c.dur > 0.05){
+      const url = URL.createObjectURL(blob), el = passVideo(url);
+      const p = { kind: 'video', blob, url, pos: c.pos, dur: c.dur, el, buf: null, bufP: null, mime: c.mime };
+      passes.push(p); if (audioCtx) decodePass(p);
+    } else if (c.dur > 0.05) say('Der letzte Abschnitt liess sich nicht sichern.', true);
+  }
+  function pausePass(){
+    flashQ = [];
+    pauseAudio();
+    if (cur && cur.kind === 'video' && typeof cur.rec.pause === 'function'){ cur.rec.pause(); state = 'paused'; return; }
+    state = 'paused';
+  }
+  function beginFadeOut(){ if (fadingOut) return; fadingOut = true; fadeOutAt = performance.now(); renderControls(); }
+  async function endDoppelPass(){
+    await finalizePass(); pauseAudio();
+    state = 'paused'; renderControls();
+    say('Doppelbelichtung beendet. Weiter filmst du am Ende des Films.');
+  }
+
+  async function onRec(){
+    try { await recStep(); } finally { fileStarting = false; }
+  }
+  async function recStep(){
+    hideHint(); hideCard();
+    if (state === 'busy' || state === 'developing' || fadingOut) return;
+    if (state === 'idle' || state === 'paused' || state === 'scrub') startFile();
+    if (state === 'idle'){ await startPass(0, false); }
+    else if (state === 'rec'){
+      if (cur && cur.doppel){ await endDoppelPass(); return; }
+      pausePass();
+    }
+    else if (state === 'paused'){
+      if (cur && !cur.doppel){
+        if (timeMode === 'under' && totalCaptured >= SPOOL){ say('Die Spule ist voll. Mit dem Haken entwickeln.'); return; }
+        if (startFlash) flashQ = [1.6, 0.9, 0.4];
+        nextAt = 0; resumeAudio();
+        if (cur.kind === 'video') cur.rec.resume();
+        state = 'rec'; centerSwivel();
+      } else { await startPass(filmEnd(), false); }
+    }
+    else if (state === 'scrub'){ $('#scrub').hidden = true; roll.stop(); await startPass(scrubPos, true); }
+    renderControls();
+  }
+
+  async function onDoppel(){
+    if (state === 'scrub'){ roll.stop(); roll.el = null; clearUnderlay(); $('#scrub').hidden = true; state = 'paused'; renderControls(); return; }
+    if (state === 'rec' && cur){
+      if (cur.doppel){ await endDoppelPass(); return; }
+      pausePass();                                   // straight from filming into rewinding
+    }
+    if (state !== 'paused') return;
+    if (cur) await finalizePass();
+    const end = filmEnd();
+    if (!end){ state = 'paused'; renderControls(); return; }
+    state = 'scrub';
+    if (timeMode === 'under'){
+      scrubPos = Math.max(0, end - outFps * 5);
+      $('#scrubber').value = String(Math.round(scrubPos / Math.max(1, end - 1) * 1000));
+      wantUnderlay(scrubPos);
+    } else {
+      scrubPos = Math.max(0, end - Math.min(5, end));
+      $('#scrubber').value = String(Math.round(scrubPos / end * 1000));
+      roll.preview(scrubPos);
+    }
+    renderScrub(); $('#scrub').hidden = false;
+    renderControls();
+  }
+  function renderScrub(){
+    const s = timeMode === 'under' ? scrubPos / outFps : scrubPos;
+    $('#scrubVal').textContent = mmss(s) + ' von ' + mmss(filmSeconds());
+  }
+  $('#scrubber').addEventListener('input', e => {
+    const v = +e.target.value / 1000, end = filmEnd();
+    if (timeMode === 'under'){ scrubPos = Math.round(v * Math.max(0, end - 1)); wantUnderlay(scrubPos); }
+    else { scrubPos = v * end; roll.preview(scrubPos); }
+    renderScrub();
+  });
+
+  async function onDone(){
+    if (state === 'busy' || state === 'developing' || fadingOut) return;
+    $('#scrub').hidden = true; roll.stop(); roll.el = null; clearUnderlay();
+    if (cur) await finalizePass();
+    disconnectMic();
+    if (!passes.length){ await stopAudioRec(); state = 'idle'; renderControls(); return; }
+    if (timeMode === 'under'){ startDevelopFrames(); return; }
+    if (passes.length === 1){ const p = passes[0]; finishFilm(p.blob, p.mime, p.dur, null); return; }
+    startDevelopRoll();
+  }
+
+  /* ---------- developing ---------- */
+  let dev = null;
+  function showDevelop(label){ $('#devBar').style.width = '0%'; $('#devVal').textContent = label; $('#develop').hidden = false; }
+  async function startDevelopRoll(){
+    ensureCtx(); vidFile.pause();
+    state = 'developing'; renderControls(); showDevelop('bereitet vor …');
+    if ($('#ton').checked) await Promise.all(passes.map(decodePass));
+    const r = makeRecorder($('#ton').checked);
+    if (!r){ say('Entwickeln klappt in diesem Browser nicht.', true); $('#develop').hidden = true; state = 'paused'; renderControls(); return; }
+    dev = Object.assign(r, { kind: 'roll', total: filmEnd() });
+    dev.rec.start(1000); projNext = 0;
+    roll.play(0, async () => {
+      const d = dev; if (!d) return;
+      const blob = await finishRecorder(d);
+      dev = null; $('#develop').hidden = true;
+      finishFilm(blob, d.mime, d.total, null);
+    });
+  }
+  async function startDevelopFrames(){
+    vidFile.pause();
+    state = 'developing'; renderControls(); showDevelop('bereitet vor …');
+    const audio = await stopAudioRec();
+    await FS.flush();
+    const r = makeRecorder(false);
+    if (!r){ say('Entwickeln klappt in diesem Browser nicht.', true); $('#develop').hidden = true; state = 'paused'; renderControls(); return; }
+    dev = Object.assign(r, { kind: 'frames', total: filmEnd(), i: 0, cache: new Map(), img: null, audio, finishing: false });
+    dev.rec.start(1000); projNext = 0;
+  }
+  function devFramesTick(){
+    const d = dev;
+    for (let j = d.i; j < Math.min(d.total, d.i + 24); j++){
+      if (d.cache.has(j)) continue;
+      d.cache.set(j, null);
+      frameImage(j).then(img => { if (dev !== d){ closeImg(img); return; } d.cache.set(j, img || 'none'); });
+    }
+    if (d.i >= d.total) return false;
+    const c = d.cache.get(d.i);
+    if (c === null || c === undefined) return false;
+    if (c !== 'none'){ closeImg(d.img); d.img = c; }
+    d.cache.delete(d.i); d.i++;
+    return true;
+  }
+  async function finishDevelopFrames(){
+    const d = dev; d.finishing = true;
+    $('#devVal').textContent = 'Tonspur wird gewandelt …';
+    const blob = await finishRecorder(d);
+    let audio = null;
+    if (d.audio){ audio = await toWav(d.audio); if (!audio) audio = d.audio; }
+    closeImg(d.img); d.cache.forEach(closeImg);
+    dev = null; $('#develop').hidden = true;
+    finishFilm(blob, d.mime, d.total / outFps, audio);
+  }
+  function renderDev(){
+    if (dev.finishing) return;
+    const done = dev.kind === 'frames' ? dev.i / Math.max(1, dev.total) : Math.min(1, (roll.t || 0) / Math.max(0.01, dev.total));
+    $('#devBar').style.width = (done * 100).toFixed(1) + '%';
+    $('#devVal').textContent = dev.kind === 'frames' ? 'Bild ' + dev.i + ' von ' + dev.total : mmss(done * dev.total) + ' von ' + mmss(dev.total);
+  }
+  $('#devCancel').addEventListener('click', async () => {
+    if (!dev) return;
+    const d = dev; dev = null; roll.onEnd = null; roll.stop(); roll.el = null;
+    await finishRecorder(d);
+    if (d.kind === 'frames'){ closeImg(d.img); d.cache.forEach(closeImg); if (d.audio){ aRec = null; } }
+    $('#develop').hidden = true; state = 'paused'; renderControls();
+    say('Entwickeln abgebrochen. Der Film ist noch da.');
+  });
+
+  function snapshot(){
+    try {
+      const c = document.createElement('canvas'), s = 200 / Math.max(W, H);
+      c.width = Math.round(W * s); c.height = Math.round(H * s);
+      c.getContext('2d').drawImage(hold, 0, 0, c.width, c.height);
+      return c.toDataURL('image/jpeg', 0.7);
+    } catch (e) { return ''; }
+  }
+  function stamp(){
+    const d = new Date(), p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+  }
+  let resFilm = null;
+  function finishFilm(blob, mime, dur, audio){
+    const ext = /mp4/.test(mime) ? 'mp4' : 'webm', base = 'mekas-' + stamp();
+    const aext = audio ? (/wav/.test(audio.type) ? 'wav' : /mp4/.test(audio.type) ? 'm4a' : 'webm') : '';
+    const film = { id: Date.now() + '-' + Math.random().toString(36).slice(2, 6), name: base + '.' + ext, blob, dur, thumb: snapshot(), created: Date.now(), type: mime, audio: audio || null, audioName: audio ? base + '-ton.' + aext : '' };
+    passes.forEach(p => { if (p.kind === 'video'){ try { p.el.pause(); } catch (e) {} URL.revokeObjectURL(p.url); } });
+    passes = []; cur = null; state = 'idle'; renderControls();
+    FS.clear();
+    addFilm(film);
+    dbPut(film).catch(() => {});
+    resFilm = film;
+    const v = $('#resVideo'); if (v.dataset.url) URL.revokeObjectURL(v.dataset.url);
+    v.dataset.url = URL.createObjectURL(blob); v.src = v.dataset.url;
+    $('#resTitle').textContent = 'Film ' + filmN + ' fertig · ' + mmss(dur);
+    $('#resSaveTon').hidden = !film.audio;
+    $('#result').hidden = false;
+  }
+  $('#resSave').addEventListener('click', () => { if (resFilm) saveFile(resFilm.blob, resFilm.name, resFilm.type); });
+  $('#resSaveTon').addEventListener('click', () => { if (resFilm && resFilm.audio) saveFile(resFilm.audio, resFilm.audioName, resFilm.audio.type); });
+  $('#resClose').addEventListener('click', () => { $('#result').hidden = true; $('#resVideo').pause(); });
+
+  /* ---------- saving: share sheet on the iPhone, download elsewhere ---------- */
+  async function saveFile(blob, name, type){
+    const file = new File([blob], name, { type: type || blob.type || 'application/octet-stream' });
+    if (!inViewer && navigator.canShare && navigator.canShare({ files: [file] })){
+      try { await navigator.share({ files: [file] }); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    let api; try { api = await dlPromise; } catch (e) { api = null; }
+    if (api){
+      try { await api.save({ filename: name, data: blob }); say('Gesichert: ' + name); }
+      catch (e) { if (e && e.code === 'declined') return; say('Sichern hat nicht geklappt (' + ((e && e.code) || 'Fehler') + ').', true); }
+      return;
+    }
+    if (api === null){ say('Sichern geht in dieser Ansicht nicht. Öffne die Datei direkt im Browser.', true); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); say('Gesichert: ' + name);
+  }
+
+  /* ---------- library ---------- */
+  const dbPut = rec => idbReq('films', true, s => s.put(rec));
+  const dbDel = id => idbReq('films', true, s => s.delete(id));
+  const dbAll = () => idbReq('films', false, s => s.getAll());
+  function addFilm(film){
+    filmN++; films.push(film);
+    const el = document.createElement('div'); el.className = 'film';
+    el.innerHTML = '<video controls playsinline preload="metadata"></video><div class="meta"><div class="info"></div>' +
+      (/webm/.test(film.type || '') ? '<p class="note">WebM öffnet Final Cut nicht direkt. In Safari wird es MP4.</p>' : '') +
+      '<div class="acts"><button class="pill primary" type="button" data-a="save">Sichern</button>' + (film.audio ? '<button class="pill" type="button" data-a="ton">Tonspur</button>' : '') + '<button class="pill" type="button" data-a="drop">Löschen</button></div></div>';
+    const url = URL.createObjectURL(film.blob);
+    el.querySelector('video').src = url;
+    if (film.thumb) el.querySelector('video').poster = film.thumb;
+    const d = new Date(film.created);
+    el.querySelector('.info').textContent = d.toLocaleDateString('de-CH') + ' ' + d.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + mmss(film.dur || 0) + (film.audio ? ' · Ton separat' : '');
+    el.querySelector('[data-a="save"]').addEventListener('click', () => saveFile(film.blob, film.name, film.type));
+    const tb = el.querySelector('[data-a="ton"]'); if (tb) tb.addEventListener('click', () => saveFile(film.audio, film.audioName, film.audio.type));
+    el.querySelector('[data-a="drop"]').addEventListener('click', () => {
+      films = films.filter(f => f !== film); URL.revokeObjectURL(url); el.remove(); dbDel(film.id).catch(() => {}); renderFilmCount();
+    });
+    $('#films').prepend(el);
+    renderFilmCount();
+  }
+  // two taps: the first arms the button, the second empties the library (IndexedDB store "films")
+  let dropArmed = 0;
+  $('#btnDropAll').addEventListener('click', async () => {
+    const b = $('#btnDropAll');
+    if (!dropArmed){ b.classList.add('armed'); b.textContent = 'Wirklich alle ' + films.length + ' löschen?'; dropArmed = setTimeout(disarmDrop, 3500); return; }
+    disarmDrop();
+    try { await idbReq('films', true, st => st.clear()); } catch (e) { say('Löschen hat nicht geklappt.', true); return; }
+    films.forEach(f => { if (f.url) URL.revokeObjectURL(f.url); });
+    films = []; $('#films').querySelectorAll('video').forEach(v => { URL.revokeObjectURL(v.src); v.removeAttribute('src'); });
+    $('#films').innerHTML = ''; renderFilmCount(); say('Alle Filme gelöscht.');
+  });
+  function disarmDrop(){ clearTimeout(dropArmed); dropArmed = 0; const b = $('#btnDropAll'); b.classList.remove('armed'); b.textContent = 'Alle löschen'; }
+  function renderFilmCount(){
+    const c = $('#filmCount'); c.hidden = !films.length; c.textContent = String(films.length);
+    $('#noFilms').hidden = films.length > 0;
+    $('#filmsFoot').hidden = !films.length;
+  }
+
+  /* ---------- controls state ---------- */
+  function renderControls(){
+    const rb = $('#btnRec');
+    rb.classList.toggle('live', state === 'rec' && !fadingOut);
+    rb.classList.toggle('fading', fadingOut);
+    rb.classList.toggle('paused', state === 'paused' || state === 'scrub');
+    rb.setAttribute('aria-label', state === 'rec' ? 'Pause' : state === 'paused' ? 'Weiter aufnehmen' : state === 'scrub' ? 'Doppel aufnehmen' : 'Aufnehmen');
+    const under = timeMode === 'under';
+    $('#recLabel').textContent = fadingOut ? 'blendet ab …' : state === 'rec' ? (under ? 'läuft' : 'Pause') : (under && (state === 'idle' || state === 'paused')) ? 'halten · tippen' : state === 'paused' ? 'weiter' : state === 'scrub' ? 'Doppel starten' : state === 'busy' ? '…' : state === 'developing' ? 'entwickelt …' : 'Aufnehmen';
+    const canDoppel = state === 'paused' || state === 'scrub' || (state === 'rec' && !!cur);
+    $('#btnDoppel').disabled = !canDoppel || fadingOut;
+    $('#btnDoppel').setAttribute('aria-pressed', String(state === 'scrub'));
+    $('#btnDone').disabled = !(state === 'rec' || state === 'paused' || state === 'scrub') || fadingOut;
+    $('#chipDoppel').hidden = !(state === 'scrub' || (state === 'rec' && cur && cur.doppel));
+    renderTime();
+  }
+  function renderTime(){
+    const c = $('#chipTime');
+    const filming = state === 'rec' || state === 'paused' || state === 'scrub' || state === 'busy';
+    c.hidden = !filming;
+    if (!filming) return;
+    let t;
+    if (timeMode === 'under') t = (state === 'rec' && cur && cur.doppel ? cur.start + cur.count : filmEnd()) / outFps;
+    else t = state === 'rec' && cur && cur.doppel ? cur.pos + cur.dur : filmEnd();
+    c.textContent = (state === 'rec' ? '● ' : '❚❚ ') + mmssShort(t);
+    c.className = 'chip ' + (state === 'rec' ? 'rec' : 'paused');
+  }
+  const rbtn = $('#btnRec');
+  let pressT = 0, pressing = null, burstLeft = 0;
+  rbtn.addEventListener('pointerdown', e => {
+    if (timeMode !== 'under') return;
+    e.preventDefault(); try { rbtn.setPointerCapture(e.pointerId); } catch (_) {}
+    pressT = performance.now(); burstLeft = 0;
+    pressing = (state === 'idle' || state === 'paused' || state === 'scrub') ? onRec() : Promise.resolve();
+  });
+  rbtn.addEventListener('pointerup', async () => {
+    if (mode === 'file' && vidFile.muted && !filePriming) vidFile.muted = false;
+    if (timeMode !== 'under' || !pressing) return;
+    const p = pressing; pressing = null; await p;
+    if (state !== 'rec') return;
+    if (performance.now() - pressT > 280) await onRec();
+    else burstLeft = 4;
+  });
+  rbtn.addEventListener('click', e => { if (timeMode === 'under' && e.detail !== 0) return; onRec(); });
+  $('#btnDoppel').addEventListener('click', onDoppel);
+  $('#btnDone').addEventListener('click', onDone);
+
+  /* ---------- sheets ---------- */
+  function openSheet(id){
+    closeSheets();
+    $(id).classList.add('show'); $(id).setAttribute('aria-hidden', 'false'); $('#backdrop').classList.add('show');
+    const f = $(id).querySelector('.close'); if (f) f.focus({ preventScroll: true });
+  }
+  function closeSheets(){
+    document.querySelectorAll('.sheet.show').forEach(s => { s.classList.remove('show'); s.setAttribute('aria-hidden', 'true'); });
+    $('#backdrop').classList.remove('show');
+  }
+  $('#btnSettings').addEventListener('click', () => openSheet('#settings'));
+  $('#btnFilms').addEventListener('click', () => openSheet('#filmsSheet'));
+  $('#backdrop').addEventListener('click', closeSheets);
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeSheets));
+  function seg(id, value, onPick){
+    const g = $(id);
+    const mark = v => g.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(v))));
+    mark(value);
+    g.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (state !== 'idle'){ say('Das geht erst, wenn der Film fertig ist.'); return; }
+      mark(b.dataset.v); onPick(b.dataset.v); persist();
+    });
+    return mark;
+  }
+
+  /* ---------- settings wiring ---------- */
+  function renderTimeNote(){
+    $('#timeNote').textContent = timeMode === 'under'
+      ? 'Wie bei der Bolex: Jedes belichtete Bild wird genau einmal vorgeführt. Langsam gedreht, läuft die Zeit im Film schneller ab. Die Kamera läuft, solange du den Auslöser hältst, kurz tippen gibt einen Stoss von vier Bildern. Der Ton läuft wie ein separates Tonband in Echtzeit mit und kommt als eigene Spur dazu.'
+      : 'Die Zeit läuft echt weiter. Jedes Bild steht nach, bis das nächste kommt. Ton und Bild bleiben synchron.';
+  }
+  $('#btnCam').addEventListener('click', () => { closeSheets(); startCam(false); });
+  $('#btnDemo').addEventListener('click', () => { setMode('demo'); closeSheets(); });
+  $('#mirrorView').addEventListener('change', e => { mirrorView[facing] = e.target.checked; renderSrc(); persist(); });
+  $('#mirrorRec').addEventListener('change', e => { mirrorRec = e.target.checked; renderSrc(); persist(); });
+  $('#jitter').addEventListener('input', e => { jitter = +e.target.value / 100; $('#jitterVal').textContent = e.target.value; });
+  $('#jitter').addEventListener('change', persist);
+  $('#startFlash').addEventListener('change', e => { startFlash = e.target.checked; persist(); });
+  $('#weave').addEventListener('input', e => { weaveAmt = +e.target.value / 100; $('#weaveVal').textContent = e.target.value; });
+  $('#weave').addEventListener('change', persist);
+  $('#swivel').addEventListener('change', e => { swivelOn = e.target.checked; centerSwivel(); if (swivelOn){ swivelAsked = false; askSwivel(); } persist(); });
+  $('#ton').addEventListener('change', persist);
+  $('#avDelay').addEventListener('input', e => { avDelayMs = +e.target.value; $('#delayVal').textContent = avDelayMs + ' ms'; if (recDelay) recDelay.delayTime.value = avDelayMs / 1000; });
+  $('#avDelay').addEventListener('change', persist);
+  $('#btnClap').addEventListener('click', () => {
+    ensureCtx();
+    clapFrames = 2; compose();
+    if (state === 'rec' && cur){ if (cur.vtrack) cur.vtrack.requestFrame(); if (cur.kind === 'frames') captureFrame(); }
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain(), t0 = audioCtx.currentTime;
+    o.frequency.value = 1000; g.gain.setValueAtTime(0.5, t0); g.gain.setValueAtTime(0, t0 + 0.08);
+    o.connect(g); g.connect(audioCtx.destination); g.connect(audioDest);
+    o.start(t0); o.stop(t0 + 0.1);
+    say(state === 'rec' ? 'Klappe gesetzt.' : 'Die Klappe landet nur in einer laufenden Aufnahme.');
+  });
+  const markTime = seg('#segTime', timeMode, v => { timeMode = v === 'under' ? 'under' : 'hold'; renderTimeNote(); renderControls(); lastLabel = ''; });
+  const markFps = seg('#segFps', outFps, v => { outFps = +v; lastLabel = ''; });
+  const markRes = seg('#segRes', resCap, v => {
+    resCap = +v;
+    if (mode === 'demo') setSize(1280, 720); else srcW = srcH = 0;
+    if (mode === 'cam') startCam(true);
+  });
+
+  $('#cardCam').addEventListener('click', () => startCam(false));
+  $('#cardDemo').addEventListener('click', () => { hideCard(); });
+
+  /* ---------- keyboard ---------- */
+  document.addEventListener('keydown', e => {
+    const tag = e.target && e.target.tagName;
+    if (e.metaKey || e.ctrlKey || e.altKey || (tag === 'INPUT' && e.target.type === 'range')) return;
+    if (e.key === 'Escape'){ closeSheets(); return; }
+    if (document.querySelector('.sheet.show')) return;
+    if (e.key === 'r' || e.key === 'R'){ e.preventDefault(); onRec(); }
+    else if (e.code === 'Space' && !e.repeat && tag !== 'BUTTON'){ e.preventDefault(); keyHold = true; updateFrozen(); }
+    else if (e.target === vf || e.target === gp) return;
+    else if (e.key === 'ArrowLeft'){ xT = clamp01(xT - 0.04); hideHint(); }
+    else if (e.key === 'ArrowRight'){ xT = clamp01(xT + 0.04); hideHint(); }
+    else if (e.key === 'ArrowUp' && e.target !== vf){ yT = clamp01(yT + 0.05); hideHint(); e.preventDefault(); }
+    else if (e.key === 'ArrowDown' && e.target !== vf){ yT = clamp01(yT - 0.05); hideHint(); e.preventDefault(); }
+  });
+  document.addEventListener('keyup', e => { if (e.code === 'Space'){ keyHold = false; updateFrozen(); } });
+
+  /* ---------- MIDI: a knob is the crank ---------- */
+  let learnCC = null, midiAccess = null;
+  function onMidi(m){
+    const d = m.data; if (!d || d.length < 3 || (d[0] & 0xf0) !== 0xb0) return;
+    if (learnCC === null){ learnCC = d[1]; $('#midiStatus').textContent = 'CC ' + learnCC + ' ist die Kurbel'; }
+    if (d[1] === learnCC){ xT = d[2] / 127; hideHint(); }
+  }
+  function hookMidi(){
+    let n = 0; midiAccess.inputs.forEach(i => { i.onmidimessage = onMidi; n++; });
+    if (learnCC === null) $('#midiStatus').textContent = n ? 'Dreh jetzt den Knopf, der die Kurbel sein soll' : 'Kein MIDI-Gerät gefunden';
+  }
+  $('#btnMidi').addEventListener('click', async () => {
+    learnCC = null;
+    if (!navigator.requestMIDIAccess){ $('#midiStatus').textContent = 'MIDI gibt es hier nicht, Chrome kann es'; return; }
+    try { if (!midiAccess){ midiAccess = await navigator.requestMIDIAccess(); midiAccess.onstatechange = hookMidi; } hookMidi(); }
+    catch (e) { $('#midiStatus').textContent = 'MIDI ist hier gesperrt'; }
+  });
+
+  /* ---------- restore and start ---------- */
+  if ([24, 25, 30].includes(saved.outFps)){ outFps = saved.outFps; markFps(outFps); }
+  if (saved.res === 1280 || saved.res === 1920){ resCap = saved.res; markRes(resCap); }
+  if (saved.timeMode === 'under' || saved.timeMode === 'hold'){ timeMode = saved.timeMode; markTime(timeMode); }
+  if (typeof saved.expo === 'number') expo = clamp01(saved.v === KEY_VER ? saved.expo : saved.expo / 2);
+  if (typeof saved.slits === 'number') slitsH = clamp01(saved.slits);
+  if (saved.swivel === false){ swivelOn = false; $('#swivel').checked = false; }
+  if (typeof saved.jitter === 'number') jitter = clamp01(saved.jitter); else if (saved.jitter === false) jitter = 0;
+  $('#jitter').value = Math.round(jitter * 100); $('#jitterVal').textContent = String(Math.round(jitter * 100));
+  if (typeof saved.startFlash === 'boolean'){ startFlash = saved.startFlash; $('#startFlash').checked = startFlash; }
+  if (typeof saved.weave === 'number'){ weaveAmt = Math.max(0, Math.min(100, saved.weave)) / 100; $('#weave').value = Math.round(weaveAmt * 100); $('#weaveVal').textContent = String(Math.round(weaveAmt * 100)); }
+  if (typeof saved.ton === 'boolean') $('#ton').checked = saved.ton;
+  if (saved.facing === 'user' || saved.facing === 'environment') facing = saved.facing;
+  if (saved.mirrorView && typeof saved.mirrorView === 'object') mirrorView = { user: !!saved.mirrorView.user, environment: !!saved.mirrorView.environment };
+  if (typeof saved.mirrorRec === 'boolean') mirrorRec = saved.mirrorRec;
+  if (typeof saved.avDelay === 'number'){ avDelayMs = Math.max(0, Math.min(300, saved.avDelay)); $('#avDelay').value = avDelayMs; $('#delayVal').textContent = avDelayMs + ' ms'; }
+  if (typeof saved.x === 'number') xT = xC = clamp01(saved.x);
+  if (typeof saved.y === 'number') yT = yC = clamp01(saved.y);
+  setSize(1280, 720);
+  renderSrc(); renderExpo(); renderGrip(); renderControls(); renderFilmCount(); renderPad(); renderTimeNote();
+  requestAnimationFrame(loop);
+
+  FS.clear();
+  dbAll().then(list => { (list || []).sort((a, b) => a.created - b.created).forEach(f => { if (f && f.blob) addFilm(f); }); }).catch(() => {});
+
+  if (!inViewer && saved.lastMode === 'cam' && navigator.mediaDevices){
+    const go = () => startCam(true);
+    if (navigator.permissions && navigator.permissions.query){
+      navigator.permissions.query({ name: 'camera' }).then(p => { if (p.state !== 'denied') go(); }).catch(go);
+    } else go();
+  }
+})();
+</script>
+
+</body>
+</html>
