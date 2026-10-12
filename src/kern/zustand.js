@@ -22,6 +22,7 @@ export const ctx = {
   aufnahme: 'idle',                 // idle | rec | paused | scrub | busy | developing
   anlauf: { nr: 0, doppel: false }, // zählt jeden Start und jedes Weiter der Aufnahme
   bildNr: 0,                        // zählt jedes entwickelte Kurbelbild
+  belichtung: { winkel: 135, T: 83 },   // Blendenwinkel und Dauer (ms) des letzten Kurbelbilds
   stoss: { x: 0, y: 0 },            // Stösse in diesem Animationsbild (Bilder pro Sekunde, y nach oben), siehe kern/anstoss.js
   eingabe: { padFinger: false, greiferHaelt: false, greiferX: 0.5, greiferY: 0.6 },   // Greifer-Pad: Finger liegt, hält (Schlupf), Höhe 0..1
   labor: new URLSearchParams(location.search).has('labor'),

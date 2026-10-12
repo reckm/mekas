@@ -62,7 +62,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ## Runde 1a: Schwinger und Anstossen (gemeinsamer Kern)
 
-**Status:** veröffentlicht als 1.1.3 zusammen mit 1b (2026-10-12), Maris prüft auf dem iPhone
+**Status:** veröffentlicht als 1.1.3 zusammen mit 1b, weichere Werte in 1.2.1 (2026-10-12), Maris prüft auf dem iPhone
 
 **Mechanik:** Ein gedämpfter Schwinger wie eine Masse an einer Feder. Ein Stoss gibt ihm Energie, er schwingt aus und kommt zur Ruhe. Dieser Kern wird von mehreren Modulen benutzt (Greifer, später Linse, Pendel, Zweiter Projektor). Jedes Modul sagt, auf welche Achsen es reagiert und welche Ruhelagen es hat.
 
@@ -86,6 +86,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 - 2026-10-12: Anstossen im Kern (`kern/anstoss.js`), Schwinger (`kern/schwinger.js`), Bewegungssensor geteilt mit Schwenken. Gyroskop simuliert: ruhige Hand und Schwenk bis 96 °/s ohne Stoss, Ruck 700 °/s gibt einen kräftigen. Stärke Pad auf 20 angehoben, damit ein Stoss am Rand ins nächste Bild springt. Im Labor zeigt „Kern“ den Ruck in °/s zum Einstellen der Schwelle. Von Maris abgenommen („passt“), iPhone-Test offen.
 - 2026-10-12, iPhone: Gyroskop wirkte nicht, keine Frage nach der Berechtigung (vermutlich schon beim Schwenken erteilt). Geändert: Ein Ruck zählt jetzt auf allen drei Drehachsen (vorher nur zwei, und die Querrichtung erreichte den Greifer nicht), Schwelle 220 → 150 °/s. Das Labor zeigt unter „Kern“ den Sensorstatus, ob Daten kommen, und den höchsten Ruck der letzten 3 s. Gesperrter Sensor gibt jetzt eine Meldung.
 - 2026-10-12, 1.1.2: Gyroskop geht in der normalen Bedienung, im Labor nicht. Ursache: Das Labor hatte alle Werte von 1.1.1 gespeichert (Schwelle 220). Ab 1.1.3 merkt es sich nur selbst verstellte Werte, alte Stände werden einmal verworfen, neuer Knopf „Zurücksetzen“.
+- 2026-10-12, Maris: Gyroskop zu energisch, lieber empfindlicher und weicher, Feder langsamer. Neue Grundwerte: Schwelle 30 °/s, Empfindlichkeit 0,1 mit sättigender Kennlinie (kleine Rucke wirken, ein harter Ruck reicht knapp ins nächste Bild), Rastkraft 170 statt 360 (≈ 2 Hz statt 3 Hz), Dämpfung 0,5, Stärke Pad 14 (Tippen fühlt sich gleich an wie vorher). Ein stärkerer Ruck kurz nach einem kleinen wird nicht mehr von der Sperre verschluckt.
 
 ---
 
@@ -124,19 +125,20 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ## Runde 1c: Überblendender Projektor (Idee 5, klein)
 
-**Status:** Idee
+**Status:** im Labor, abgenommen 2026-10-12 (bleibt im Labor, bis die Kamera fertig ist)
 
 **Mechanik:** Im Modus „Bild steht nach“ springt das Bild nicht hart zum nächsten Kurbelbild, sondern geht weich hinein, wie zwei Projektoren mit Überblendung. **Kopplung an die Blende:** offen = weicher Übergang, fast zu = hart.
 
 **Erfolgskriterien:** Ruhiger bei 4–8 fps, das Stocken bleibt als Rhythmus erkennbar, wirkt nicht wie Zwischenbilder.
 
 **Notizen:**
+- 2026-10-12: Modul `ueberblenden` (Station Projektor), Grundstellung „nur im Labor an“. Maris: Blendzeit = so lange die Blende offen ist (Anteil des Kurbelbilds wie der Blendenwinkel). Nur im Modus „Bild steht nach“. Labor-Wert: Länge (× Blendenzeit). Kontaktbogen bei 6 fps, Blende 90°/270°/360° mit Vergleich ohne: grösster Sprung zwischen Ausgabebildern bei 360° von 2,7 auf 1,1, bei 90° fast wie ohne.
 
 ---
 
 ## Runde 1d: Stehender Film (Mehrfachbelichtung)
 
-**Status:** Idee (für Runde 1d gewählt 2026-10-12)
+**Status:** im Labor (gebaut 2026-10-12)
 
 **Herkunft:** Das Stapeln im Greifer („Film steht“). Maris 2026-10-12: „das Aufsummieren zu Glühen und Ausbreiten ist spannend“. Hier ohne Greiferbewegung, als eigenes Modul. Hintergrund in `IDEEN.md` (Stehender Film, Mehrumlauf-Blende).
 
@@ -177,6 +179,10 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 **Fragen an Maris nach dem Test:** Welche Materialien bleiben, und welches ist die Grundstellung? Solarisation behalten? Lichthof ja oder nein? Kommt das Material als Regler in die normale Bedienung, und wenn ja, wohin?
 
 **Notizen:**
+- 2026-10-12: Modul `stehenderfilm` (Station Transport nach dem Greifer), Grundstellung „nur im Labor an“, übernimmt das Halten: die Kurbel dreht beim Halten weiter (Kern: `haltenUebernommen()`). Label „accum.“ / Schild „ACCUM.“ (Maris), bei geschlossener Blende „hält“. Gesammelt wird in WebGL2 mit 32 Bit (laufende Mittel linear und logarithmisch), Material als ein Regler: 0 Sandwich (geometrisches Mittel), 0,5 Graufilter (Mittel), 0,85 Umkehrfilm (aufsummiert mit Schulter, Grundstellung), ab 0,92 Solarisation. Anteil pro Durchgang 0,5 bei 180°. Loslassen: das frische Bild blendet in 0,6 s über den Stapel.
+- Kontaktbögen Demo und Nachtlichter (künstliches Video, `tests/out/nachtlichter.mp4`), 6 und 18 fps, Blende 180°, nach 2/5/15 s und 1,5 s nach dem Loslassen: Sandwich lässt Bewegtes verschwinden, Graufilter macht es zu Nebel, Umkehrfilm lässt Lichter glühen und Lichtspuren malen, nach 15 s nicht flächig weiss. 30 s bei 18 fps: keine Farbstufen, neue Durchgänge wirken weiter (keine eingefrorenen Geister).
+- Beobachtet, zum Einstellen nach Maris’ Test: Umkehrfilm hebt mit der Zeit auch das Dunkle (Himmel wird grau-blau). Solarisation unterscheidet sich bei diesen Quellen kaum vom Umkehrfilm (kippt erst bei sehr viel Licht). Lichthof greift nur bei sehr hellen Stellen, bei Lichtspuren kaum sichtbar.
+- 2026-10-12: Kontaktbogen von Maris abgenommen („passt“), veröffentlicht als 1.2.1 (nur im Labor). iPhone-Test offen.
 
 ---
 

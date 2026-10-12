@@ -2,15 +2,15 @@
 // Ein Stoss lässt ihn rutschen; ein kleiner rollt zurück in dieselbe Lage, ein grosser über den Kamm ins nächste Bild,
 // mit leichtem Überschwingen. Halten auf dem Pad lässt ihn schlüpfen (Zug ≠ 1, der Bildstrich rollt), Loslassen gibt ihn
 // mit seinem Schwung an die Rastung zurück. Ist die Blende offen, während der Film zieht oder rutscht, ziehen Lichter Schlieren.
-import { TRANSPORT, transportOverlap } from '../kern/mechanik.js?v=1.1.3';
-import { Schwinger } from '../kern/schwinger.js?v=1.1.3';
+import { TRANSPORT, transportOverlap } from '../kern/mechanik.js?v=1.2.1';
+import { Schwinger } from '../kern/schwinger.js?v=1.2.1';
 
 // Feste Werte (Maris 2026-10-12: die Grundeinstellung fühlt sich gut an, nicht alles als Regler ins Labor).
 // Änderungen nur nach Bildbeobachtung, dann gezielt einen dieser Werte.
 export const GREIFER = {
-  rastkraft: 360,      // Steifigkeit der Rastung: Eigenfrequenz ≈ √(rastkraft/masse) / 2π ≈ 3 Hz
+  rastkraft: 170,      // Steifigkeit der Rastung: Eigenfrequenz ≈ √(rastkraft/masse) / 2π ≈ 2 Hz (Maris 2026-10-12: weicher, langsamer)
   masse: 1,            // träger Film: Stösse wirken schwächer, schwingt langsamer
-  daempfung: 0.45,     // Einschwingen: kleiner = mehr Überschwingen, 1 = gerade keins
+  daempfung: 0.5,      // Einschwingen: kleiner = mehr Überschwingen, 1 = gerade keins
   kurve: 2.4,          // Schlupf: viel Weg für ruhige Werte nahe der Mitte
   totzone: 0.07,       // Schlupf: kein Schlupf um die Mitte
   maxOben: 1.5,        // Schlupf ganz oben: Bilder pro Zug (Lücken)

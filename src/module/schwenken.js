@@ -1,7 +1,7 @@
 // Schwenken mit dem Telefon: Im Zoom wandert der Ausschnitt eines Videos mit, wie beim Abfilmen eines Fernsehers.
 // Das Gyroskop wird aufsummiert, der Bildrand ist eine Wand. Mitte ist, wie das Telefon beim Start der Aufnahme liegt.
 // Nur bei Video und Demo, nicht bei der Live-Kamera.
-import { frage, hoere, drehung } from '../kern/bewegung.js?v=1.1.3';
+import { frage, hoere, drehung } from '../kern/bewegung.js?v=1.2.1';
 
 const fuer = quelle => quelle === 'file' || quelle === 'demo';
 

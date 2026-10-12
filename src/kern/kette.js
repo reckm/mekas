@@ -1,13 +1,13 @@
 // Die Kette, durch die jedes Bild läuft: Takt → Quelle → Belichtung → Entwickeln → Transport → Projektor.
 // Hier liegen die Liste der Module, ihre Werte und ihr Ein/Aus, das Sammeln des Lichts und die Hauptschleife.
-import { ctx, intern, out, hold, acc, actx, tmp, expC, ectx, hctx, einst } from './zustand.js?v=1.1.3';
-import { REF_ANGLE } from './mechanik.js?v=1.1.3';
-import liste from '../module/liste.js?v=1.1.3';
-import { anstoss, holeStoss } from './anstoss.js?v=1.1.3';
-import { kurbelTick } from './kurbel.js?v=1.1.3';
-import { sampleInto, sourceReady, syncFile } from './quelle.js?v=1.1.3';
-import { aufnahmeTick, projiziere, aufnahmeAnzeige, neuesBild } from './aufnahme.js?v=1.1.3';
-import { renderPad } from './bedienung.js?v=1.1.3';
+import { ctx, intern, out, hold, acc, actx, tmp, expC, ectx, hctx, einst } from './zustand.js?v=1.2.1';
+import { REF_ANGLE } from './mechanik.js?v=1.2.1';
+import liste from '../module/liste.js?v=1.2.1';
+import { anstoss, holeStoss } from './anstoss.js?v=1.2.1';
+import { kurbelTick } from './kurbel.js?v=1.2.1';
+import { sampleInto, sourceReady, syncFile } from './quelle.js?v=1.2.1';
+import { aufnahmeTick, projiziere, aufnahmeAnzeige, neuesBild } from './aufnahme.js?v=1.2.1';
+import { renderPad } from './bedienung.js?v=1.2.1';
 
 export const STATIONEN = ['takt', 'quelle', 'belichtung', 'entwickeln', 'transport', 'projektor'];
 
@@ -15,7 +15,7 @@ export const STATIONEN = ['takt', 'quelle', 'belichtung', 'entwickeln', 'transpo
 export const module = liste;
 export const kernteile = [anstoss];     // Werte des Kerns, die das Labor zeigt (nicht schaltbar)
 for (const m of [...module, ...kernteile]){
-  m.grund = m.an !== false; m.an = m.grund;
+  m.grund = m.an === 'labor' ? ctx.labor : m.an !== false; m.an = m.grund;   // 'labor': neu, nur im Labor an, bis Maris es abnimmt
   m.p = {}; for (const [n, d] of Object.entries(m.params || {})) m.p[n] = d.def;
   m.ms = 0; m._ms = 0;
 }
@@ -44,6 +44,8 @@ export function station(name, bild){
   }
   return bild;
 }
+// ein Modul übernimmt das Halten (Stehender Film): die Kurbel dreht beim Halten weiter
+export const haltenUebernommen = () => module.some(m => m.uebernimmtHalten && aktiv(m));
 export const hatStation = name => module.some(m => m.station === name && m.apply && aktiv(m));
 export function hinweise(){
   const h = [];
@@ -75,6 +77,7 @@ let zyklus = null, accN = 0;
 function startExposure(now, T){
   const z = { t0: now, T, winkel: REF_ANGLE, fenster: [[0, T * REF_ANGLE / 360]], stops: 0, deckung: 1 };
   station('belichtung', z);
+  ctx.belichtung = { winkel: z.winkel, T };
   const last = z.fenster[z.fenster.length - 1];
   z.ende = now + (last ? last[1] : 0);
   z.E = z.fenster.reduce((s, f) => s + (f[1] - f[0]), 0) / 1000;
@@ -101,8 +104,8 @@ function closeShutter(now){
   if (z.deckung < 1){ ectx.globalAlpha = 1 - z.deckung; ectx.fillStyle = '#000'; ectx.fillRect(0, 0, W, H); }
   ectx.globalAlpha = 1;
   // transport: ohne Greifer liegt jedes Bild genau im Bildfenster
-  if (hatStation('transport')) station('transport', { belichtet: expC, g: hctx, zyklus: z });
-  else { hctx.globalCompositeOperation = 'source-over'; hctx.globalAlpha = 1; hctx.drawImage(expC, 0, 0); }
+  hctx.globalCompositeOperation = 'source-over'; hctx.globalAlpha = 1; hctx.drawImage(expC, 0, 0);
+  station('transport', { belichtet: expC, g: hctx, zyklus: z });
   intern.offen = false; zyklus = null; intern.have = true; intern.dirty = true;
   ctx.bildNr++;
   neuesBild();
@@ -127,9 +130,9 @@ function belichtung(now){
 
 /* ---------- Projektor: wie das Bildfenster im Ausgabebild sitzt ---------- */
 export function drawWeaved(g, src){
-  const { W, H } = ctx, l = station('projektor', { lage: { x: 0, y: 0, s: 1 } }).lage;
+  const { W, H } = ctx, b = station('projektor', { lage: { x: 0, y: 0, s: 1 }, quelle: src }), l = b.lage;
   g.save(); g.translate(W / 2 + l.x, H / 2 + l.y); g.scale(l.s, l.s);
-  g.drawImage(src, -W / 2, -H / 2, W, H); g.restore();
+  g.drawImage(b.quelle, -W / 2, -H / 2, W, H); g.restore();
 }
 
 /* ---------- Hauptschleife ---------- */

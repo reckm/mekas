@@ -80,7 +80,7 @@ def labor(page, browser_url):
     page.wait_for_function('window.mekas')
     module = page.evaluate('window.mekas.module()')
     ids = [m['id'] for m in module]
-    erwartet = ['handkurbel', 'schwenken', 'blende', 'kammblende', 'entwickeln', 'greifer', 'bildstand']
+    erwartet = ['handkurbel', 'schwenken', 'blende', 'kammblende', 'entwickeln', 'greifer', 'stehenderfilm', 'bildstand', 'ueberblenden']
     if ids != erwartet:
         fehler.append(f'Labor: Module {ids}, erwartet {erwartet}')
     if page.locator('.lab-modulkopf .switch').count() != len(erwartet):
@@ -98,6 +98,13 @@ def labor(page, browser_url):
     page.wait_for_timeout(1000)
     page.evaluate('window.mekas.lass()')
     page.wait_for_timeout(1500)
+    # Stehender Film: Halten mit offener Blende sammelt Licht, Loslassen blendet ein frisches Bild hinein
+    page.evaluate('window.mekas.halteBild(true)')
+    page.wait_for_timeout(1500)
+    if page.text_content('#frozen') != 'ACCUM.':
+        fehler.append('Labor: beim Halten steht nicht ACCUM.')
+    page.evaluate('window.mekas.halteBild(false)')
+    page.wait_for_timeout(1200)
     page.evaluate("window.mekas.vergleiche('greifer')")
     page.wait_for_timeout(300)
     page.evaluate('window.mekas.vergleiche(null)')

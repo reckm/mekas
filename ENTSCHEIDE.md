@@ -4,6 +4,10 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 ## 2026-10-12
 
+- **Vorerst nur im Labor bauen**, bis alle Teile da und eingestellt sind und die Kamera fertig ist. Neue Module haben die Grundstellung „nur im Labor an“, die normale Bedienung bleibt beim abgenommenen Stand.
+- **Runde 1c abgenommen** (Überblendung im Labor). Blendzeit = so lange die Blende offen ist.
+- **Wortlaut beim Stehenden Film:** Halten mit offener Blende zeigt „accum.“ (Kurbel-Label) bzw. „ACCUM.“ (Schild), mit geschlossener Blende weiter „hält“.
+
 - **Schlieren über 240° bleiben wie sie sind**, auch wenn helle Stellen bis ins nächste Bild ziehen. Mechanisch richtig, gesteuert mit der Blende.
 - **Greifer-Werte fest**, nicht im Labor. Die Grundeinstellung fühlt sich gut an. Änderungen nur nach Bildbeobachtung, gezielt ein Wert. Seitliches Spiel und Takt zur Blende entfernt.
 

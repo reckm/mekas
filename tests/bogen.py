@@ -5,9 +5,12 @@
 --quelle demo (Standard) oder ein Video (wird mit ffmpeg zu .y4m und als falsche Kamera eingespielt)
 --alt      dieselben Werte mit der alten mekas.html daneben (vorher/nachher), nur für Werte, die sie kannte
 --referenz ein Referenzbild, das neben jeder Zeile steht
---aktion   stoss (Wert = Stärke, nach oben) oder halten (Wert = Höhe auf dem Greifer-Pad, --dauer s lang, dann loslassen).
+--aktion   stoss (Wert = Stärke, nach oben) oder halten (Wert = Höhe auf dem Greifer-Pad, --dauer s lang, dann loslassen)
+           oder accum (Bild halten wie mit zwei Fingern; Standbilder zu den --zeiten in s, dann loslassen).
            Der Clip läuft während der Aktion, Standbilder im Abstand --abstand ms.
 --setze    weitere Werte vorher, z. B. --setze blende.winkel=300 (mehrfach möglich)
+--fps      Kurbel auf dieses Tempo stellen (4–24)
+--ohne     dazu eine Reihe mit ausgeschaltetem Modul, zum Vergleich
 
     .venv/bin/python tests/bogen.py --modul greifer --aktion stoss --werte 0.3,0.6,1 --setze blende.winkel=300 --bilder 8 --abstand 120
 Ausgabe nach tests/out/bogen-<modul>-<zeit>/index.html (nicht im Repository).
@@ -93,6 +96,25 @@ def aufnehmen(page, ordner, name, bilder, clip_sek, abstand=500):
     return standbilder, mp4(ordner, name, page.evaluate(CLIP_JS, clip_sek))
 
 
+def accum(page, ordner, name, a):
+    """Halten wie mit zwei Fingern: Standbilder zu festen Zeiten, dann loslassen und das frische Bild hineinblenden sehen."""
+    page.evaluate(CLIP_START)
+    page.wait_for_timeout(400)
+    standbilder = []
+    page.evaluate('window.mekas.halteBild(true)')
+    start = page.evaluate('performance.now()')
+    for z in [float(x) for x in a.zeiten.split(',')]:
+        rest = start + z * 1000 - page.evaluate('performance.now()')
+        if rest > 0:
+            page.wait_for_timeout(rest)
+        standbilder.append(standbild(page, ordner, f'{name}-{z:g}s'))
+    page.evaluate('window.mekas.halteBild(false)')
+    for z in (0.3, 1.5):
+        page.wait_for_timeout(300 if z == 0.3 else 1200)
+        standbilder.append(standbild(page, ordner, f'{name}-los{z:g}s'))
+    return standbilder, mp4(ordner, name, page.evaluate(CLIP_STOP))
+
+
 def mit_aktion(page, ordner, name, a, wert):
     """Clip läuft, dann Stoss oder Halten; Standbilder in kurzen Abständen ab der Aktion."""
     page.evaluate(CLIP_START)
@@ -117,7 +139,7 @@ def starte_quelle(page, kamera):
     page.click('#cardCam' if kamera else '#cardDemo')
 
 
-def lauf_neu(browser, url, a, wert, ordner, kamera):
+def lauf_neu(browser, url, a, wert, ordner, kamera, an=True):
     context = browser.new_context(viewport={'width': 1280, 'height': 800})
     context.add_init_script(SAAT)
     page = context.new_page()
@@ -125,19 +147,26 @@ def lauf_neu(browser, url, a, wert, ordner, kamera):
     page.wait_for_function('window.mekas')
     page.evaluate('document.querySelector("#labor").classList.add("weg")')
     starte_quelle(page, kamera)
-    page.evaluate(f"window.mekas.schalte({json.dumps(a.modul)}, true)")      # das geprüfte Modul ist immer an
+    page.evaluate(f"window.mekas.schalte({json.dumps(a.modul)}, {'true' if an else 'false'})")      # das geprüfte Modul ist an (bzw. für --ohne aus)
+    if a.fps:   # Kurbelstellung für dieses Tempo (Umkehrung der Skala: 4–12 fps auf 0–80 %)
+        import math
+        x = 0.8 * math.log(a.fps / 4) / math.log(3) if a.fps <= 12 else 0.8 + 0.2 * math.log(a.fps / 12) / math.log(24 / 12)
+        page.evaluate(f"Object.assign(window.mekas.ctx.kurbel, {{ zielX: {x}, x: {x} }})")
     for s in a.setze:
         ziel, w = s.split('=')
         mid, par = ziel.split('.')
         page.evaluate(f"window.mekas.setze({json.dumps(mid)}, {json.dumps(par)}, {json.dumps(float(w))})")
-    if a.param:
-        page.evaluate(f"window.mekas.setze({json.dumps(a.modul)}, {json.dumps(a.param)}, {json.dumps(wert)})")
+    if a.param:   # --param name (des Moduls) oder modul.name (eines anderen, z. B. blende.winkel bei der Überblendung)
+        mid, par = a.param.split('.') if '.' in a.param else (a.modul, a.param)
+        page.evaluate(f"window.mekas.setze({json.dumps(mid)}, {json.dumps(par)}, {json.dumps(wert)})")
     page.wait_for_timeout(a.warten * 1000)
     fps = page.evaluate('window.mekas.ctx.kurbel.fps')
-    if a.aktion:
-        ergebnis = mit_aktion(page, ordner, f'neu-{wert}', a, wert)
+    if a.aktion == 'accum':
+        ergebnis = accum(page, ordner, f'{"neu" if an else "ohne"}-{wert}', a)
+    elif a.aktion:
+        ergebnis = mit_aktion(page, ordner, f'{"neu" if an else "ohne"}-{wert}', a, wert)
     else:
-        ergebnis = aufnehmen(page, ordner, f'neu-{wert}', a.bilder, a.clip, a.abstand)
+        ergebnis = aufnehmen(page, ordner, f'{"neu" if an else "ohne"}-{wert}', a.bilder, a.clip, a.abstand)
     context.close()
     return ergebnis, fps
 
@@ -165,6 +194,8 @@ def seite(a, ordner, zeilen, referenz, fps):
     for z in zeilen:
         t = f'<section><h2>{html.escape(z["label"])}</h2>'
         t += zelle(*z['neu'], f'jetzt {VERSION}')
+        if z.get('ohne'):
+            t += zelle(*z['ohne'], 'ohne Modul')
         if z.get('alt'):
             t += zelle(*z['alt'], 'vorher')
         if referenz:
@@ -198,17 +229,20 @@ def main():
     ap.add_argument('--referenz', default=None)
     ap.add_argument('--bilder', type=int, default=4)
     ap.add_argument('--clip', type=float, default=3)
-    ap.add_argument('--aktion', choices=['stoss', 'halten'], default=None)
+    ap.add_argument('--aktion', choices=['stoss', 'halten', 'accum'], default=None)
+    ap.add_argument('--zeiten', default='2,5,15', help='accum: Standbilder nach so vielen Sekunden Halten')
     ap.add_argument('--dauer', type=float, default=1.5, help='halten: Sekunden bis zum Loslassen')
     ap.add_argument('--abstand', type=int, default=500, help='ms zwischen den Standbildern')
+    ap.add_argument('--fps', type=float, default=None)
+    ap.add_argument('--ohne', action='store_true')
     ap.add_argument('--setze', action='append', default=[], help='modul.param=wert, vor dem Durchschalten')
     ap.add_argument('--warten', type=float, default=2.0, help='Sekunden nach dem Einstellen')
     a = ap.parse_args()
     if not a.param and not a.aktion:
         raise SystemExit('--param oder --aktion angeben')
     werte = [float(w) if '.' in w else int(w) for w in a.werte.split(',')]
-    einheit = a.einheit if a.einheit is not None else ('°' if a.param == 'winkel' else '')
-    titel = a.param or ('Stoss' if a.aktion == 'stoss' else 'Halten auf Höhe')
+    einheit = a.einheit if a.einheit is not None else ('°' if (a.param or '').endswith('winkel') else '')
+    titel = a.param or {'stoss': 'Stoss', 'halten': 'Halten auf Höhe', 'accum': 'accum'}.get(a.aktion, '')
     if a.alt and (a.modul, a.param) not in ALT_FELD:
         raise SystemExit(f'--alt geht nur für {sorted(ALT_FELD)}')
 
@@ -225,7 +259,9 @@ def main():
         browser = starte_chrome(p, kamera)
         for w in werte:
             neu, fps = lauf_neu(browser, s.url, a, w, ordner, kamera)
-            z = {'label': f'{titel} {w}{einheit}' if a.aktion else f'{w}{einheit}', 'neu': neu}
+            z = {'label': f'{titel} {w}{einheit}' if a.aktion and not a.param else f'{w}{einheit}', 'neu': neu}
+            if a.ohne:
+                z['ohne'] = lauf_neu(browser, s.url, a, w, ordner, kamera, an=False)[0]
             if a.alt:
                 z['alt'] = lauf_alt(browser, s.url, a, w, ordner, kamera)
             zeilen.append(z)

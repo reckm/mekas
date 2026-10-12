@@ -1,15 +1,15 @@
 // Bedienung: Wischen übers Bild (Kurbel und Zoom), Halten, Blendenfader, Greifer-Pad, Blätter, Einstellungen, Tastatur, MIDI.
-import { ctx, intern, einst, $ } from './zustand.js?v=1.1.3';
-import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=1.1.3';
-import { VERSION } from './version.js?v=1.1.3';
-import { wert, setze, istAn, schalte, hinweise, setSize, modul } from './kette.js?v=1.1.3';
-import { padStoss } from './anstoss.js?v=1.1.3';
-import { fpsOf, zoomOf } from './kurbel.js?v=1.1.3';
-import { persist } from './speicher.js?v=1.1.3';
-import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=1.1.3';
-import { setAvDelay } from './ton.js?v=1.1.3';
-import { onRec, renderControls } from './aufnahme.js?v=1.1.3';
-import { zugOf, GREIFER } from '../module/greifer.js?v=1.1.3';
+import { ctx, intern, einst, $ } from './zustand.js?v=1.2.1';
+import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=1.2.1';
+import { VERSION } from './version.js?v=1.2.1';
+import { wert, setze, istAn, schalte, hinweise, setSize, modul, haltenUebernommen } from './kette.js?v=1.2.1';
+import { padStoss } from './anstoss.js?v=1.2.1';
+import { fpsOf, zoomOf } from './kurbel.js?v=1.2.1';
+import { persist } from './speicher.js?v=1.2.1';
+import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=1.2.1';
+import { setAvDelay } from './ton.js?v=1.2.1';
+import { onRec, renderControls } from './aufnahme.js?v=1.2.1';
+import { zugOf, GREIFER } from '../module/greifer.js?v=1.2.1';
 
 let toastTimer = 0;
 export function say(text, warn){
@@ -36,7 +36,11 @@ export function renderPad(){
   pl.classList.toggle('flip', xC > 0.5); pl.classList.toggle('below', yC > 0.82);
   const f = fpsOf(xC), z = 'Zoom ' + comma(zoomOf(yC).toFixed(1)) + '×';
   const r = ctx.ausgabeFps / f, tempo = f >= ctx.ausgabeFps - 0.3 ? 'echtes Tempo' : (r < 10 ? comma(r.toFixed(1)) : String(Math.round(r))) + '× schneller';
-  const top = ctx.halten ? 'hält' : fmtFps(f) + ' fps';
+  // Halten mit stehendem Film und offener Blende: der Film wird mehrfach belichtet
+  const accum = ctx.halten && haltenUebernommen() && ctx.belichtung.winkel >= 1;
+  const top = ctx.halten ? (accum ? 'accum.' : 'hält') : fmtFps(f) + ' fps';
+  const schild = accum ? 'ACCUM.' : 'HÄLT';
+  if ($('#frozen').textContent !== schild) $('#frozen').textContent = schild;
   const h = hinweise(), zz = h.length ? z + ' · ' + h.join(' · ') : z;
   const sub = ctx.zeitModus === 'under' && !ctx.halten ? tempo + ' · ' + zz : zz;
   const lbl = top + '|' + sub;

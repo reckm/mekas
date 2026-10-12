@@ -1,17 +1,17 @@
 // Anstossen: Stösse an die Kamera, vom Greifer-Pad (Tippen) und vom Gyroskop (ein Ruck mit dem Telefon).
 // Jedes Animationsbild steht die Summe der Stösse in ctx.stoss { x, y } (Bilder pro Sekunde, y nach oben).
 // Welche Module darauf reagieren und wie stark, entscheiden sie selbst.
-import { ctx } from './zustand.js?v=1.1.3';
-import { frage, hoere, drehung, bewegungStatus } from './bewegung.js?v=1.1.3';
+import { ctx } from './zustand.js?v=1.2.1';
+import { frage, hoere, drehung, bewegungStatus } from './bewegung.js?v=1.2.1';
 export { bewegungStatus };
 
 export const anstoss = {
   id: 'anstossen',
   titel: 'Anstossen',
   params: {
-    pad: { min: 0, max: 40, def: 20, schritt: 0.5, titel: 'Stärke Pad', einheit: ' Bilder/s' },
-    gyro: { min: 0, max: 0.2, def: 0.05, schritt: 0.005, titel: 'Empfindlichkeit Gyroskop' },
-    schwelle: { min: 50, max: 800, def: 150, schritt: 10, titel: 'Schwelle Gyroskop (darunter zählt nichts)', einheit: '°/s' },
+    pad: { min: 0, max: 40, def: 14, schritt: 0.5, titel: 'Stärke Pad', einheit: ' Bilder/s' },
+    gyro: { min: 0, max: 0.4, def: 0.1, schritt: 0.005, titel: 'Empfindlichkeit Gyroskop (Stärke eines harten Rucks)' },
+    schwelle: { min: 10, max: 800, def: 30, schritt: 10, titel: 'Schwelle Gyroskop (darunter zählt nichts)', einheit: '°/s' },
     nurMitFinger: { typ: 'schalter', def: false, titel: 'Gyroskop nur mit Finger auf dem Pad' },
   },
   anzeige: { gyro: 0, spitze: 0, spitzeT: 0, letzter: 0, daten: 0 },   // fürs Labor: Ruck jetzt und höchster der letzten 3 s (°/s), letzter Stoss, Anzahl Sensordaten
@@ -29,7 +29,9 @@ export function holeStoss(){ ctx.stoss = offen; offen = { x: 0, y: 0 }; }
 
 /* ---------- Gyroskop: ein Ruck, nicht die Neigung ---------- */
 // hochpassgefiltert: ruhiges Halten und langsames Schwenken bleiben unter der Schwelle, ein Schlag geht drüber
-let lp = { u: 0, r: 0, a: 0 }, spitze = null, sperre = 0;
+// weich: kleine Rucke wirken schon, grosse sättigen (ein harter Ruck reicht knapp ins nächste Bild)
+const wucht = (mag, p) => mag <= p.schwelle ? 0 : p.gyro * 120 * (1 - Math.exp(-(mag - p.schwelle) / 200));
+let lp = { u: 0, r: 0, a: 0 }, spitze = null, sperre = 0, zuletzt = 0;
 function onMotion(e){
   const d = drehung(e); if (!d) return;
   const an = anstoss.anzeige; an.daten++;
@@ -41,19 +43,21 @@ function onMotion(e){
   an.gyro = Math.max(mag, an.gyro * 0.97);
   if (mag > an.spitze || jetzt - an.spitzeT > 3000){ an.spitze = mag; an.spitzeT = jetzt; }
   const p = anstoss.p;
-  if (jetzt < sperre || p.gyro <= 0) return;
-  if (mag > p.schwelle && (!spitze || mag >= spitze.mag)){ spitze = { mag, hu, hr, ha }; return; }   // steigt noch: auf die Spitze warten
+  if (p.gyro <= 0) return;
+  // innerhalb der Sperre zählt nur, was stärker ist als der letzte Stoss (eine kleine Bewegung vor dem Ruck verschluckt ihn nicht)
+  const boden = jetzt < sperre ? Math.max(p.schwelle, zuletzt) : p.schwelle;
+  if (mag > boden && (!spitze || mag >= spitze.mag)){ spitze = { mag, hu, hr, ha, boden }; return; }   // steigt noch: auf die Spitze warten
   if (!spitze) return;
-  // Spitze vorbei: ein Stoss, so stark wie der Ruck über der Schwelle. Jeder Ruck wirft den Film im Kanal,
-  // die Richtung kommt von der stärksten Achse.
-  const staerke = (spitze.mag - p.schwelle) * p.gyro;
+  // Spitze vorbei: ein Stoss, so stark wie der Ruck über der Schwelle (bzw. über dem letzten Stoss).
+  // Jeder Ruck wirft den Film im Kanal, die Richtung kommt von der stärksten Achse.
+  const staerke = wucht(spitze.mag, p) - wucht(spitze.boden, p);
   const achsen = [[Math.abs(spitze.hr), -Math.sign(spitze.hr)], [Math.abs(spitze.hu), Math.sign(spitze.hu)], [Math.abs(spitze.ha), Math.sign(spitze.ha)]];
   const richtung = achsen.sort((x, y) => y[0] - x[0])[0][1] || 1;
   if (!p.nurMitFinger || ctx.eingabe.padFinger){
     offen.y += richtung * staerke; offen.x += spitze.hu / spitze.mag * staerke;
     an.letzter = staerke;
   }
-  spitze = null; sperre = jetzt + 250;
+  zuletzt = spitze.mag; spitze = null; sperre = jetzt + 250;
 }
 
 let gemeldet = false;

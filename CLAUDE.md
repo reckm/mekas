@@ -49,12 +49,13 @@ export default {
   id: 'beispiel',
   titel: 'Beispiel',            // so heisst es im Labor
   station: 'belichtung',        // takt | quelle | belichtung | entwickeln | transport | projektor
-  an: true,                     // Grundstellung (false: nur im Labor einschaltbar)
+  an: true,                     // Grundstellung: true, false (nur im Labor einschaltbar) oder 'labor' (neu: im Labor an, in der Bedienung aus, bis Maris es abnimmt)
   params: {                     // erscheinen im Labor automatisch als Regler; aktuelle Werte in this.p
     staerke: { min: 0, max: 1, def: 0.5, schritt: 0.01, titel: 'Stärke', einheit: '' },
     blitz: { typ: 'schalter', def: true, titel: 'Blitz' },
   },
   anstoss: ['y'],               // ab Runde 1: reagiert auf Anstossen (Achsen x/y)
+  uebernimmtHalten: true,       // optional: beim Halten dreht die Kurbel weiter (Stehender Film)
   setup(ctx) {},                // einmal beim Start
   reset(ctx) {},                // neue Bildgrösse (auch wenn das Modul aus ist)
   ein(ctx) {},                  // optional: beim Einschalten
@@ -73,9 +74,9 @@ Was `bild` an jeder Station ist (das Modul verändert es, der Kern macht weiter)
 | belichtung | Anfang jedes Kurbelbilds | `{ t0, T, winkel, fenster: [[a, b], …] ms, stops, deckung }` | feste 135° |
 | entwickeln | Blende schliesst | `{ g, roh, E, zyklus }`: in `g` liegt schon das Rohbild, `roh` ist das gesammelte Licht, `E` die Belichtung in s | Rohbild; danach legt der Kern `deckung` (Abblenden) darüber |
 | transport | nach dem Entwickeln | `{ belichtet, g, zyklus }`: `g` ist das Bildfenster | Bild liegt genau im Fenster |
-| projektor | jedes Ausgabebild | `{ lage: { x, y, s } }` | Bild sitzt fest |
+| projektor | jedes Ausgabebild | `{ lage: { x, y, s }, quelle }`: `quelle` ist das Bildfenster, ein Modul darf ein eigenes Canvas einsetzen (Überblenden) | Bild sitzt fest, springt hart |
 
-Gemeinsamer Zustand `ctx` (nur lesen): `jetzt, dt, W, H, kurbel {x, y, fps}, zoom, halten, ausgabeFps, quelle, zeitModus, aufnahme, anlauf {nr, doppel}, bildNr, stoss {x, y}` (Summe der Stösse in diesem Animationsbild, Bilder pro Sekunde, y nach oben; ein Modul mit `anstoss: ['y']` teilt sie durch seine Masse und gibt sie seinem Schwinger), `eingabe {padFinger, greiferHaelt, greiferX, greiferY}` (Greifer-Pad), `bildfenster`. Erlaubt sind dazu `ctx.sag(text)` (Meldung) und `ctx.zeichne()` (neues Ausgabebild). Regler der Bedienung und des Labors schreiben dieselben Modulwerte über `kette.setze(id, name, wert)`, Gesten stehen in `ctx.eingabe`. Ein Modul schreibt nur seine eigenen Werte.
+Gemeinsamer Zustand `ctx` (nur lesen): `jetzt, dt, W, H, kurbel {x, y, fps}, zoom, halten, ausgabeFps, quelle, zeitModus, aufnahme, anlauf {nr, doppel}, bildNr, belichtung {winkel, T}` (Blendenwinkel und Dauer des letzten Kurbelbilds), `stoss {x, y}` (Summe der Stösse in diesem Animationsbild, Bilder pro Sekunde, y nach oben; ein Modul mit `anstoss: ['y']` teilt sie durch seine Masse und gibt sie seinem Schwinger), `eingabe {padFinger, greiferHaelt, greiferX, greiferY}` (Greifer-Pad), `bildfenster`. Erlaubt sind dazu `ctx.sag(text)` (Meldung) und `ctx.zeichne()` (neues Ausgabebild). Regler der Bedienung und des Labors schreiben dieselben Modulwerte über `kette.setze(id, name, wert)`, Gesten stehen in `ctx.eingabe`. Ein Modul schreibt nur seine eigenen Werte.
 
 Regeln für Module:
 - **Jedes Modul lässt sich einzeln ein- und ausschalten**, und Mekas läuft auch ohne es.

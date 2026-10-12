@@ -1,6 +1,7 @@
 // Die Kurbel ist der Taktgeber: seitwärts übers Bild die Bildrate, hoch und runter der Zoom.
-import { ctx } from './zustand.js?v=1.1.3';
-import { clamp01, ZOOM_MAX } from './mechanik.js?v=1.1.3';
+import { ctx } from './zustand.js?v=1.2.1';
+import { clamp01, ZOOM_MAX } from './mechanik.js?v=1.2.1';
+import { haltenUebernommen } from './kette.js?v=1.2.1';
 
 // crank scale: 4-12 fps across most of the travel, 12 up to full speed at the end
 export function fpsOf(x){
@@ -14,10 +15,10 @@ export function fpsOf(x){
 }
 export const zoomOf = y => 1 + clamp01(y) * (ZOOM_MAX - 1);
 
-// the hand follows the finger with a little inertia; holding stops the crank
+// the hand follows the finger with a little inertia; holding stops the crank (unless the film stands and the crank keeps turning)
 export function kurbelTick(dt){
   const k = 1 - Math.exp(-dt / 0.11), c = ctx.kurbel;
   c.x += (c.zielX - c.x) * k; c.y += (c.zielY - c.y) * k;
   ctx.zoom = zoomOf(c.y);
-  c.fps = ctx.halten ? 0 : fpsOf(c.x);
+  c.fps = ctx.halten && !haltenUebernommen() ? 0 : fpsOf(c.x);
 }
