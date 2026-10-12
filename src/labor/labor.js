@@ -1,13 +1,13 @@
 // Labor (nur mit ?labor): alle Module mit Ein/Aus und rohen Reglern, Vergleich, Schnappschuss, Rechenzeit.
 // Speichert nur in `mekas.labor`, die normale Bedienung bleibt unberührt.
-import { ctx, out, $ } from '../kern/zustand.js?v=1.1.2';
-import { comma } from '../kern/mechanik.js?v=1.1.2';
-import { VERSION } from '../kern/version.js?v=1.1.2';
-import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=1.1.2';
-import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=1.1.2';
-import { persist } from '../kern/speicher.js?v=1.1.2';
-import { setMode, startCam, loadFile } from '../kern/quelle.js?v=1.1.2';
-import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=1.1.2';
+import { ctx, out, $ } from '../kern/zustand.js?v=1.1.3';
+import { comma } from '../kern/mechanik.js?v=1.1.3';
+import { VERSION } from '../kern/version.js?v=1.1.3';
+import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=1.1.3';
+import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=1.1.3';
+import { persist } from '../kern/speicher.js?v=1.1.3';
+import { setMode, startCam, loadFile } from '../kern/quelle.js?v=1.1.3';
+import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=1.1.3';
 
 const STATION_TITEL = { takt: 'Takt', quelle: 'Quelle', belichtung: 'Belichtung', entwickeln: 'Entwickeln', transport: 'Transport', projektor: 'Projektor' };
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
@@ -24,7 +24,7 @@ const regler = [];          // { id, name, d, input, val }
 function nachAenderung(){ renderExpo(); renderGrip(); renderMenuWerte(); persist(); }
 
 function baue(){
-  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=1.1.2', import.meta.url).href;
+  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=1.1.3', import.meta.url).href;
   document.head.appendChild(link);
 
   // Knopf oben in der Leiste
@@ -54,13 +54,15 @@ function baue(){
   const v = el('div', 'lab-zeile lab-knoepfe');
   const bVgl = el('button', 'pill primary lab-vgl', ''); bVgl.type = 'button';
   const bSnap = el('button', 'pill', 'Schnappschuss'); bSnap.type = 'button';
+  const bZurueck = el('button', 'pill', 'Zurücksetzen'); bZurueck.type = 'button';
+  bZurueck.addEventListener('click', zuruecksetzen);
   const an = e => { e.preventDefault(); try { bVgl.setPointerCapture(e.pointerId); } catch (_) {} vergleiche(gewaehlt); bVgl.classList.add('aktiv'); };
   const ab = () => { vergleiche(null); bVgl.classList.remove('aktiv'); };
   bVgl.addEventListener('pointerdown', an);
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => bVgl.addEventListener(ev, ab));
   bVgl.addEventListener('contextmenu', e => e.preventDefault());
   bSnap.addEventListener('click', schnappschuss);
-  v.append(bVgl, bSnap);
+  v.append(bVgl, bSnap, bZurueck);
   inhalt.append(v);
   const vglText = () => { const m = modul(gewaehlt); bVgl.textContent = m ? 'Ohne ' + m.titel + ' (halten)' : 'Modul antippen'; };
 
@@ -126,6 +128,15 @@ function baue(){
       (anstoss.anzeige.daten ? '' : ', keine Daten') +
       ' · Ruck ' + Math.round(anstoss.anzeige.gyro) + ' °/s, höchster ' + Math.round(anstoss.anzeige.spitze) + ' °/s · letzter Stoss ' + comma(anstoss.anzeige.letzter.toFixed(1));
   }, 250);
+}
+
+// alle Module und Kern-Werte auf die Grundeinstellung, Module auf ihre Grundstellung ein/aus
+function zuruecksetzen(){
+  for (const m of [...module, ...kernteile]){
+    for (const [n, d] of Object.entries(m.params || {})) setze(m.id, n, d.def);
+    if (m.station && m.an !== m.grund) schalte(m.id, m.grund);
+  }
+  nachAenderung(); say('Labor auf die Grundeinstellung zurückgesetzt.');
 }
 
 /* ---------- Schnappschuss: Bild als PNG, alle Werte als JSON ---------- */

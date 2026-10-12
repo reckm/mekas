@@ -117,7 +117,7 @@ Erreichbar über `?labor`. Maris’ normale Bedienung bleibt davon unberührt.
 - **Schnappschuss:** speichert das Bild als PNG und alle Werte als JSON. Maris schickt beides, wenn ihr etwas gefällt oder missfällt.
 - Rechenzeit pro Modul in ms pro Animationsbild, dazu Licht sammeln, Projektor und gesamt.
 - Unter „Kern“ die Werte von Anstossen (Stärke Pad, Gyroskop) und eine Zeile mit dem Ruck jetzt (°/s) und dem letzten Stoss, zum Einstellen der Schwelle.
-- Speichert nur in `mekas.labor` (beim ersten Öffnen aus `kurbel.v3` vorbelegt). Für Tests gibt es dort `window.mekas` (`setze`, `schalte`, `vergleiche`, `module`, `werte`, `stoss(x, y)`, `halte(y)`, `lass()`).
+- Speichert nur in `mekas.labor` (beim ersten Öffnen aus `kurbel.v3` vorbelegt), und nur Werte, die von der Grundeinstellung abweichen. So kommen neue Grundwerte auch im Labor an. „Zurücksetzen“ stellt alles auf die Grundeinstellung. Für Tests gibt es dort `window.mekas` (`setze`, `schalte`, `vergleiche`, `module`, `werte`, `stoss(x, y)`, `halte(y)`, `lass()`).
 
 Ein Modul kommt erst in die normale Bedienung, wenn Maris es abgenommen hat (Status in `MODULE.md`).
 

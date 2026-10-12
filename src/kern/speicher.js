@@ -1,7 +1,7 @@
 // Speicher: Einstellungen (localStorage `kurbel.v3`, im Labor `mekas.labor`) und IndexedDB `kurbel` (Filme, Einzelbilder).
 // Die alten Namen bleiben, damit gespeicherte Filme und Einstellungen erhalten bleiben.
-import { ctx, einst, $ } from './zustand.js?v=1.1.2';
-import { module, kernteile, modul, wert } from './kette.js?v=1.1.2';
+import { ctx, einst, $ } from './zustand.js?v=1.1.3';
+import { module, kernteile, modul, wert } from './kette.js?v=1.1.3';
 
 /* ---------- remembered settings ---------- */
 // Das Labor schreibt nie in die Einstellungen der normalen Bedienung. Beim ersten Öffnen beginnt es dort, wo sie stehen.
@@ -17,7 +17,11 @@ export function persist(){
     ton: $('#ton').checked, lastMode: ctx.quelle, facing: ctx.facing, res: einst.resCap, mirrorView: einst.mirrorView, mirrorRec: einst.mirrorRec,
     avDelay: einst.avDelayMs, x: ctx.kurbel.zielX, y: ctx.kurbel.zielY, swivel: sw ? sw.an : true, timeMode: ctx.zeitModus, v: KEY_VER,
   };
-  if (ctx.labor) s.module = Object.fromEntries([...module, ...kernteile].map(m => [m.id, { an: m.an, werte: { ...m.p } }]));
+  // im Labor nur, was von der Grundeinstellung abweicht: so kommen neue Grundwerte auch im Labor an
+  if (ctx.labor){
+    s.module = Object.fromEntries([...module, ...kernteile].map(m => [m.id, { an: m.an, werte: Object.fromEntries(Object.entries(m.p).filter(([n, v]) => v !== m.params[n].def)) }]));
+    s.nurGeaendert = true;
+  }
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
 }
 
