@@ -11,8 +11,14 @@ Was später kommen könnte. Nummern in Klammern verweisen auf `docs/zwischen-den
 
 ## Belichtung und Zeit
 
-- **Mehrumlauf-Blende (1):** Blende über 360° hinaus, die Akkumulation klingt über mehrere Bilder nach. Ab 360° werden die Schlieren schwächer, das Nachklingen übernimmt. Strich auf dem Fader bei 360°.
-- **Nachtverarbeitung (18):** Dasselbe Nachklingen, aber automatisch nach Licht: je dunkler, desto länger. Der „digitale Antrieb“ derselben Mechanik wie 1.
+- **Stehender Film (Mehrfachbelichtung), zusammen mit der Mehrumlauf-Blende (1).** Ausgangspunkt: das Stapeln im Greifer („Film steht“), Maris 2026-10-12: das Glühen und Ausbreiten beim Aufsummieren ist spannend. Neu als eigenes Modul ohne Greiferbewegung.
+  - *Mechanik:* Der Film steht, die Blende dreht weiter. Jedes Kurbelbild belichtet dasselbe Stück Film noch einmal. Kurbel = Durchgänge pro Sekunde, Blende = Licht pro Durchgang. Kein eigener Tempo-Regler.
+  - *Auslösen:* über das bestehende **Halten** (zwei Finger). Halten bei geschlossener Blende = Standbild wie heute, Halten bei offener Blende = Mehrfachbelichtung. Loslassen: Der Greifer zieht ein frisches Bild ins Fenster, weich übergeblendet (siehe Runde 1c). Dafür muss die Kurbel beim Halten weiterdrehen (heute fps = 0), das ist eine Änderung im Kern.
+  - *Achse A, Material (wie reagiert der Film auf viel Licht):* Sandwich/Bipack (dunkler, Schatten bleiben stehen, gut bei Schnee) ← Graufilter (gleich hell, Stehendes satt, Bewegtes wird Nebel) → Umkehrfilm mit Schulter (heller, Lichter glühen und breiten sich aus, ohne hart ins Weiss zu laufen) → hinter einem Strich: Solarisation (Überbelichtetes kippt ins Dunkle, höchstes Digital-Risiko). Variante: nur Veränderung belichtet (Bewegungsbelichtung, 4).
+  - *Achse B, Gedächtnis (wer bleibt):* das Erste brennt sich ein (Film erschöpft) – alle gleich – das Neueste (Altes verblasst). Das Neueste ist die Mehrumlauf-Blende: Blende über 360° hinaus, Akkumulation klingt über mehrere Bilder nach, ab 360° werden die Schlieren schwächer, Strich auf dem Fader bei 360°.
+  - *Offen:* Welche Materialien am besten sind, zeigt erst der Kontaktbogen. Ob das Stapeln im Greifer (Runde 1b) später dasselbe Material benutzt: Kopplung, Schritt 2.
+  - *Technik:* Lange Stapel brauchen höhere Genauigkeit (WebGL mit Half-Float), sonst Farbstufen und eingefrorene Geister. Solarisation kann bei schwankendem Licht pulsieren.
+- **Nachtverarbeitung (18):** Dasselbe Nachklingen wie beim Stehenden Film (Gedächtnis „das Neueste“), aber automatisch nach Licht: je dunkler, desto länger. Der „digitale Antrieb“ derselben Mechanik wie 1.
 - **Zeitkamm (3):** Bild in breite Streifen, jeder Streifen zeigt einen etwas anderen Moment.
 - **Bewegungsbelichtung (4):** Neues Licht nur dort, wo sich etwas bewegt.
 - **Bildstrich als Zeitnaht (8):** Oberhalb des rollenden Bildstrichs ein etwas früherer Moment.
