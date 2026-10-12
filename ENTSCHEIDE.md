@@ -4,6 +4,11 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 ## 2026-10-12
 
+- **Runde 1a und 1b zusammen gebaut** (Schwinger allein hat nichts Sichtbares).
+- **Schlieren:** Die vom Filmzug bei Blende über 240° bleiben. Rutscht der Film nach einem Stoss, kommen Schlieren aus dieser Bewegung dazu.
+- **Schlupf: Es zählt, wo der Finger auf dem Pad liegt** (wie beim Tippen), nicht der Weg ab dem Aufsetzen. Mitte (gestrichelte Linie) = kein Schlupf.
+- **Beim Rutschen wird das Bild nicht dunkler**, nur die Lichter ziehen. Abdunkeln hätte geflackert.
+
 - **Stehender Film (Mehrfachbelichtung) wird Runde 1d**, nach 1c, vor der Linse. Ausgelöst über das bestehende **Halten**: geschlossene Blende = Standbild, offene Blende = Mehrfachbelichtung. Braucht die Überblendung aus 1c beim Loslassen. In der Runde zuerst nur das Material (wie der Film auf viel Licht reagiert). Gedächtnis und Mehrumlauf-Blende kommen später.
 
 ## 2026-10-09

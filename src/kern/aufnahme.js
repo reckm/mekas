@@ -1,13 +1,13 @@
 // Aufnahme: Auslöser, Pause, Doppel, Fertig, die beiden Zeit-Modi, Entwickeln des Films und das Ausgabebild (Projektor-Takt).
-import { ctx, intern, $, mkVideo, out, octx, hold } from './zustand.js?v=0.0.1';
-import { mmss, mmssShort } from './mechanik.js?v=0.0.1';
-import { drawWeaved, deckungJetzt } from './kette.js?v=0.0.1';
-import { FS } from './speicher.js?v=0.0.1';
-import { drawCover, vidFile, startFile, fileStarted, filePriming } from './quelle.js?v=0.0.1';
-import { audioCtx, audioDest, ensureCtx, ensureFileAudio, decodePass, connectMic, disconnectMic, startAudioRec, tonbandLaeuft, pauseAudio, resumeAudio, stopAudioRec, verwerfeTonband, toWav } from './ton.js?v=0.0.1';
-import { makeRecorder, finishRecorder } from './rekorder.js?v=0.0.1';
-import { addFilm, dbPut, saveFile, filmN } from './filme.js?v=0.0.1';
-import { say, hideHint, hideCard } from './bedienung.js?v=0.0.1';
+import { ctx, intern, $, mkVideo, out, octx, hold } from './zustand.js?v=1.1.1';
+import { mmss, mmssShort } from './mechanik.js?v=1.1.1';
+import { drawWeaved, deckungJetzt } from './kette.js?v=1.1.1';
+import { FS } from './speicher.js?v=1.1.1';
+import { drawCover, vidFile, startFile, fileStarted, filePriming } from './quelle.js?v=1.1.1';
+import { audioCtx, audioDest, ensureCtx, ensureFileAudio, decodePass, connectMic, disconnectMic, startAudioRec, tonbandLaeuft, pauseAudio, resumeAudio, stopAudioRec, verwerfeTonband, toWav } from './ton.js?v=1.1.1';
+import { makeRecorder, finishRecorder } from './rekorder.js?v=1.1.1';
+import { addFilm, dbPut, saveFile, filmN } from './filme.js?v=1.1.1';
+import { say, hideHint, hideCard } from './bedienung.js?v=1.1.1';
 
 const SPOOL = 4000;
 let passes = [], cur = null, sid = '', passNo = 0, totalCaptured = 0, burstLeft = 0;

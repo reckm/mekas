@@ -5,6 +5,11 @@
 --quelle demo (Standard) oder ein Video (wird mit ffmpeg zu .y4m und als falsche Kamera eingespielt)
 --alt      dieselben Werte mit der alten mekas.html daneben (vorher/nachher), nur für Werte, die sie kannte
 --referenz ein Referenzbild, das neben jeder Zeile steht
+--aktion   stoss (Wert = Stärke, nach oben) oder halten (Wert = Höhe auf dem Greifer-Pad, --dauer s lang, dann loslassen).
+           Der Clip läuft während der Aktion, Standbilder im Abstand --abstand ms.
+--setze    weitere Werte vorher, z. B. --setze blende.winkel=300 (mehrfach möglich)
+
+    .venv/bin/python tests/bogen.py --modul greifer --aktion stoss --werte 0.3,0.6,1 --setze blende.winkel=300 --bilder 8 --abstand 120
 Ausgabe nach tests/out/bogen-<modul>-<zeit>/index.html (nicht im Repository).
 """
 import argparse
@@ -30,6 +35,17 @@ ALT_FELD = {
     ('kammblende', 'schlitze'): ('slits', lambda w: w),
 }
 
+CLIP_START = """() => {
+  const c = document.querySelector('#out'), r = new MediaRecorder(c.captureStream(30), { mimeType: 'video/webm' }), teile = [];
+  r.ondataavailable = e => e.data.size && teile.push(e.data); r.start(); window.__clip = { r, teile };
+}"""
+CLIP_STOP = """async () => {
+  const { r, teile } = window.__clip;
+  await new Promise(res => { r.onstop = res; r.stop(); });
+  const b = new Blob(teile, { type: 'video/webm' });
+  return await new Promise(res => { const f = new FileReader(); f.onload = () => res(f.result.split(',')[1]); f.readAsDataURL(b); });
+}"""
+
 CLIP_JS = """async (sek) => {
   const c = document.querySelector('#out'), s = c.captureStream(30);
   const r = new MediaRecorder(s, { mimeType: 'video/webm' }), teile = [];
@@ -50,23 +66,51 @@ def kamera_y4m(video):
     return ziel
 
 
-def aufnehmen(page, ordner, name, bilder, clip_sek):
-    """Standbilder (alle 0,5 s) und ein Clip vom Ausgabebild."""
-    standbilder = []
-    for i in range(bilder):
-        daten = page.evaluate("document.querySelector('#out').toDataURL('image/png')").split(',')[1]
-        datei = ordner / f'{name}-{i + 1}.png'
-        datei.write_bytes(base64.b64decode(daten))
-        standbilder.append(datei.name)
-        page.wait_for_timeout(500)
+def mp4(ordner, name, daten):
     webm = ordner / f'{name}.webm'
-    webm.write_bytes(base64.b64decode(page.evaluate(CLIP_JS, clip_sek)))
+    webm.write_bytes(base64.b64decode(daten))
     mp4 = ordner / f'{name}.mp4'
     r = subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(webm), '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-r', '24', '-an', str(mp4)])
     if r.returncode == 0:
         webm.unlink()
-        return standbilder, mp4.name
-    return standbilder, webm.name
+        return mp4.name
+    return webm.name
+
+
+def standbild(page, ordner, name):
+    daten = page.evaluate("document.querySelector('#out').toDataURL('image/png')").split(',')[1]
+    datei = ordner / f'{name}.png'
+    datei.write_bytes(base64.b64decode(daten))
+    return datei.name
+
+
+def aufnehmen(page, ordner, name, bilder, clip_sek, abstand=500):
+    """Standbilder (im Abstand `abstand` ms) und ein Clip vom Ausgabebild."""
+    standbilder = []
+    for i in range(bilder):
+        standbilder.append(standbild(page, ordner, f'{name}-{i + 1}'))
+        page.wait_for_timeout(abstand)
+    return standbilder, mp4(ordner, name, page.evaluate(CLIP_JS, clip_sek))
+
+
+def mit_aktion(page, ordner, name, a, wert):
+    """Clip läuft, dann Stoss oder Halten; Standbilder in kurzen Abständen ab der Aktion."""
+    page.evaluate(CLIP_START)
+    page.wait_for_timeout(400)
+    if a.aktion == 'stoss':
+        page.evaluate(f'window.mekas.stoss(0, {wert})')
+    else:
+        page.evaluate(f'window.mekas.halte({wert})')
+    standbilder, start = [], page.evaluate('performance.now()')
+    for i in range(a.bilder):
+        if a.aktion == 'halten' and page.evaluate('performance.now()') - start > a.dauer * 1000 and page.evaluate('window.mekas.ctx.eingabe.greiferHaelt'):
+            page.evaluate('window.mekas.lass()')
+        standbilder.append(standbild(page, ordner, f'{name}-{i + 1}'))
+        page.wait_for_timeout(a.abstand)
+    if a.aktion == 'halten':
+        page.evaluate('window.mekas.lass()')
+    page.wait_for_timeout(1200)
+    return standbilder, mp4(ordner, name, page.evaluate(CLIP_STOP))
 
 
 def starte_quelle(page, kamera):
@@ -82,10 +126,18 @@ def lauf_neu(browser, url, a, wert, ordner, kamera):
     page.evaluate('document.querySelector("#labor").classList.add("weg")')
     starte_quelle(page, kamera)
     page.evaluate(f"window.mekas.schalte({json.dumps(a.modul)}, true)")      # das geprüfte Modul ist immer an
-    page.evaluate(f"window.mekas.setze({json.dumps(a.modul)}, {json.dumps(a.param)}, {json.dumps(wert)})")
+    for s in a.setze:
+        ziel, w = s.split('=')
+        mid, par = ziel.split('.')
+        page.evaluate(f"window.mekas.setze({json.dumps(mid)}, {json.dumps(par)}, {json.dumps(float(w))})")
+    if a.param:
+        page.evaluate(f"window.mekas.setze({json.dumps(a.modul)}, {json.dumps(a.param)}, {json.dumps(wert)})")
     page.wait_for_timeout(a.warten * 1000)
     fps = page.evaluate('window.mekas.ctx.kurbel.fps')
-    ergebnis = aufnehmen(page, ordner, f'neu-{wert}', a.bilder, a.clip)
+    if a.aktion:
+        ergebnis = mit_aktion(page, ordner, f'neu-{wert}', a, wert)
+    else:
+        ergebnis = aufnehmen(page, ordner, f'neu-{wert}', a.bilder, a.clip, a.abstand)
     context.close()
     return ergebnis, fps
 
@@ -100,7 +152,7 @@ def lauf_alt(browser, url, a, wert, ordner, kamera):
     page.goto(url + ALT)
     starte_quelle(page, kamera)
     page.wait_for_timeout(a.warten * 1000)
-    ergebnis = aufnehmen(page, ordner, f'alt-{wert}', a.bilder, a.clip)
+    ergebnis = aufnehmen(page, ordner, f'alt-{wert}', a.bilder, a.clip, a.abstand)
     context.close()
     return ergebnis
 
@@ -129,8 +181,8 @@ section{{border-top:1px solid #2e2c37;padding:12px 0}} h2{{font:700 1.1rem "Cour
 .was{{flex:none;width:86px;font-size:.8rem;color:#9a96a8}}
 img,video{{height:150px;border-radius:6px;background:#000;flex:none}}
 </style></head><body>
-<h1>Kontaktbogen: {html.escape(a.modul)} · {html.escape(a.param)}</h1>
-<p>Mekas {VERSION} · Quelle {html.escape(quelle)} · Kurbel {fps:.1f} fps · {a.bilder} Standbilder im Abstand von 0,5 s, Clip {a.clip} s · {jetzt}</p>
+<h1>Kontaktbogen: {html.escape(a.modul)} · {html.escape(a.param or a.aktion)}</h1>
+<p>Mekas {VERSION} · Quelle {html.escape(quelle)} · Kurbel {fps:.1f} fps · {a.bilder} Standbilder im Abstand von {a.abstand} ms{(' · ' + ', '.join(a.setze)) if a.setze else ''} · {jetzt}</p>
 {''.join(teile)}
 </body></html>"""
 
@@ -138,7 +190,7 @@ img,video{{height:150px;border-radius:6px;background:#000;flex:none}}
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--modul', required=True)
-    ap.add_argument('--param', required=True)
+    ap.add_argument('--param', default=None)
     ap.add_argument('--werte', required=True, help='durch Komma getrennt, z. B. 30,135,240,360')
     ap.add_argument('--einheit', default=None, help='für die Überschriften, z. B. °')
     ap.add_argument('--quelle', default='demo')
@@ -146,10 +198,17 @@ def main():
     ap.add_argument('--referenz', default=None)
     ap.add_argument('--bilder', type=int, default=4)
     ap.add_argument('--clip', type=float, default=3)
+    ap.add_argument('--aktion', choices=['stoss', 'halten'], default=None)
+    ap.add_argument('--dauer', type=float, default=1.5, help='halten: Sekunden bis zum Loslassen')
+    ap.add_argument('--abstand', type=int, default=500, help='ms zwischen den Standbildern')
+    ap.add_argument('--setze', action='append', default=[], help='modul.param=wert, vor dem Durchschalten')
     ap.add_argument('--warten', type=float, default=2.0, help='Sekunden nach dem Einstellen')
     a = ap.parse_args()
+    if not a.param and not a.aktion:
+        raise SystemExit('--param oder --aktion angeben')
     werte = [float(w) if '.' in w else int(w) for w in a.werte.split(',')]
     einheit = a.einheit if a.einheit is not None else ('°' if a.param == 'winkel' else '')
+    titel = a.param or ('Stoss' if a.aktion == 'stoss' else 'Halten auf Höhe')
     if a.alt and (a.modul, a.param) not in ALT_FELD:
         raise SystemExit(f'--alt geht nur für {sorted(ALT_FELD)}')
 
@@ -166,7 +225,7 @@ def main():
         browser = starte_chrome(p, kamera)
         for w in werte:
             neu, fps = lauf_neu(browser, s.url, a, w, ordner, kamera)
-            z = {'label': f'{w}{einheit}', 'neu': neu}
+            z = {'label': f'{titel} {w}{einheit}' if a.aktion else f'{w}{einheit}', 'neu': neu}
             if a.alt:
                 z['alt'] = lauf_alt(browser, s.url, a, w, ordner, kamera)
             zeilen.append(z)

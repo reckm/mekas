@@ -22,7 +22,8 @@ export const ctx = {
   aufnahme: 'idle',                 // idle | rec | paused | scrub | busy | developing
   anlauf: { nr: 0, doppel: false }, // zählt jeden Start und jedes Weiter der Aufnahme
   bildNr: 0,                        // zählt jedes entwickelte Kurbelbild
-  eingabe: { greiferHaelt: false, einrichten: 0 },   // Gesten auf dem Greifer-Pad
+  stoss: { x: 0, y: 0 },            // Stösse in diesem Animationsbild (Bilder pro Sekunde, y nach oben), siehe kern/anstoss.js
+  eingabe: { padFinger: false, greiferHaelt: false, greiferX: 0.5, greiferY: 0.6 },   // Greifer-Pad: Finger liegt, hält (Schlupf), Höhe 0..1
   labor: new URLSearchParams(location.search).has('labor'),
   bildfenster: hctx,                // hier zeichnet das Transport-Modul hinein
   sag: () => {},                    // Meldung zeigen (setzt die Bedienung)

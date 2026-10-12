@@ -1,23 +1,25 @@
 // Die Kette, durch die jedes Bild läuft: Takt → Quelle → Belichtung → Entwickeln → Transport → Projektor.
 // Hier liegen die Liste der Module, ihre Werte und ihr Ein/Aus, das Sammeln des Lichts und die Hauptschleife.
-import { ctx, intern, out, hold, acc, actx, tmp, expC, ectx, hctx, einst } from './zustand.js?v=0.0.1';
-import { REF_ANGLE } from './mechanik.js?v=0.0.1';
-import liste from '../module/liste.js?v=0.0.1';
-import { kurbelTick } from './kurbel.js?v=0.0.1';
-import { sampleInto, sourceReady, syncFile } from './quelle.js?v=0.0.1';
-import { aufnahmeTick, projiziere, aufnahmeAnzeige, neuesBild } from './aufnahme.js?v=0.0.1';
-import { renderPad } from './bedienung.js?v=0.0.1';
+import { ctx, intern, out, hold, acc, actx, tmp, expC, ectx, hctx, einst } from './zustand.js?v=1.1.1';
+import { REF_ANGLE } from './mechanik.js?v=1.1.1';
+import liste from '../module/liste.js?v=1.1.1';
+import { anstoss, holeStoss } from './anstoss.js?v=1.1.1';
+import { kurbelTick } from './kurbel.js?v=1.1.1';
+import { sampleInto, sourceReady, syncFile } from './quelle.js?v=1.1.1';
+import { aufnahmeTick, projiziere, aufnahmeAnzeige, neuesBild } from './aufnahme.js?v=1.1.1';
+import { renderPad } from './bedienung.js?v=1.1.1';
 
 export const STATIONEN = ['takt', 'quelle', 'belichtung', 'entwickeln', 'transport', 'projektor'];
 
 /* ---------- Module: Werte, Ein/Aus, Rechenzeit ---------- */
 export const module = liste;
-for (const m of module){
+export const kernteile = [anstoss];     // Werte des Kerns, die das Labor zeigt (nicht schaltbar)
+for (const m of [...module, ...kernteile]){
   m.grund = m.an !== false; m.an = m.grund;
   m.p = {}; for (const [n, d] of Object.entries(m.params || {})) m.p[n] = d.def;
   m.ms = 0; m._ms = 0;
 }
-export const modul = id => module.find(m => m.id === id);
+export const modul = id => module.find(m => m.id === id) || kernteile.find(m => m.id === id);
 export function wert(id, name){ const m = modul(id); return m ? m.p[name] : undefined; }
 export function setze(id, name, v){
   const m = modul(id); if (!m || !m.params || !m.params[name]) return;
@@ -137,6 +139,7 @@ function loop(now){
   const dt = Math.min(0.1, (now - lastNow) / 1000); lastNow = now;
   ctx.jetzt = now; ctx.dt = dt;
   kurbelTick(dt);
+  holeStoss();
   aufnahmeTick(now, dt);
   for (const m of module){
     if (!m.tick || !aktiv(m)) continue;

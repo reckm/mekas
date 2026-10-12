@@ -83,7 +83,7 @@ def labor(page, browser_url):
     erwartet = ['handkurbel', 'schwenken', 'blende', 'kammblende', 'entwickeln', 'greifer', 'bildstand']
     if ids != erwartet:
         fehler.append(f'Labor: Module {ids}, erwartet {erwartet}')
-    if page.locator('.lab-modul').count() != len(erwartet) + 1:      # plus Kern
+    if page.locator('.lab-modulkopf .switch').count() != len(erwartet):
         fehler.append('Labor: nicht alle Module in der Liste')
     page.click('#cardDemo')
     for m in module:                           # jedes Modul einmal um und wieder zurück
@@ -91,6 +91,13 @@ def labor(page, browser_url):
         page.wait_for_timeout(300)
         page.evaluate(f"window.mekas.schalte('{m['id']}', {str(m['an']).lower()})")
         page.wait_for_timeout(200)
+    # Greifer: Stoss, Halten (Schlupf), Loslassen (Feder)
+    page.evaluate('window.mekas.stoss(0, 1)')
+    page.wait_for_timeout(600)
+    page.evaluate('window.mekas.halte(0.95)')
+    page.wait_for_timeout(1000)
+    page.evaluate('window.mekas.lass()')
+    page.wait_for_timeout(1500)
     page.evaluate("window.mekas.vergleiche('greifer')")
     page.wait_for_timeout(300)
     page.evaluate('window.mekas.vergleiche(null)')

@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Karla:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="src/stil.css?v=0.0.1">
+<link rel="stylesheet" href="src/stil.css?v=1.1.1">
 </head>
 <body>
 
@@ -47,7 +47,7 @@
   <div class="gripper">
     <div class="ctl">
       <div class="readout" id="gRead"></div>
-      <div class="gpad" id="gpad" role="group" tabindex="0" aria-label="Greifer: hoch und runter ist der Filmzug pro Bild. Doppeltippen richtet ihn wieder ein.">
+      <div class="gpad" id="gpad" role="group" tabindex="0" aria-label="Greifer: kurz tippen gibt dem Film einen Stoss, halten lässt ihn schlüpfen. Oben bleiben Lücken, unten steht der Film.">
         <div class="hline" id="gZline"></div><div class="knob" id="gknob"></div>
         <span class="ends t">mehr</span><span class="ends b">steht</span>
       </div>
@@ -139,7 +139,7 @@
     </div>
     <div class="sec">
       <h3>Mechanik</h3>
-      <p class="note">Unten rechts die <b>Blende</b>: hoch und runter, wie lange sie pro Bild offen ist, ganz unten ist sie zu. Über der gestrichelten Linie ist die Blende noch offen, während der Greifer den Film schon zieht: helle Stellen ziehen Schlieren.<br>Darüber der <b>Greifer</b>: hoch und runter, wie weit er den Film pro Bild zieht. Unten steht der Film und die Bilder stapeln sich, knapp neben der Mitte rutscht der Bildstrich langsam durchs Bild, oben bleiben Lücken. Loslassen: Der Greifer läuft in seiner Richtung weiter, bis er wieder in der Perforation sitzt. Doppeltippen richtet ihn sofort ein.</p>
+      <p class="note">Unten rechts die <b>Blende</b>: hoch und runter, wie lange sie pro Bild offen ist, ganz unten ist sie zu. Über der gestrichelten Linie ist die Blende noch offen, während der Greifer den Film schon zieht: helle Stellen ziehen Schlieren.<br>Darüber der <b>Greifer</b>. Kurz tippen gibt dem Film einen Stoss: Er rutscht und rastet federnd wieder ein, ein kleiner Stoss in dasselbe Bild, ein grosser ins nächste. Ein Ruck mit dem Telefon wirkt genauso. Halten lässt den Film schlüpfen: über der gestrichelten Linie bleiben Lücken, knapp darunter rollt der Bildstrich langsam durchs Bild, ganz unten steht der Film und die Bilder stapeln sich. Loslassen: Er rastet mit seinem Schwung im nächsten Bild ein.</p>
       <div class="rowset col"><div class="t">Handkurbel <span class="val" id="jitterVal">75</span><small>wie unregelmässig die Bilder kommen</small></div><input type="range" id="jitter" min="0" max="100" step="1" value="75" aria-label="Handkurbel"></div>
       <div class="rowset"><div class="t">Anlaufblitz<small>überbelichtet die ersten Bilder nach jedem Start</small></div><input type="checkbox" class="switch" id="startFlash" checked></div>
       <div class="rowset col"><div class="t">Bildstand <span class="val" id="weaveVal">35</span><small>jedes neue Bild sitzt minimal anders im Bildfenster</small></div><input type="range" id="weave" min="0" max="100" step="1" value="35" aria-label="Bildstand"></div>
@@ -177,6 +177,6 @@
   </aside>
 </div>
 
-<script type="module" src="src/main.js?v=0.0.1"></script>
+<script type="module" src="src/main.js?v=1.1.1"></script>
 </body>
 </html>

@@ -1,14 +1,15 @@
 // Bedienung: Wischen übers Bild (Kurbel und Zoom), Halten, Blendenfader, Greifer-Pad, Blätter, Einstellungen, Tastatur, MIDI.
-import { ctx, intern, einst, $ } from './zustand.js?v=0.0.1';
-import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=0.0.1';
-import { VERSION } from './version.js?v=0.0.1';
-import { wert, setze, istAn, schalte, hinweise, setSize } from './kette.js?v=0.0.1';
-import { fpsOf, zoomOf } from './kurbel.js?v=0.0.1';
-import { persist } from './speicher.js?v=0.0.1';
-import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=0.0.1';
-import { setAvDelay } from './ton.js?v=0.0.1';
-import { onRec, renderControls } from './aufnahme.js?v=0.0.1';
-import { zugOf } from '../module/greifer.js?v=0.0.1';
+import { ctx, intern, einst, $ } from './zustand.js?v=1.1.1';
+import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=1.1.1';
+import { VERSION } from './version.js?v=1.1.1';
+import { wert, setze, istAn, schalte, hinweise, setSize, modul } from './kette.js?v=1.1.1';
+import { padStoss } from './anstoss.js?v=1.1.1';
+import { fpsOf, zoomOf } from './kurbel.js?v=1.1.1';
+import { persist } from './speicher.js?v=1.1.1';
+import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=1.1.1';
+import { setAvDelay } from './ton.js?v=1.1.1';
+import { onRec, renderControls } from './aufnahme.js?v=1.1.1';
+import { zugOf } from '../module/greifer.js?v=1.1.1';
 
 let toastTimer = 0;
 export function say(text, warn){
@@ -68,19 +69,21 @@ function vReadText(){
   return (a === 0 ? 'zu' : a + '°') + (schlieren ? ' · Schlieren' : '');
 }
 
-/* ---------- Greifer pad: up/down = pull per frame ---------- */
+/* ---------- Greifer pad: tap = a knock, hold = the film slips ---------- */
+const greiferWerte = () => modul('greifer').p;
 let lastGrip = '';
 export function renderGrip(){
-  const v = wert('greifer', 'zug') ?? 0.6, key = v.toFixed(4);
+  const e = ctx.eingabe, y = e.greiferHaelt ? e.greiferY : 0.6, x = e.greiferHaelt ? e.greiferX : 0.5;
+  const key = x.toFixed(3) + '|' + y.toFixed(3);
   if (key === lastGrip) return;
   lastGrip = key;
-  $('#gknob').style.left = '50%';
-  $('#gknob').style.top = ((1 - v) * 100) + '%';
+  $('#gknob').style.left = (x * 100) + '%';
+  $('#gknob').style.top = ((1 - y) * 100) + '%';
   $('#gZline').style.top = ((1 - 0.6) * 100) + '%';
-  $('#gpad').classList.toggle('off', zugOf(v) !== 1);
+  $('#gpad').classList.toggle('off', e.greiferHaelt && zugOf(y, greiferWerte()) !== 1);
 }
 function gReadText(){
-  const Z = zugOf(wert('greifer', 'zug') ?? 0.6);
+  const Z = zugOf(ctx.eingabe.greiferY, greiferWerte());
   return Z === 1 ? 'Zug 1' : Z < 0.02 ? 'Film steht' : 'Zug ' + comma(Z.toFixed(2));
 }
 
@@ -174,34 +177,48 @@ export function initBedienung(){
     e.preventDefault(); e.stopPropagation(); renderExpo(); persist();
   });
 
-  /* Greifer pad: up and down only; let go and the claw finds the perforation again; double tap sets it up */
+  /* Greifer pad: tap = a knock (direction and strength from the middle line to the finger), hold = the film slips
+     (where the finger lies: above the line gaps, below it the frame line rolls, at the bottom the film stands), let go = the detent takes it */
   const gp = $('#gpad');
-  let gReadTimer = 0, gFrom = null, gLastTap = 0;
-  function resetGrip(){
-    setze('greifer', 'zug', 0.6); ctx.eingabe.einrichten++;
-    renderGrip(); showRead('#gRead', 'eingerichtet'); clearTimeout(gReadTimer); gReadTimer = setTimeout(() => hideRead('#gRead'), 900);
+  let gReadTimer = 0, gFrom = null, gTimer = 0;
+  const padLage = ev => { const r = gp.getBoundingClientRect(); return { x: clamp01((ev.clientX - r.left) / r.width), y: clamp01(1 - (ev.clientY - r.top) / r.height) }; };
+  function lesen(text){ showRead('#gRead', text); clearTimeout(gReadTimer); gReadTimer = setTimeout(() => hideRead('#gRead'), 900); }
+  function halten(){
+    if (!gFrom || gFrom.haelt) return;
+    gFrom.haelt = true; clearTimeout(gTimer);
+    ctx.eingabe.greiferHaelt = true; ctx.eingabe.greiferX = gFrom.x; ctx.eingabe.greiferY = gFrom.y;
+    renderGrip(); showRead('#gRead', gReadText()); clearTimeout(gReadTimer);
   }
+  // Stoss: vom Mittelpunkt (Mittellinie bei 0,6) zum Finger, an den Rändern Stärke 1
+  function stossVon(x, y){ padStoss((x - 0.5) * 2, y >= 0.6 ? (y - 0.6) / 0.4 : (y - 0.6) / 0.6); lesen('Stoss'); }
   gp.addEventListener('pointerdown', e => {
     e.preventDefault(); try { gp.setPointerCapture(e.pointerId); } catch (_) {}
-    const now = performance.now();
-    if (now - gLastTap < 320){ gLastTap = 0; gFrom = null; resetGrip(); return; }
-    gLastTap = now;
-    ctx.eingabe.greiferHaelt = true; gFrom = { x: e.clientX, y: e.clientY, v: wert('greifer', 'zug') ?? 0.6 }; hideHint(); showRead('#gRead', gReadText());
+    const l = padLage(e);
+    gFrom = { cx: e.clientX, cy: e.clientY, x: l.x, y: l.y, haelt: false };
+    ctx.eingabe.padFinger = true; hideHint();
+    gTimer = setTimeout(halten, greiferWerte().schwelle);
   });
   gp.addEventListener('pointermove', e => {
     if (!gFrom) return;
-    if (Math.abs(e.clientX - gFrom.x) + Math.abs(e.clientY - gFrom.y) > 6) gLastTap = 0;
-    setze('greifer', 'zug', clamp01(gFrom.v - (e.clientY - gFrom.y) / 220));
+    const l = padLage(e);
+    gFrom.x = l.x; gFrom.y = l.y;
+    if (!gFrom.haelt && Math.abs(e.clientX - gFrom.cx) + Math.abs(e.clientY - gFrom.cy) > 10) halten();   // wer zieht, hält
+    if (!gFrom.haelt) return;
+    ctx.eingabe.greiferX = l.x; ctx.eingabe.greiferY = l.y;
     renderGrip(); showRead('#gRead', gReadText());
   });
-  ['pointerup', 'pointercancel'].forEach(ev => gp.addEventListener(ev, () => { if (gFrom){ gFrom = null; ctx.eingabe.greiferHaelt = false; clearTimeout(gReadTimer); gReadTimer = setTimeout(() => hideRead('#gRead'), 900); } }));
+  ['pointerup', 'pointercancel'].forEach(ev => gp.addEventListener(ev, e => {
+    if (!gFrom) return;
+    clearTimeout(gTimer);
+    if (gFrom.haelt){ ctx.eingabe.greiferHaelt = false; lesen('rastet ein'); }
+    else if (ev === 'pointerup') stossVon(gFrom.x, gFrom.y);
+    gFrom = null; ctx.eingabe.padFinger = false; renderGrip();
+  }));
   gp.addEventListener('keydown', e => {
-    const v = wert('greifer', 'zug') ?? 0.6;
-    if (e.key === 'ArrowUp') setze('greifer', 'zug', clamp01(v + 0.02));
-    else if (e.key === 'ArrowDown') setze('greifer', 'zug', clamp01(v - 0.02));
-    else if (e.key === 'Enter' || e.key === ' ') resetGrip();
+    if (e.key === 'ArrowUp') stossVon(0.5, 0.8);
+    else if (e.key === 'ArrowDown') stossVon(0.5, 0.3);
     else return;
-    e.preventDefault(); e.stopPropagation(); renderGrip();
+    e.preventDefault(); e.stopPropagation();
   });
 
   /* sheets */
