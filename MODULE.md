@@ -140,7 +140,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ## Runde 1d: Stehender Film (Mehrfachbelichtung)
 
-**Status:** im Labor, 1.2.3 (2026-10-12)
+**Status:** im Labor, 1.2.4 (2026-10-12)
 
 **Herkunft:** Das Stapeln im Greifer („Film steht“). Maris 2026-10-12: „das Aufsummieren zu Glühen und Ausbreiten ist spannend“. Hier ohne Greiferbewegung, als eigenes Modul. Hintergrund in `IDEEN.md` (Stehender Film, Mehrumlauf-Blende).
 
@@ -193,6 +193,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
   - *Halten neu (nur im Labor, mit Stehendem Film):* **zwei Finger = accum.** (der Film steht, die Kurbel dreht weiter, auch bei geschlossener Blende, dann kommt einfach nichts dazu), **drei Finger = hält** (Standbild, die Kurbel steht). Am Rechner: Leertaste bzw. Taste H. Achtung: iOS kennt Gesten mit drei Fingern (Rückgängig), auf dem iPhone prüfen.
   - *Lichthof:* Maris fragte, ob man das nicht mit Bewegen der Kamera erzeugt. Nein: Bewegung gibt Spuren in Bewegungsrichtung, der Lichthof ist ein runder Schein um ruhende helle Punkte (Licht streut in der Schicht und wird vom Träger zurückgeworfen), der mit der Haltezeit wächst. Maris: sichtbar machen. Neu gebaut: Licht über der Schwelle wird in einem Sechzehntel der Auflösung gesammelt und weich verwischt (Gauss, Breite wächst mit ln W), dann über das Bild gelegt. Labor-Schalter (Grundstellung aus), Stärke 1,5. Kontaktbogen Nachtlichter 12 fps, Stärke 0/1,5/3 nach 2/5/15 s: weicher Schein um die Laternen, der wächst, ohne Gittermuster.
 - **2026-10-12, iPhone-Test 1.2.2 (Maris):** Solarisation 3,5-mal war definitiv zu stark, zurück auf gleich schnell wie der Umkehrfilm. Lichthof 1,5 sehr stark; **Sandwich mit Lichthof 0,4 „wunderschön“**, Sandwich jetzt cooler als Graufilter und Umkehrfilm. Neue Grundwerte (1.2.3): Material Sandwich, Lichthof an mit 0,4 für alle Materialien.
+- 2026-10-12, Maris: Beim Drücken von „hält“ fiel das Bild auf ein einzelnes Bild ohne Gesammeltes zurück. Am Rechner nicht nachvollziehbar (Stapel blieb). Ab 1.2.4 friert „hält“ genau das Ausgabebild ein, das gerade zu sehen ist. Das Labor zeigt die erkannten Finger, um zu prüfen, ob iOS drei Finger abbricht. Offen: Wie Maris es gemacht hat (dritter Finger dazu oder neu ansetzen).
 
 ---
 

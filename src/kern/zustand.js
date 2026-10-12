@@ -25,7 +25,7 @@ export const ctx = {
   bildNr: 0,                        // zählt jedes entwickelte Kurbelbild
   belichtung: { winkel: 135, T: 83 },   // Blendenwinkel und Dauer (ms) des letzten Kurbelbilds
   stoss: { x: 0, y: 0 },            // Stösse in diesem Animationsbild (Bilder pro Sekunde, y nach oben), siehe kern/anstoss.js
-  eingabe: { padFinger: false, greiferHaelt: false, greiferX: 0.5, greiferY: 0.6 },   // Greifer-Pad: Finger liegt, hält (Schlupf), Höhe 0..1
+  eingabe: { finger: 0, padFinger: false, greiferHaelt: false, greiferX: 0.5, greiferY: 0.6 },   // Greifer-Pad: Finger liegt, hält (Schlupf), Höhe 0..1
   labor: new URLSearchParams(location.search).has('labor'),
   bildfenster: hctx,                // hier zeichnet das Transport-Modul hinein
   sag: () => {},                    // Meldung zeigen (setzt die Bedienung)
@@ -34,7 +34,8 @@ export const ctx = {
 
 // Zustand, den sich nur die Kern-Dateien teilen
 export const intern = {
-  have: false, dirty: false, offen: false, nextAt: 0, projNext: 0, clapFrames: 0, captureNext: false,
+  have: false, dirty: false, stand: null,   // stand: das eingefrorene Ausgabebild bei „hält“
+  offen: false, nextAt: 0, projNext: 0, clapFrames: 0, captureNext: false,
   inViewer: !!(window.claude && typeof window.claude.use === 'function'),
 };
 

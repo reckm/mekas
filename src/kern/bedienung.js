@@ -1,15 +1,15 @@
 // Bedienung: Wischen übers Bild (Kurbel und Zoom), Halten, Blendenfader, Greifer-Pad, Blätter, Einstellungen, Tastatur, MIDI.
-import { ctx, intern, einst, $ } from './zustand.js?v=1.2.3';
-import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=1.2.3';
-import { VERSION } from './version.js?v=1.2.3';
-import { wert, setze, istAn, schalte, hinweise, setSize, modul, haltenUebernommen } from './kette.js?v=1.2.3';
-import { padStoss } from './anstoss.js?v=1.2.3';
-import { fpsOf, zoomOf } from './kurbel.js?v=1.2.3';
-import { persist } from './speicher.js?v=1.2.3';
-import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=1.2.3';
-import { setAvDelay } from './ton.js?v=1.2.3';
-import { onRec, renderControls } from './aufnahme.js?v=1.2.3';
-import { zugOf, GREIFER } from '../module/greifer.js?v=1.2.3';
+import { ctx, intern, einst, $ } from './zustand.js?v=1.2.4';
+import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=1.2.4';
+import { VERSION } from './version.js?v=1.2.4';
+import { wert, setze, istAn, schalte, hinweise, setSize, modul, haltenUebernommen } from './kette.js?v=1.2.4';
+import { padStoss } from './anstoss.js?v=1.2.4';
+import { fpsOf, zoomOf } from './kurbel.js?v=1.2.4';
+import { persist } from './speicher.js?v=1.2.4';
+import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=1.2.4';
+import { setAvDelay } from './ton.js?v=1.2.4';
+import { onRec, renderControls } from './aufnahme.js?v=1.2.4';
+import { zugOf, GREIFER } from '../module/greifer.js?v=1.2.4';
 
 let toastTimer = 0;
 export function say(text, warn){
@@ -137,7 +137,15 @@ export function initBedienung(){
   // zwei Finger halten (mit Stehendem Film: der Film steht, die Kurbel dreht weiter), drei Finger: Standbild
   function updateFrozen(){
     const f = pointers.size >= 2 || keyHold || keyStand;
-    ctx.standbild = pointers.size >= 3 || keyStand;
+    const stand = pointers.size >= 3 || keyStand;
+    ctx.eingabe.finger = pointers.size;
+    // „hält“ friert genau das Bild ein, das gerade zu sehen ist (mit allem, was sich darin gesammelt hat)
+    if (stand && !ctx.standbild){
+      const c = intern.stand || document.createElement('canvas'), o = $('#out');
+      c.width = o.width; c.height = o.height; c.getContext('2d').drawImage(o, 0, 0); intern.stand = c;
+    }
+    if (!stand) intern.stand = null;
+    ctx.standbild = stand;
     if (f !== ctx.halten){ ctx.halten = f; $('#frozen').hidden = !f; if (!f) intern.nextAt = 0; }
   }
   stage.addEventListener('pointerdown', e => {

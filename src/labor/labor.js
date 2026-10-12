@@ -1,13 +1,13 @@
 // Labor (nur mit ?labor): alle Module mit Ein/Aus und rohen Reglern, Vergleich, Schnappschuss, Rechenzeit.
 // Speichert nur in `mekas.labor`, die normale Bedienung bleibt unberührt.
-import { ctx, out, $ } from '../kern/zustand.js?v=1.2.3';
-import { comma } from '../kern/mechanik.js?v=1.2.3';
-import { VERSION } from '../kern/version.js?v=1.2.3';
-import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=1.2.3';
-import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=1.2.3';
-import { persist } from '../kern/speicher.js?v=1.2.3';
-import { setMode, startCam, loadFile } from '../kern/quelle.js?v=1.2.3';
-import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=1.2.3';
+import { ctx, out, $ } from '../kern/zustand.js?v=1.2.4';
+import { comma } from '../kern/mechanik.js?v=1.2.4';
+import { VERSION } from '../kern/version.js?v=1.2.4';
+import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=1.2.4';
+import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=1.2.4';
+import { persist } from '../kern/speicher.js?v=1.2.4';
+import { setMode, startCam, loadFile } from '../kern/quelle.js?v=1.2.4';
+import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=1.2.4';
 
 const STATION_TITEL = { takt: 'Takt', quelle: 'Quelle', belichtung: 'Belichtung', entwickeln: 'Entwickeln', transport: 'Transport', projektor: 'Projektor' };
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
@@ -24,7 +24,7 @@ const regler = [];          // { id, name, d, input, val }
 function nachAenderung(){ renderExpo(); renderGrip(); renderMenuWerte(); persist(); }
 
 function baue(){
-  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=1.2.3', import.meta.url).href;
+  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=1.2.4', import.meta.url).href;
   document.head.appendChild(link);
 
   // Knopf oben in der Leiste
@@ -124,6 +124,7 @@ function baue(){
     }
     kern.textContent = 'Kurbel ' + comma(ctx.kurbel.fps.toFixed(1)) + ' fps · Bild ' + ctx.W + '×' + ctx.H +
       ' · Licht sammeln ' + ms(zeiten.sammeln) + ' · Projektor ' + ms(zeiten.zeichnen) +
+      ' · Finger ' + ctx.eingabe.finger + (ctx.standbild ? ' (hält)' : ctx.halten ? ' (accum.)' : '') +
       ' · Sensor ' + ({ neu: 'noch nicht gefragt', fragt: 'fragt', an: 'an', gesperrt: 'gesperrt', fehlt: 'fehlt' }[bewegungStatus()]) +
       (anstoss.anzeige.daten ? '' : ', keine Daten') +
       ' · Ruck ' + Math.round(anstoss.anzeige.gyro) + ' °/s, höchster ' + Math.round(anstoss.anzeige.spitze) + ' °/s · letzter Stoss ' + comma(anstoss.anzeige.letzter.toFixed(1));
