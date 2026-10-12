@@ -82,7 +82,7 @@ function programm(gl, fs){
 // fest (Maris 2026-10-12: als Regler kaum ein Unterschied)
 const ANTEIL = 0.5;      // Licht pro Durchgang bei 180°
 const SCHULTER = 0.7;    // ab wo die Lichter beim Umkehrfilm weich auslaufen
-const SOLAR = 3.5;       // Solarisation läuft so viel schneller als der Umkehrfilm (Maris: 3–4 mal)
+const SOLAR = 1;         // Solarisation läuft so schnell wie der Umkehrfilm (3,5-mal schneller war zu stark, Maris 2026-10-12)
 const mk2d = () => { const c = document.createElement('canvas'); return [c, c.getContext('2d', { alpha: false })]; };
 
 export default {
@@ -92,9 +92,9 @@ export default {
   an: 'labor',
   uebernimmtHalten: true,            // beim Halten dreht die Kurbel weiter
   params: {
-    material: { min: 0, max: 1, def: 0.85, schritt: 0.01, titel: 'Material: Sandwich · Graufilter · Umkehrfilm | Solarisation' },
-    lichthof: { typ: 'schalter', def: false, titel: 'Lichthof (Schein um helle Stellen, wächst mit der Haltezeit)' },
-    hof: { min: 0, max: 4, def: 1.5, schritt: 0.05, titel: 'Stärke Lichthof' },
+    material: { min: 0, max: 1, def: 0, schritt: 0.01, titel: 'Material: Sandwich · Graufilter · Umkehrfilm | Solarisation' },
+    lichthof: { typ: 'schalter', def: true, titel: 'Lichthof (Schein um helle Stellen, wächst mit der Haltezeit)' },
+    hof: { min: 0, max: 4, def: 0.4, schritt: 0.05, titel: 'Stärke Lichthof' },
     loslassen: { min: 0, max: 3, def: 0.6, schritt: 0.05, titel: 'Überblendung beim Loslassen', einheit: ' s' },
   },
   setup(ctx){

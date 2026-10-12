@@ -9,7 +9,7 @@ export default {
   station: 'projektor',
   an: 'labor',
   params: {
-    laenge: { min: 0, max: 2, def: 1, schritt: 0.05, titel: 'Länge (× Blendenzeit)' },
+    laenge: { min: 0, max: 3, def: 2, schritt: 0.05, titel: 'Länge (× Blendenzeit)' },
   },
   setup(){
     [this.alt, this.altG] = mk(); [this.zuletzt, this.zuletztG] = mk(); [this.misch, this.mischG] = mk();

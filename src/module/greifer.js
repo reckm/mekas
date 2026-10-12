@@ -2,8 +2,8 @@
 // Ein Stoss lässt ihn rutschen; ein kleiner rollt zurück in dieselbe Lage, ein grosser über den Kamm ins nächste Bild,
 // mit leichtem Überschwingen. Halten auf dem Pad lässt ihn schlüpfen (Zug ≠ 1, der Bildstrich rollt), Loslassen gibt ihn
 // mit seinem Schwung an die Rastung zurück. Ist die Blende offen, während der Film zieht oder rutscht, ziehen Lichter Schlieren.
-import { TRANSPORT, transportOverlap } from '../kern/mechanik.js?v=1.2.2';
-import { Schwinger } from '../kern/schwinger.js?v=1.2.2';
+import { TRANSPORT, transportOverlap } from '../kern/mechanik.js?v=1.2.3';
+import { Schwinger } from '../kern/schwinger.js?v=1.2.3';
 
 // Feste Werte (Maris 2026-10-12: die Grundeinstellung fühlt sich gut an, nicht alles als Regler ins Labor).
 // Änderungen nur nach Bildbeobachtung, dann gezielt einen dieser Werte.

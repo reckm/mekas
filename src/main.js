@@ -1,13 +1,13 @@
 // Mekas startet: Module einrichten, gespeicherte Einstellungen zurückholen, Bedienung anschliessen, Schleife starten.
-import { ctx, einst, intern, $ } from './kern/zustand.js?v=1.2.2';
-import { clamp01 } from './kern/mechanik.js?v=1.2.2';
-import { setup, setSize, setze, modul, starteSchleife } from './kern/kette.js?v=1.2.2';
-import { saved, KEY_VER, FS } from './kern/speicher.js?v=1.2.2';
-import { initQuelle, renderSrc, startCam } from './kern/quelle.js?v=1.2.2';
-import { initAufnahme, renderControls } from './kern/aufnahme.js?v=1.2.2';
-import { initFilme, renderFilmCount, ladeFilme } from './kern/filme.js?v=1.2.2';
-import { initAnstoss } from './kern/anstoss.js?v=1.2.2';
-import { initBedienung, renderExpo, renderGrip, renderPad, renderTimeNote, renderMenuWerte } from './kern/bedienung.js?v=1.2.2';
+import { ctx, einst, intern, $ } from './kern/zustand.js?v=1.2.3';
+import { clamp01 } from './kern/mechanik.js?v=1.2.3';
+import { setup, setSize, setze, modul, starteSchleife } from './kern/kette.js?v=1.2.3';
+import { saved, KEY_VER, FS } from './kern/speicher.js?v=1.2.3';
+import { initQuelle, renderSrc, startCam } from './kern/quelle.js?v=1.2.3';
+import { initAufnahme, renderControls } from './kern/aufnahme.js?v=1.2.3';
+import { initFilme, renderFilmCount, ladeFilme } from './kern/filme.js?v=1.2.3';
+import { initAnstoss } from './kern/anstoss.js?v=1.2.3';
+import { initBedienung, renderExpo, renderGrip, renderPad, renderTimeNote, renderMenuWerte } from './kern/bedienung.js?v=1.2.3';
 
 setup();
 
@@ -50,4 +50,4 @@ if (!intern.inViewer && saved.lastMode === 'cam' && navigator.mediaDevices){
   } else go();
 }
 
-if (ctx.labor) import('./labor/labor.js?v=1.2.2').then(l => l.starteLabor());
+if (ctx.labor) import('./labor/labor.js?v=1.2.3').then(l => l.starteLabor());
