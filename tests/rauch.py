@@ -103,6 +103,11 @@ def labor(page, browser_url):
     page.wait_for_timeout(1500)
     if page.text_content('#frozen') != 'ACCUM.':
         fehler.append('Labor: beim Halten steht nicht ACCUM.')
+    page.evaluate('window.mekas.standBild(true)')        # drei Finger: Standbild, die Kurbel steht
+    page.wait_for_timeout(500)
+    if page.text_content('#frozen') != 'HÄLT' or page.evaluate('window.mekas.ctx.kurbel.fps') != 0:
+        fehler.append('Labor: drei Finger geben kein Standbild')
+    page.evaluate('window.mekas.standBild(false)')
     page.evaluate('window.mekas.halteBild(false)')
     page.wait_for_timeout(1200)
     page.evaluate("window.mekas.vergleiche('greifer')")

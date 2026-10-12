@@ -15,6 +15,7 @@ export const ctx = {
   kurbel: { x: 0.78, y: 0, zielX: 0.78, zielY: 0, fps: 0 },   // x: Kurbel, y: Zoom (0..1, mit Trägheit), fps: Kurbelbilder pro Sekunde, 0 beim Halten
   zoom: 1,
   halten: false,                    // zwei Finger oder Leertaste
+  standbild: false,                 // drei Finger oder Taste H: Standbild, auch wenn ein Modul das Halten übernimmt
   ausgabeFps: 24,
   quelle: 'demo',                   // demo | cam | file
   facing: 'environment',

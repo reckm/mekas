@@ -1,13 +1,13 @@
 // Labor (nur mit ?labor): alle Module mit Ein/Aus und rohen Reglern, Vergleich, Schnappschuss, Rechenzeit.
 // Speichert nur in `mekas.labor`, die normale Bedienung bleibt unberührt.
-import { ctx, out, $ } from '../kern/zustand.js?v=1.2.1';
-import { comma } from '../kern/mechanik.js?v=1.2.1';
-import { VERSION } from '../kern/version.js?v=1.2.1';
-import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=1.2.1';
-import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=1.2.1';
-import { persist } from '../kern/speicher.js?v=1.2.1';
-import { setMode, startCam, loadFile } from '../kern/quelle.js?v=1.2.1';
-import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=1.2.1';
+import { ctx, out, $ } from '../kern/zustand.js?v=1.2.2';
+import { comma } from '../kern/mechanik.js?v=1.2.2';
+import { VERSION } from '../kern/version.js?v=1.2.2';
+import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=1.2.2';
+import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=1.2.2';
+import { persist } from '../kern/speicher.js?v=1.2.2';
+import { setMode, startCam, loadFile } from '../kern/quelle.js?v=1.2.2';
+import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=1.2.2';
 
 const STATION_TITEL = { takt: 'Takt', quelle: 'Quelle', belichtung: 'Belichtung', entwickeln: 'Entwickeln', transport: 'Transport', projektor: 'Projektor' };
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
@@ -24,7 +24,7 @@ const regler = [];          // { id, name, d, input, val }
 function nachAenderung(){ renderExpo(); renderGrip(); renderMenuWerte(); persist(); }
 
 function baue(){
-  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=1.2.1', import.meta.url).href;
+  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=1.2.2', import.meta.url).href;
   document.head.appendChild(link);
 
   // Knopf oben in der Leiste
@@ -175,6 +175,7 @@ export function starteLabor(){
     vergleiche, quelle: q => q === 'cam' ? startCam(true) : setMode('demo'),
     stoss: (x, y) => padStoss(x, y),                       // wie Tippen aufs Greifer-Pad, Achsen -1..1
     halte: (y, x = 0.5) => { Object.assign(ctx.eingabe, { padFinger: true, greiferHaelt: true, greiferX: x, greiferY: y }); },
+    standBild: an => document.dispatchEvent(new KeyboardEvent(an ? 'keydown' : 'keyup', { key: 'h', bubbles: true })),   // wie drei Finger
     halteBild: an => document.dispatchEvent(new KeyboardEvent(an ? 'keydown' : 'keyup', { code: 'Space', key: ' ', bubbles: true })),   // wie die Leertaste
     lass: () => { Object.assign(ctx.eingabe, { padFinger: false, greiferHaelt: false }); },
   };

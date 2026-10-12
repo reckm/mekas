@@ -26,30 +26,48 @@ void main(){
 // Zeigen: Kennlinie des Materials auf das gesammelte Licht
 const FS_ZEIGEN = `#version 300 es
 precision highp float;
-uniform sampler2D uA, uB; uniform float uMaterial, uGewinn, uSchulter, uHof, uHofR; uniform vec2 uPix;
+uniform sampler2D uA, uB, uH; uniform float uMaterial, uGewinn, uGewinnS, uSchulter, uHof;
 in vec2 v; out vec4 o;
 vec3 schulter(vec3 x){ float k = uSchulter; return mix(x, k + (1.0 - k) * (1.0 - exp(-(x - k) / (1.0 - k))), step(vec3(k), x)); }
 void main(){
   vec3 M = texture(uA, v).rgb;                 // arithmetisches Mittel: Graufilter
   vec3 G = exp(texture(uB, v).rgb) - 0.004;     // geometrisches Mittel: Sandwich, Schatten setzen sich durch
   vec3 X = M * uGewinn;                         // aufsummiertes Licht: Umkehrfilm, wächst mit jedem Durchgang
-  if (uHof > 0.0){                              // Lichthof: Licht streut in der Schicht, wächst mit dem gesammelten Licht
-    vec3 h = vec3(0.0);
-    for (int i = 0; i < 12; i++){
-      float w = 6.2831853 * float(i) / 12.0;
-      vec2 d = vec2(cos(w), sin(w)) * uHofR * uPix;
-      h += max(texture(uA, v + d).rgb * uGewinn - 0.8, 0.0) + 0.5 * max(texture(uA, v + 0.5 * d).rgb * uGewinn - 0.8, 0.0);
-    }
-    X += uHof * h / 18.0;
-  }
+  vec3 hof = uHof > 0.0 ? uHof * texture(uH, v).rgb : vec3(0.0);   // Lichthof: gestreutes Licht um helle Stellen
+  M += hof; G += hof; X += hof * uGewinn;
   vec3 U = schulter(X);
-  vec3 S = X * exp(1.0 - max(X, 1.0));          // Solarisation: über 1 kippt es zurück ins Dunkle
+  vec3 XS = M * uGewinnS;                       // Solarisation: dasselbe Licht, aber schneller aufsummiert
+  vec3 S = XS * exp(1.0 - max(XS, 1.0));        // über 1 kippt es zurück ins Dunkle
   float m = uMaterial; vec3 c;
   if (m < 0.5) c = mix(G, M, m / 0.5);
   else if (m < 0.85) c = mix(M, U, (m - 0.5) / 0.35);
   else if (m < 0.92) c = U;
   else c = mix(U, S, (m - 0.92) / 0.08);
   o = vec4(pow(clamp(c, 0.0, 1.0), vec3(1.0 / 2.2)), 1.0);
+}`;
+
+// Lichthof, Schritt 1: das Licht über der Schwelle in einem Sechzehntel der Auflösung sammeln (4×4 Proben pro Block)
+const FS_HOF_KLEIN = `#version 300 es
+precision highp float;
+uniform sampler2D uA; uniform float uGewinn; uniform vec2 uPix;
+in vec2 v; out vec4 o;
+void main(){
+  vec3 s = vec3(0.0);
+  for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++){
+    vec2 d = (vec2(float(i), float(j)) - 1.5) * 4.0 * uPix;
+    s += max(texture(uA, v + d).rgb * uGewinn - 0.5, 0.0);
+  }
+  o = vec4(s / 16.0, 1.0);
+}`;
+// Lichthof, Schritt 2: weich verwischen (Gauss, einmal waagrecht, einmal senkrecht), Proben lückenlos ein kleines Pixel auseinander
+const FS_HOF_WISCH = `#version 300 es
+precision highp float;
+uniform sampler2D uH; uniform vec2 uRichtung; uniform float uSigma;
+in vec2 v; out vec4 o;
+void main(){
+  vec3 s = vec3(0.0); float n = 0.0;
+  for (int i = -10; i <= 10; i++){ float w = exp(-float(i * i) / (2.0 * uSigma * uSigma)); s += w * texture(uH, v + float(i) * uRichtung).rgb; n += w; }
+  o = vec4(s / n, 1.0);
 }`;
 
 function programm(gl, fs){
@@ -61,6 +79,10 @@ function programm(gl, fs){
   const u = n => gl.getUniformLocation(pr, n);
   return { pr, u };
 }
+// fest (Maris 2026-10-12: als Regler kaum ein Unterschied)
+const ANTEIL = 0.5;      // Licht pro Durchgang bei 180°
+const SCHULTER = 0.7;    // ab wo die Lichter beim Umkehrfilm weich auslaufen
+const SOLAR = 3.5;       // Solarisation läuft so viel schneller als der Umkehrfilm (Maris: 3–4 mal)
 const mk2d = () => { const c = document.createElement('canvas'); return [c, c.getContext('2d', { alpha: false })]; };
 
 export default {
@@ -71,10 +93,8 @@ export default {
   uebernimmtHalten: true,            // beim Halten dreht die Kurbel weiter
   params: {
     material: { min: 0, max: 1, def: 0.85, schritt: 0.01, titel: 'Material: Sandwich · Graufilter · Umkehrfilm | Solarisation' },
-    anteil: { min: 0.02, max: 1, def: 0.5, schritt: 0.01, titel: 'Anteil pro Durchgang (bei 180°)' },
-    schulter: { min: 0.3, max: 0.95, def: 0.7, schritt: 0.01, titel: 'Schulter (ab wo die Lichter weich auslaufen)' },
-    lichthof: { typ: 'schalter', def: false, titel: 'Lichthof' },
-    hof: { min: 0, max: 3, def: 1, schritt: 0.05, titel: 'Stärke Lichthof' },
+    lichthof: { typ: 'schalter', def: false, titel: 'Lichthof (Schein um helle Stellen, wächst mit der Haltezeit)' },
+    hof: { min: 0, max: 4, def: 1.5, schritt: 0.05, titel: 'Stärke Lichthof' },
     loslassen: { min: 0, max: 3, def: 0.6, schritt: 0.05, titel: 'Überblendung beim Loslassen', einheit: ' s' },
   },
   setup(ctx){
@@ -91,6 +111,7 @@ export default {
     gl.getExtension('OES_texture_float_linear');
     this.gl = gl;
     this.pS = programm(gl, FS_SAMMELN); this.pZ = programm(gl, FS_ZEIGEN);
+    this.pK = programm(gl, FS_HOF_KLEIN); this.pW = programm(gl, FS_HOF_WISCH);
     const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
@@ -121,6 +142,17 @@ export default {
       gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
       return { A, B, fb };
     });
+    // Lichthof: zwei kleine Texturen (ein Sechzehntel), 16 Bit, weich gefiltert
+    this.hw = Math.max(2, Math.round(W / 16)); this.hh = Math.max(2, Math.round(H / 16));
+    this.hof = [0, 1].map(() => {
+      const tx = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tx);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, this.hw, this.hh, 0, gl.RGBA, gl.HALF_FLOAT, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tx, 0);
+      return { tx, fb };
+    });
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     this.i = 0;
   },
@@ -139,19 +171,36 @@ export default {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     this.i = 1 - this.i;
   },
+  // Lichthof: Licht über der Schwelle klein sammeln und verwischen; der Schein wird mit der Haltezeit grösser
+  lichthof(ctx, akt, gewinn){
+    const gl = this.gl, [h0, h1] = this.hof;
+    gl.viewport(0, 0, this.hw, this.hh);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, h0.fb); gl.useProgram(this.pK.pr);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, akt.A); gl.uniform1i(this.pK.u('uA'), 0);
+    gl.uniform1f(this.pK.u('uGewinn'), gewinn); gl.uniform2f(this.pK.u('uPix'), 1 / this.W, 1 / this.H);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    const sigma = Math.min(4, 0.6 * (1 + Math.log(this.gewicht)));   // Breite in kleinen Pixeln (1 klein = 16 gross), wächst mit dem Licht
+    for (const [von, nach, dx, dy] of [[h0, h1, 1 / this.hw, 0], [h1, h0, 0, 1 / this.hh]]){
+      gl.bindFramebuffer(gl.FRAMEBUFFER, nach.fb); gl.useProgram(this.pW.pr);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, von.tx); gl.uniform1i(this.pW.u('uH'), 0);
+      gl.uniform2f(this.pW.u('uRichtung'), dx, dy); gl.uniform1f(this.pW.u('uSigma'), sigma);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+  },
   zeigen(ctx){
     const gl = this.gl, akt = this.paar[this.i], p = this.p;
+    const gewinn = 1 + 0.9 * Math.log(this.gewicht);
+    if (p.lichthof) this.lichthof(ctx, akt, gewinn);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, this.W, this.H);
     gl.useProgram(this.pZ.pr);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, akt.A); gl.uniform1i(this.pZ.u('uA'), 0);
     gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, akt.B); gl.uniform1i(this.pZ.u('uB'), 1);
-    // aufsummiertes Licht im Verhältnis zum ersten Bild: wächst mit jedem Durchgang, logarithmisch wie eine Schwärzungskurve
-    const gewinn = 1 + 0.9 * Math.log(this.gewicht);
+    // aufsummiertes Licht im Verhältnis zum ersten Bild (gewinn): wächst mit jedem Durchgang, logarithmisch wie eine Schwärzungskurve
+    gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, this.hof[0].tx); gl.uniform1i(this.pZ.u('uH'), 2);
     gl.uniform1f(this.pZ.u('uMaterial'), p.material); gl.uniform1f(this.pZ.u('uGewinn'), gewinn);
-    gl.uniform1f(this.pZ.u('uSchulter'), p.schulter);
-    gl.uniform1f(this.pZ.u('uHof'), p.lichthof ? p.hof * Math.min(1, Math.log(this.gewicht) / 2) : 0);
-    gl.uniform1f(this.pZ.u('uHofR'), ctx.H * 0.012 * (1 + Math.log(this.gewicht)));
-    gl.uniform2f(this.pZ.u('uPix'), 1 / this.W, 1 / this.H);
+    gl.uniform1f(this.pZ.u('uSchulter'), SCHULTER);
+    gl.uniform1f(this.pZ.u('uGewinnS'), 1 + SOLAR * 0.9 * Math.log(this.gewicht));
+    gl.uniform1f(this.pZ.u('uHof'), p.lichthof ? p.hof * Math.min(1, Math.log(this.gewicht) / 1.5) : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     this.stapelG.drawImage(this.cv, 0, 0);
   },
@@ -170,19 +219,20 @@ export default {
   },
   apply(ctx, bild){
     if (!this.gl) return;
-    const steht = ctx.halten;
+    const steht = ctx.halten && !ctx.standbild;            // drei Finger: Standbild, nichts wird gesammelt
     if (steht){
       // Licht dieses Durchgangs: die Blende bestimmt den Anteil, geschlossen kommt nichts dazu
-      const w = this.p.anteil * Math.max(0, ctx.belichtung.winkel) / 180;
+      const w = ANTEIL * Math.max(0, ctx.belichtung.winkel) / 180;
       if (!this.aktiv){ this.aktiv = true; this.fade = null; this.gewicht = 1; this.sammeln(ctx, bild.belichtet, true, 1); }
       else if (w > 0){ this.gewicht += w; this.sammeln(ctx, bild.belichtet, false, w / this.gewicht); }
       this.zeigen(ctx);
       bild.g.drawImage(this.stapel, 0, 0);
       return;
     }
-    if (this.aktiv){ this.aktiv = false; this.fade = { t0: ctx.jetzt, dauer: this.p.loslassen * 1000, frisch: false }; return; }
+    // Loslassen: der Greifer hat ein frisches Bild ins Fenster gezogen, es blendet über den Stapel.
+    // Schon das erste frische Bild wird gemischt (sonst stünde es ein Kurbelbild lang allein da: ein Flackern).
+    if (this.aktiv){ this.aktiv = false; this.fade = { t0: ctx.jetzt, dauer: this.p.loslassen * 1000, frisch: false }; }
     if (this.fade){
-      // der Greifer hat ein frisches Bild ins Fenster gezogen: es blendet über den Stapel
       this.frischG.drawImage(bild.g.canvas, 0, 0);
       if (!this.fade.frisch){ this.fade.frisch = true; this.fade.t0 = ctx.jetzt; }
       this.mischen(ctx);

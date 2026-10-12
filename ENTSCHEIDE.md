@@ -4,6 +4,8 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 ## 2026-10-12
 
+- **Stehender Film nach dem ersten iPhone-Test:** zwei Finger = accum. (auch bei geschlossener Blende), drei Finger = hält (Standbild). Solarisation 3,5-mal schneller. Anteil pro Durchgang und Schulter fest statt Regler. Lichthof bleibt (nicht dasselbe wie Bewegung) und ist jetzt sichtbar, Labor-Schalter. Sandwich und Graufilter vorerst drin, die Modi denkt Maris im Strategie-Chat neu.
+
 - **Vorerst nur im Labor bauen**, bis alle Teile da und eingestellt sind und die Kamera fertig ist. Neue Module haben die Grundstellung „nur im Labor an“, die normale Bedienung bleibt beim abgenommenen Stand.
 - **Runde 1c abgenommen** (Überblendung im Labor). Blendzeit = so lange die Blende offen ist.
 - **Wortlaut beim Stehenden Film:** Halten mit offener Blende zeigt „accum.“ (Kurbel-Label) bzw. „ACCUM.“ (Schild), mit geschlossener Blende weiter „hält“.

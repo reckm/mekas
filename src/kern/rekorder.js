@@ -1,6 +1,6 @@
 // Aufnahme des Ausgabebilds mit MediaRecorder: ein Bild pro Projektor-Takt, Ton aus dem Mikrofon.
-import { ctx, out } from './zustand.js?v=1.2.1';
-import { audioDest } from './ton.js?v=1.2.1';
+import { ctx, out } from './zustand.js?v=1.2.2';
+import { audioDest } from './ton.js?v=1.2.2';
 
 function pickMime(){
   if (typeof MediaRecorder === 'undefined') return null;

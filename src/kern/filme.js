@@ -1,8 +1,8 @@
 // Die Filme: Bibliothek im Browser (IndexedDB `kurbel`, Store `films`) und Sichern aufs iPhone.
-import { intern, $ } from './zustand.js?v=1.2.1';
-import { mmss } from './mechanik.js?v=1.2.1';
-import { idbReq } from './speicher.js?v=1.2.1';
-import { say } from './bedienung.js?v=1.2.1';
+import { intern, $ } from './zustand.js?v=1.2.2';
+import { mmss } from './mechanik.js?v=1.2.2';
+import { idbReq } from './speicher.js?v=1.2.2';
+import { say } from './bedienung.js?v=1.2.2';
 
 export let films = [], filmN = 0;
 const dlPromise = intern.inViewer ? window.claude.use('downloads') : Promise.resolve(undefined);

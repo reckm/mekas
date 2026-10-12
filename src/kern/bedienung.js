@@ -1,15 +1,15 @@
 // Bedienung: Wischen übers Bild (Kurbel und Zoom), Halten, Blendenfader, Greifer-Pad, Blätter, Einstellungen, Tastatur, MIDI.
-import { ctx, intern, einst, $ } from './zustand.js?v=1.2.1';
-import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=1.2.1';
-import { VERSION } from './version.js?v=1.2.1';
-import { wert, setze, istAn, schalte, hinweise, setSize, modul, haltenUebernommen } from './kette.js?v=1.2.1';
-import { padStoss } from './anstoss.js?v=1.2.1';
-import { fpsOf, zoomOf } from './kurbel.js?v=1.2.1';
-import { persist } from './speicher.js?v=1.2.1';
-import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=1.2.1';
-import { setAvDelay } from './ton.js?v=1.2.1';
-import { onRec, renderControls } from './aufnahme.js?v=1.2.1';
-import { zugOf, GREIFER } from '../module/greifer.js?v=1.2.1';
+import { ctx, intern, einst, $ } from './zustand.js?v=1.2.2';
+import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=1.2.2';
+import { VERSION } from './version.js?v=1.2.2';
+import { wert, setze, istAn, schalte, hinweise, setSize, modul, haltenUebernommen } from './kette.js?v=1.2.2';
+import { padStoss } from './anstoss.js?v=1.2.2';
+import { fpsOf, zoomOf } from './kurbel.js?v=1.2.2';
+import { persist } from './speicher.js?v=1.2.2';
+import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=1.2.2';
+import { setAvDelay } from './ton.js?v=1.2.2';
+import { onRec, renderControls } from './aufnahme.js?v=1.2.2';
+import { zugOf, GREIFER } from '../module/greifer.js?v=1.2.2';
 
 let toastTimer = 0;
 export function say(text, warn){
@@ -36,8 +36,8 @@ export function renderPad(){
   pl.classList.toggle('flip', xC > 0.5); pl.classList.toggle('below', yC > 0.82);
   const f = fpsOf(xC), z = 'Zoom ' + comma(zoomOf(yC).toFixed(1)) + '×';
   const r = ctx.ausgabeFps / f, tempo = f >= ctx.ausgabeFps - 0.3 ? 'echtes Tempo' : (r < 10 ? comma(r.toFixed(1)) : String(Math.round(r))) + '× schneller';
-  // Halten mit stehendem Film und offener Blende: der Film wird mehrfach belichtet
-  const accum = ctx.halten && haltenUebernommen() && ctx.belichtung.winkel >= 1;
+  // zwei Finger mit stehendem Film: der Film wird mehrfach belichtet; drei Finger: Standbild
+  const accum = ctx.halten && !ctx.standbild && haltenUebernommen();
   const top = ctx.halten ? (accum ? 'accum.' : 'hält') : fmtFps(f) + ' fps';
   const schild = accum ? 'ACCUM.' : 'HÄLT';
   if ($('#frozen').textContent !== schild) $('#frozen').textContent = schild;
@@ -133,9 +133,11 @@ export function initBedienung(){
 
   /* XY pad on the picture, relative; two fingers hold the picture */
   const stage = $('#stage'), pointers = new Map();
-  let primaryId = null, dragFrom = null, keyHold = false;
+  let primaryId = null, dragFrom = null, keyHold = false, keyStand = false;
+  // zwei Finger halten (mit Stehendem Film: der Film steht, die Kurbel dreht weiter), drei Finger: Standbild
   function updateFrozen(){
-    const f = pointers.size >= 2 || keyHold;
+    const f = pointers.size >= 2 || keyHold || keyStand;
+    ctx.standbild = pointers.size >= 3 || keyStand;
     if (f !== ctx.halten){ ctx.halten = f; $('#frozen').hidden = !f; if (!f) intern.nextAt = 0; }
   }
   stage.addEventListener('pointerdown', e => {
@@ -262,13 +264,17 @@ export function initBedienung(){
     if (document.querySelector('.sheet.show')) return;
     if (e.key === 'r' || e.key === 'R'){ e.preventDefault(); onRec(); }
     else if (e.code === 'Space' && !e.repeat && tag !== 'BUTTON'){ e.preventDefault(); keyHold = true; updateFrozen(); }
+    else if ((e.key === 'h' || e.key === 'H') && !e.repeat){ e.preventDefault(); keyStand = true; updateFrozen(); }
     else if (e.target === vf || e.target === gp) return;
     else if (e.key === 'ArrowLeft'){ k.zielX = clamp01(k.zielX - 0.04); hideHint(); }
     else if (e.key === 'ArrowRight'){ k.zielX = clamp01(k.zielX + 0.04); hideHint(); }
     else if (e.key === 'ArrowUp'){ k.zielY = clamp01(k.zielY + 0.05); hideHint(); e.preventDefault(); }
     else if (e.key === 'ArrowDown'){ k.zielY = clamp01(k.zielY - 0.05); hideHint(); e.preventDefault(); }
   });
-  document.addEventListener('keyup', e => { if (e.code === 'Space'){ keyHold = false; updateFrozen(); } });
+  document.addEventListener('keyup', e => {
+    if (e.code === 'Space'){ keyHold = false; updateFrozen(); }
+    if (e.key === 'h' || e.key === 'H'){ keyStand = false; updateFrozen(); }
+  });
 
   /* MIDI: a knob is the crank */
   let learnCC = null, midiAccess = null;

@@ -132,13 +132,14 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 **Erfolgskriterien:** Ruhiger bei 4–8 fps, das Stocken bleibt als Rhythmus erkennbar, wirkt nicht wie Zwischenbilder.
 
 **Notizen:**
+- 2026-10-12, iPhone: Maris sieht keine Wirkung, im Labor 0,00 ms. Die Rechenzeit ist echt so klein (das Mischen läuft auf der Grafikkarte, die Messung sieht davon fast nichts). Zu sehen ist die Überblendung nur bei langsamer Kurbel und weit offener Blende: bei 12 fps und 135° dauert sie 31 ms (unsichtbar), bei 4 fps und 360° die ganzen 250 ms bis zum nächsten Bild.
 - 2026-10-12: Modul `ueberblenden` (Station Projektor), Grundstellung „nur im Labor an“. Maris: Blendzeit = so lange die Blende offen ist (Anteil des Kurbelbilds wie der Blendenwinkel). Nur im Modus „Bild steht nach“. Labor-Wert: Länge (× Blendenzeit). Kontaktbogen bei 6 fps, Blende 90°/270°/360° mit Vergleich ohne: grösster Sprung zwischen Ausgabebildern bei 360° von 2,7 auf 1,1, bei 90° fast wie ohne.
 
 ---
 
 ## Runde 1d: Stehender Film (Mehrfachbelichtung)
 
-**Status:** im Labor (gebaut 2026-10-12)
+**Status:** im Labor, 1.2.2 (2026-10-12), Maris prüft auf dem iPhone
 
 **Herkunft:** Das Stapeln im Greifer („Film steht“). Maris 2026-10-12: „das Aufsummieren zu Glühen und Ausbreiten ist spannend“. Hier ohne Greiferbewegung, als eigenes Modul. Hintergrund in `IDEEN.md` (Stehender Film, Mehrumlauf-Blende).
 
@@ -183,6 +184,13 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 - Kontaktbögen Demo und Nachtlichter (künstliches Video, `tests/out/nachtlichter.mp4`), 6 und 18 fps, Blende 180°, nach 2/5/15 s und 1,5 s nach dem Loslassen: Sandwich lässt Bewegtes verschwinden, Graufilter macht es zu Nebel, Umkehrfilm lässt Lichter glühen und Lichtspuren malen, nach 15 s nicht flächig weiss. 30 s bei 18 fps: keine Farbstufen, neue Durchgänge wirken weiter (keine eingefrorenen Geister).
 - Beobachtet, zum Einstellen nach Maris’ Test: Umkehrfilm hebt mit der Zeit auch das Dunkle (Himmel wird grau-blau). Solarisation unterscheidet sich bei diesen Quellen kaum vom Umkehrfilm (kippt erst bei sehr viel Licht). Lichthof greift nur bei sehr hellen Stellen, bei Lichtspuren kaum sichtbar.
 - 2026-10-12: Kontaktbogen von Maris abgenommen („passt“), veröffentlicht als 1.2.1 (nur im Labor). iPhone-Test offen.
+- **2026-10-12, iPhone-Test 1.2.1 (Maris), für den Strategie-Chat:**
+  - *Materialien:* **Solarisation** gefällt, soll aber viel schneller laufen (3–4 mal). **Umkehrfilm** schön. **Sandwich und Graufilter** wirken sehr ähnlich und leuchten weniger, eventuell weglassen. Maris denkt die Modi im Strategie-Chat noch einmal durch, deshalb bleiben vorerst alle vier im Regler.
+  - *So ist es gebaut (Stand 1.2.2):* gesammelt werden zwei laufende Mittel pro Pixel in linearem Licht, 32 Bit: das arithmetische Mittel M und das geometrische G (über den Logarithmus). Gewicht W = Summe der Anteile, jeder Durchgang bringt 0,5 × Blendenwinkel/180°. Gezeigt wird je nach Material: **Sandwich** = G (Dunkles setzt sich durch, Bewegtes verschwindet), **Graufilter** = M (gleich hell, Bewegtes wird Nebel), **Umkehrfilm** = M × (1 + 0,9 · ln W) mit weicher Schulter ab 0,7 (Lichter glühen, nach 15 s nicht flächig weiss, hebt aber auch das Dunkle), **Solarisation** = dasselbe mit 3,5-mal schnellerem Anstieg, über 1 kippt es zurück (X · e^(1−X)), helle Punkte werden zu Ringen mit dunklem Kern. Regler: 0 Sandwich, 0,5 Graufilter, 0,85 Umkehrfilm (Grundstellung), ab 0,92 Solarisation.
+  - *Regler entfernt:* Anteil pro Durchgang und Schulter (machten kaum einen Unterschied), jetzt fest 0,5 und 0,7.
+  - *Flackern beim Loslassen behoben:* Das erste frische Bild stand ein Kurbelbild lang allein da, dann kam der Stapel zurück und blendete erst dann aus. Jetzt blendet schon das erste frische Bild über den Stapel, die Helligkeit sinkt gleichmässig.
+  - *Halten neu (nur im Labor, mit Stehendem Film):* **zwei Finger = accum.** (der Film steht, die Kurbel dreht weiter, auch bei geschlossener Blende, dann kommt einfach nichts dazu), **drei Finger = hält** (Standbild, die Kurbel steht). Am Rechner: Leertaste bzw. Taste H. Achtung: iOS kennt Gesten mit drei Fingern (Rückgängig), auf dem iPhone prüfen.
+  - *Lichthof:* Maris fragte, ob man das nicht mit Bewegen der Kamera erzeugt. Nein: Bewegung gibt Spuren in Bewegungsrichtung, der Lichthof ist ein runder Schein um ruhende helle Punkte (Licht streut in der Schicht und wird vom Träger zurückgeworfen), der mit der Haltezeit wächst. Maris: sichtbar machen. Neu gebaut: Licht über der Schwelle wird in einem Sechzehntel der Auflösung gesammelt und weich verwischt (Gauss, Breite wächst mit ln W), dann über das Bild gelegt. Labor-Schalter (Grundstellung aus), Stärke 1,5. Kontaktbogen Nachtlichter 12 fps, Stärke 0/1,5/3 nach 2/5/15 s: weicher Schein um die Laternen, der wächst, ohne Gittermuster.
 
 ---
 
