@@ -16,7 +16,7 @@ Was später kommen könnte. Nummern in Klammern verweisen auf `docs/zwischen-den
   - *Auslösen:* über das bestehende **Halten** (zwei Finger). Halten bei geschlossener Blende = Standbild wie heute, Halten bei offener Blende = Mehrfachbelichtung. Loslassen: Der Greifer zieht ein frisches Bild ins Fenster, weich übergeblendet (siehe Runde 1c). Dafür muss die Kurbel beim Halten weiterdrehen (heute fps = 0), das ist eine Änderung im Kern.
   - *Achse A, Material (wie reagiert der Film auf viel Licht):* Sandwich/Bipack (dunkler, Schatten bleiben stehen, gut bei Schnee) ← Graufilter (gleich hell, Stehendes satt, Bewegtes wird Nebel) → Umkehrfilm mit Schulter (heller, Lichter glühen und breiten sich aus, ohne hart ins Weiss zu laufen) → hinter einem Strich: Solarisation (Überbelichtetes kippt ins Dunkle, höchstes Digital-Risiko). Variante: nur Veränderung belichtet (Bewegungsbelichtung, 4).
   - *Achse B, Gedächtnis (wer bleibt):* das Erste brennt sich ein (Film erschöpft) – alle gleich – das Neueste (Altes verblasst). Das Neueste ist die Mehrumlauf-Blende: Blende über 360° hinaus, Akkumulation klingt über mehrere Bilder nach, ab 360° werden die Schlieren schwächer, Strich auf dem Fader bei 360°.
-  - *Stand 2026-10-12:* Sandwich mit Lichthof 0,4 gefällt Maris am besten, Umkehrfilm auch, Graufilter weniger. Maris denkt die Modi im Strategie-Chat neu.
+  - *Stand 2026-10-12:* Sandwich mit Lichthof 0,4 gefällt Maris am besten, auch die Solarisation. Im Strategie-Chat neu gefasst als **Accum. Material** mit vier Raststellen: Sandwich, Lith, Aufsummieren (Solarisation kommt mit der Haltezeit), Farbschichten. Graufilter fällt weg. Details auf der Karte 1d.
   - *Offen:* Ob das Stapeln im Greifer (Runde 1b) später dasselbe Material benutzt: Kopplung, Schritt 2.
   - *Technik:* gelöst mit WebGL2 und 32 Bit (laufende Mittel), keine Farbstufen nach 30 s. Solarisation kann bei schwankendem Licht pulsieren.
 - **Nachtverarbeitung (18):** Dasselbe Nachklingen wie beim Stehenden Film (Gedächtnis „das Neueste“), aber automatisch nach Licht: je dunkler, desto länger. Der „digitale Antrieb“ derselben Mechanik wie 1.
@@ -28,7 +28,7 @@ Was später kommen könnte. Nummern in Klammern verweisen auf `docs/zwischen-den
 ## Kopierwerk (für geladenes Material, aber nicht darauf beschränkt)
 
 - **Kopierdurchgänge (9):** Echos in festem Abstand wie McLarens Tanzfilm. Funktioniert vor dunklem Grund.
-- **Schwelle „nur Lichter kopieren“:** wie harter Lith-Kopierfilm. Macht 9 auch bei mittlerem Licht brauchbar.
+- **Schwelle „nur Lichter kopieren“:** wie harter Lith-Kopierfilm. Macht 9 auch bei mittlerem Licht brauchbar. Wird als Raststelle „Lith“ im Accum. Material zuerst ausprobiert (Runde 1d).
 
 ## Röhre (Video, 1970)
 
@@ -42,6 +42,7 @@ Was später kommen könnte. Nummern in Klammern verweisen auf `docs/zwischen-den
 ## Gehäuse und Kopplungen (Schritt 2)
 
 - **Kameramodelle als Gehäuse:** Bolex, Telefon, Kopierwerk, Röhre. Jedes mit eigener Belegung rechts und eigenen Grundwerten. Siehe `docs/KONZEPT.md`, Teil 4.
+- **Accum. Material auch für Doppel:** Doppel legt die zweite Schicht heute additiv drauf (wie Aufsummieren). Mit Sandwich würden sich die Schatten der zweiten Schicht durchsetzen, Doppel funktioniert dann auch auf Schnee und hellem Himmel. Später ebenso für Kopierdurchgänge (9) und Mehrumlauf-Blende (1). Dann verdient die Wahl ein eigenes Schild auf dem Hauptbildschirm.
 - **Kopplungen zwischen Modulen und Doppelfunktionen:** Welche Module bedingen sich gegenseitig? Erst angehen, wenn die Module einzeln abgenommen sind.
 - **Ein Instrument mit allen Funktionen** als langfristiges Ziel.
 

@@ -4,6 +4,8 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 ## 2026-10-12
 
+- **Accum. Material** (Strategie-Chat): Die Materialwahl beim Stehenden Film heisst „Accum. Material“ und wirkt nur auf accum., nicht auf das normale Entwickeln (Kippen von Bild zu Bild würde flackern). Im Labor ein Fader mit Raststellen und Namen statt Zahlen. Graufilter fällt weg (wie Sandwich, leuchtet weniger). Neu ausprobieren: Lith und Farbschichten. Umkehrfilm und Solarisation werden zu „Aufsummieren“, die Solarisation kommt mit der Haltezeit (nach dem Test bestätigen). Doppel mit demselben Material: später, Schritt 2.
+
 - **„Hält“ (drei Finger, Taste H) friert genau das sichtbare Bild ein**, mit allem Gesammelten. Das Labor zeigt die erkannten Finger.
 
 - **Grundwerte nach iPhone-Test 1.2.2:** Stehender Film mit Material Sandwich und Lichthof 0,4 (an, für alle Materialien), Solarisation wieder gleich schnell wie der Umkehrfilm. Überblendender Projektor: Länge 2 × Blendenzeit (weniger ruckelig, weniger Kopfweh bei tiefen fps).

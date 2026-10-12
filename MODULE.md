@@ -143,7 +143,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ## Runde 1d: Stehender Film (Mehrfachbelichtung)
 
-**Status:** im Labor, 1.2.4 (2026-10-12)
+**Status:** im Labor, 1.2.4 (2026-10-12). Nächster Schritt: **Accum. Material neu** (Strategie-Chat 2026-10-12, siehe unten), noch nicht gebaut.
 
 **Herkunft:** Das Stapeln im Greifer („Film steht“). Maris 2026-10-12: „das Aufsummieren zu Glühen und Ausbreiten ist spannend“. Hier ohne Greiferbewegung, als eigenes Modul. Hintergrund in `IDEEN.md` (Stehender Film, Mehrumlauf-Blende).
 
@@ -157,20 +157,23 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 - **Loslassen:** Der Greifer zieht ein frisches Bild ins Fenster, weich übergeblendet, nie ein harter Sprung. Benutzt die Überblendung aus 1c, deshalb nach 1c.
 - Kurbel-Label beim Halten mit offener Blende: „belichtet mehrfach“ statt „hält“ (Wortlaut mit Maris klären).
 
-**Material (ein Regler, in dieser Runde nur im Labor):**
-- **Sandwich** (dunkler): wie zwei Dias übereinander oder Bipack im Kopierwerk. Licht muss durch alle Schichten, Schatten bleiben stehen. Für helle Szenen (Schnee, Himmel).
-- **Graufilter** (gleich hell): jeder Durchgang bekommt nur seinen Anteil. Stehendes wird satt und scharf, Bewegtes wird Nebel. Mitte des Reglers, viel Weg.
-- **Umkehrfilm mit Schulter** (heller): Lichter glühen und breiten sich aus, laufen aber weich und nicht hart ins Weiss. Das heutige Stapeln ohne Abschneiden.
-- **Solarisation**, hinter einem Strich am Ende: Überbelichtetes kippt langsam ins Dunkle. Höchstes Digital-Risiko, fliegt raus, wenn es nach Filter aussieht.
-- **Lichthof** (Labor-Schalter, Grundstellung aus): Licht streut in der Schicht. Der Hof um helle Stellen wächst nur mit dem gesammelten Licht, keine feste Färbung. Prüft, ob das „Ausbreiten“ so stärker wird.
+**Accum. Material (neu, Strategie-Chat 2026-10-12, noch nicht gebaut):** Die Wahl heisst **„Accum. Material“**. Sie sagt, wie die Schichten beim Halten zusammenkommen, und wirkt **nur auf accum.**, nicht auf das normale Entwickeln jedes Bilds (dort würde Kippen von Bild zu Bild flackern). Doppel kommt eventuell später dazu (Kopplung, Schritt 2, siehe `IDEEN.md`).
+- **Im Labor: Fader mit Raststellen statt Zahlen.** Der Fader springt auf feste Stellen und zeigt den Namen („Sandwich“, „Lith“ …), keine Zahl, keine Zwischenwerte. Dafür braucht das Labor einen neuen Param-Typ (z. B. `typ: 'wahl'` mit Liste der Namen), in `CLAUDE.md` bei der Schnittstelle nachtragen.
+- **Raststellen**, von dunkel nach hell:
+  1. **Sandwich** (Grundstellung, wie heute): Schichten übereinander wie Dias oder Bipack im Kopierwerk. Schatten setzen sich durch, Bewegtes verschwindet. Kippt nie.
+  2. **Lith** (neu): harter Kopierfilm (Lith-Film). Nur Licht über einer Schwelle belichtet, alles andere bleibt schwarz. Weil aufsummiert wird, malen Lichter Spuren auf Schwarz. Für Nacht und Bühne. Die Schwelle steil, aber weich (keine harten Kanten), sonst wirkt es wie ein Schwellen-Filter.
+  3. **Aufsummieren** (Umkehrfilm und Solarisation zusammengelegt): Licht addiert sich. Erst glühen die Lichter, dann breiten sie sich aus, bei sehr viel Licht kippen sie in die Solarisation. **Gesteuert über die Haltezeit**, nicht über eine eigene Wahl: kurz halten = Glühen, lange halten = Ausfressen und Kippen. Wie schnell, bestimmen Kurbel (Durchgänge pro Sekunde) und Blende (Licht pro Durchgang). So entsteht Solarisation auch bei echtem Film: durch extreme Überbelichtung. Kennlinie: Anstieg, Schulter, Solarisationsast. Wann es kippt, am Kontaktbogen einstellen (Richtwert: bei 12 fps und 180° nach etwa 8–15 s).
+  4. **Farbschichten** (neu): wie Aufsummieren, aber die drei Farbschichten des Films (Rot, Grün, Blau) sättigen und kippen verschieden schnell. Überbelichtete Lichter verfärben sich leicht, bevor sie kippen, die Ringe der Solarisation bekommen farbige Ränder. Dunkles und Mitten bleiben unverändert.
+- **Fällt weg:** Graufilter (wirkte wie Sandwich, leuchtet weniger). Umkehrfilm und Solarisation als getrennte Stellen (gehen in Aufsummieren auf).
+- **Lichthof** bleibt an mit 0,4, für alle Raststellen.
 
 **Nicht in dieser Runde:** Gedächtnis (wer bleibt, Altes verblasst = Mehrumlauf-Blende) bleibt fest auf „alle Durchgänge gleich“. Bewegungsbelichtung (4) ebenfalls später. Kopplung an das Stapeln im Greifer: Schritt 2.
 
 **Umsetzung:** Station Transport, nach dem Greifer. Gesammelt wird in linearem Licht, die Kennlinie des Materials kommt erst beim Zeigen. Lange Stapel brauchen höhere Genauigkeit (WebGL mit Half-Float), sonst Farbstufen und eingefrorene Geister. Der Kontaktbogen braucht eine Möglichkeit, Halten für eine bestimmte Dauer auszulösen.
 
-**Parameter (Labor):** Material, Schulter (wie weich die Lichter auslaufen), Anteil pro Durchgang bei offener Blende, Lichthof an/aus und Stärke, Dauer der Überblendung beim Loslassen.
+**Parameter (Labor):** Accum. Material (Fader mit Raststellen), Lichthof an/aus und Stärke, Dauer der Überblendung beim Loslassen. Für die neuen Raststellen vorübergehend: Schwelle Lith, Zeitpunkt des Kippens (Aufsummieren), Abstand der Farbschichten. Fliegen wieder raus, sobald die Werte stimmen.
 
-**Kontaktbogen:** Material Sandwich, Graufilter, Umkehrfilm, Solarisation. Je ein Standbild nach 2 s, 5 s und 15 s Halten, bei 6 und 18 fps, Blende 180°. Quellen: Demo und ein Video mit Lichtern in der Nacht.
+**Kontaktbogen (neu):** Raststellen Sandwich, Lith, Aufsummieren, Farbschichten. Je ein Standbild nach 2 s, 5 s, 15 s und 30 s Halten (30 s zeigt das Kippen), bei 6 und 18 fps, Blende 180°. Quellen: Demo und Nachtlichter.
 
 **Erfolgskriterien:**
 - Halten mit offener Blende: Das Bild baut sich über Sekunden auf, Lichter glühen und breiten sich aus. Auch nach 15 s nicht flächig reines Weiss (Umkehrfilm).
@@ -179,9 +182,17 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 - Loslassen ohne harten Sprung.
 - Nach 30 s Halten keine Farbstufen und keine eingefrorenen Geister.
 - Kein Pulsieren, auch nicht bei Solarisation und schwankendem Licht.
+- Lith: nachts malen Lichter auf Schwarz, tagsüber nur die hellsten Stellen, nie flächig weiss, keine harten Kanten.
+- Aufsummieren: Das Kippen kommt allmählich mit der Haltezeit, nicht als Sprung.
+- Farbschichten: wirkt wie Film, nicht wie Farbkorrektur. Verfärbt nur die überbelichteten Lichter.
 - Vorschau flüssig bei 720p auf dem iPhone.
 
 **Fragen an Maris nach dem Test:** Welche Materialien bleiben, und welches ist die Grundstellung? Solarisation behalten? Lichthof ja oder nein? Kommt das Material als Regler in die normale Bedienung, und wenn ja, wohin?
+
+**Fragen an Maris nach dem Test des neuen Accum. Material:**
+- Welche Raststellen bleiben? Lith und Farbschichten behalten?
+- Reicht es, wenn die Solarisation mit der Haltezeit kommt, oder soll sie eine eigene Raststelle bekommen, um sie bewusst zu wählen?
+- Für später: Kommt das Accum. Material auf den Hauptbildschirm, zum Beispiel als Schild zum Antippen neben der Quelle (wie die Filmdose an der Bolex)? Name noch offen, „KAMERA“ ist durch die Quelle belegt.
 
 **Notizen:**
 - 2026-10-12: Modul `stehenderfilm` (Station Transport nach dem Greifer), Grundstellung „nur im Labor an“, übernimmt das Halten: die Kurbel dreht beim Halten weiter (Kern: `haltenUebernommen()`). Label „accum.“ / Schild „ACCUM.“ (Maris), bei geschlossener Blende „hält“. Gesammelt wird in WebGL2 mit 32 Bit (laufende Mittel linear und logarithmisch), Material als ein Regler: 0 Sandwich (geometrisches Mittel), 0,5 Graufilter (Mittel), 0,85 Umkehrfilm (aufsummiert mit Schulter, Grundstellung), ab 0,92 Solarisation. Anteil pro Durchgang 0,5 bei 180°. Loslassen: das frische Bild blendet in 0,6 s über den Stapel.
@@ -197,6 +208,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
   - *Lichthof:* Maris fragte, ob man das nicht mit Bewegen der Kamera erzeugt. Nein: Bewegung gibt Spuren in Bewegungsrichtung, der Lichthof ist ein runder Schein um ruhende helle Punkte (Licht streut in der Schicht und wird vom Träger zurückgeworfen), der mit der Haltezeit wächst. Maris: sichtbar machen. Neu gebaut: Licht über der Schwelle wird in einem Sechzehntel der Auflösung gesammelt und weich verwischt (Gauss, Breite wächst mit ln W), dann über das Bild gelegt. Labor-Schalter (Grundstellung aus), Stärke 1,5. Kontaktbogen Nachtlichter 12 fps, Stärke 0/1,5/3 nach 2/5/15 s: weicher Schein um die Laternen, der wächst, ohne Gittermuster.
 - **2026-10-12, iPhone-Test 1.2.2 (Maris):** Solarisation 3,5-mal war definitiv zu stark, zurück auf gleich schnell wie der Umkehrfilm. Lichthof 1,5 sehr stark; **Sandwich mit Lichthof 0,4 „wunderschön“**, Sandwich jetzt cooler als Graufilter und Umkehrfilm. Neue Grundwerte (1.2.3): Material Sandwich, Lichthof an mit 0,4 für alle Materialien.
 - 2026-10-12, Maris: Beim Drücken von „hält“ fiel das Bild auf ein einzelnes Bild ohne Gesammeltes zurück. Am Rechner nicht nachvollziehbar (Stapel blieb). Ab 1.2.4 friert „hält“ genau das Ausgabebild ein, das gerade zu sehen ist. Das Labor zeigt die erkannten Finger, um zu prüfen, ob iOS drei Finger abbricht. Offen: Wie Maris es gemacht hat (dritter Finger dazu oder neu ansetzen).
+- **2026-10-12, Strategie-Chat (Materialien):** Maris mag **Solarisation und Sandwich**. Neu: Wahl heisst „Accum. Material“, gilt nur für accum., im Labor als Fader mit Raststellen (Namen statt Zahlen). Graufilter fällt weg, Umkehrfilm und Solarisation werden zu „Aufsummieren“ (Solarisation kommt mit der Haltezeit), **Lith und Farbschichten neu zum Ausprobieren**. Beobachtet beim Durchsehen: Mit zwei Fingern steuert der erste Finger weiter Kurbel und Zoom. Zoomen während accum. gibt Strahlen aus der Bildmitte wie beim Zoomen während einer Langzeitbelichtung. Mechanisch echt, behalten. Deshalb ist eine Zwei-Finger-Bewegung für die Materialwahl nicht frei.
 
 ---
 
