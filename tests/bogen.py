@@ -144,7 +144,7 @@ def lauf_neu(browser, url, a, wert, ordner, kamera):
 
 def lauf_alt(browser, url, a, wert, ordner, kamera):
     feld, umrechnen = ALT_FELD[(a.modul, a.param)]
-    einst = {'v': 4, 'slits': 0, 'lastMode': 'cam' if kamera else 'demo', feld: umrechnen(wert)}
+    einst = {'v': 4, 'slits': 0, 'lastMode': 'demo', feld: umrechnen(wert)}   # Quelle startet über die Startkarte
     context = browser.new_context(viewport={'width': 1280, 'height': 800})
     context.add_init_script(SAAT)
     context.add_init_script(f"localStorage.setItem('kurbel.v3', {json.dumps(json.dumps(einst))})")

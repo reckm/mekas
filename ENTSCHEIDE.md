@@ -4,6 +4,9 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 ## 2026-10-12
 
+- **Schlieren über 240° bleiben wie sie sind**, auch wenn helle Stellen bis ins nächste Bild ziehen. Mechanisch richtig, gesteuert mit der Blende.
+- **Greifer-Werte fest**, nicht im Labor. Die Grundeinstellung fühlt sich gut an. Änderungen nur nach Bildbeobachtung, gezielt ein Wert. Seitliches Spiel und Takt zur Blende entfernt.
+
 - **Runde 1a und 1b zusammen gebaut** (Schwinger allein hat nichts Sichtbares).
 - **Schlieren:** Die vom Filmzug bei Blende über 240° bleiben. Rutscht der Film nach einem Stoss, kommen Schlieren aus dieser Bewegung dazu.
 - **Schlupf: Es zählt, wo der Finger auf dem Pad liegt** (wie beim Tippen), nicht der Weg ab dem Aufsetzen. Mitte (gestrichelte Linie) = kein Schlupf.

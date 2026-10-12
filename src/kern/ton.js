@@ -1,7 +1,7 @@
 // Ton: nur das Mikrofon (und der Ton eines geladenen Videos). Kein Ton aus der Mechanik.
-import { ctx, einst, $ } from './zustand.js?v=1.1.1';
-import { vidFile } from './quelle.js?v=1.1.1';
-import { say } from './bedienung.js?v=1.1.1';
+import { ctx, einst, $ } from './zustand.js?v=1.1.2';
+import { vidFile } from './quelle.js?v=1.1.2';
+import { say } from './bedienung.js?v=1.1.2';
 
 export let audioCtx = null, audioDest = null;
 let recBus = null, recDelay = null, fileNode = null, micNode = null, micStream = null, micToRec = false;

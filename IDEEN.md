@@ -57,3 +57,4 @@ Was später kommen könnte. Nummern in Klammern verweisen auf `docs/zwischen-den
 - **Labor: geteilte Ansicht** (links mit, rechts ohne Modul). Braucht die Kette zweimal pro Bild. Erst, wenn klar ist, wie viel Rechenzeit das iPhone übrig hat.
 - **Greifer-Pad und Blendenfader liegen über dem Einstellungsblatt** (auf dem Handy rechts unten). War in der alten `mekas.html` schon so.
 - **Veraltete Meldungen:** „Öffne die Datei direkt im Browser“ (Kamera gesperrt, Sichern) stammt aus der Zeit vor GitHub Pages. Die Texte im Menü sind schon angepasst.
+- **Seitliches Spiel im Filmkanal** (Runde 1b, Labor-Schalter): war kaum zu sehen und ist wieder raus. Falls es fehlt: grösserer Weg, nur bei kräftigem seitlichem Stoss.

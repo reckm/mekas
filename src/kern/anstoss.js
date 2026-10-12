@@ -1,8 +1,9 @@
 // Anstossen: Stösse an die Kamera, vom Greifer-Pad (Tippen) und vom Gyroskop (ein Ruck mit dem Telefon).
 // Jedes Animationsbild steht die Summe der Stösse in ctx.stoss { x, y } (Bilder pro Sekunde, y nach oben).
 // Welche Module darauf reagieren und wie stark, entscheiden sie selbst.
-import { ctx } from './zustand.js?v=1.1.1';
-import { frage, hoere, drehung } from './bewegung.js?v=1.1.1';
+import { ctx } from './zustand.js?v=1.1.2';
+import { frage, hoere, drehung, bewegungStatus } from './bewegung.js?v=1.1.2';
+export { bewegungStatus };
 
 export const anstoss = {
   id: 'anstossen',
@@ -10,10 +11,10 @@ export const anstoss = {
   params: {
     pad: { min: 0, max: 40, def: 20, schritt: 0.5, titel: 'Stärke Pad', einheit: ' Bilder/s' },
     gyro: { min: 0, max: 0.2, def: 0.05, schritt: 0.005, titel: 'Empfindlichkeit Gyroskop' },
-    schwelle: { min: 50, max: 800, def: 220, schritt: 10, titel: 'Schwelle Gyroskop (darunter zählt nichts)', einheit: '°/s' },
+    schwelle: { min: 50, max: 800, def: 150, schritt: 10, titel: 'Schwelle Gyroskop (darunter zählt nichts)', einheit: '°/s' },
     nurMitFinger: { typ: 'schalter', def: false, titel: 'Gyroskop nur mit Finger auf dem Pad' },
   },
-  anzeige: { gyro: 0, letzter: 0 },     // fürs Labor: Ruck jetzt (°/s) und Stärke des letzten Stosses
+  anzeige: { gyro: 0, spitze: 0, spitzeT: 0, letzter: 0, daten: 0 },   // fürs Labor: Ruck jetzt und höchster der letzten 3 s (°/s), letzter Stoss, Anzahl Sensordaten
 };
 
 let offen = { x: 0, y: 0 };
@@ -28,32 +29,41 @@ export function holeStoss(){ ctx.stoss = offen; offen = { x: 0, y: 0 }; }
 
 /* ---------- Gyroskop: ein Ruck, nicht die Neigung ---------- */
 // hochpassgefiltert: ruhiges Halten und langsames Schwenken bleiben unter der Schwelle, ein Schlag geht drüber
-let lpU = 0, lpR = 0, spitze = null, sperre = 0;
+let lp = { u: 0, r: 0, a: 0 }, spitze = null, sperre = 0;
 function onMotion(e){
   const d = drehung(e); if (!d) return;
+  const an = anstoss.anzeige; an.daten++;
   const dt = Math.min(0.05, (e.interval > 1 ? e.interval / 1000 : e.interval) || 0.016);
   const k = 1 - Math.exp(-dt / 0.2);
-  lpU += (d.up - lpU) * k; lpR += (d.right - lpR) * k;
-  const hu = d.up - lpU, hr = d.right - lpR, mag = Math.hypot(hu, hr);
-  anstoss.anzeige.gyro = Math.max(mag, anstoss.anzeige.gyro * 0.97);
-  const p = anstoss.p, jetzt = performance.now();
+  lp.u += (d.up - lp.u) * k; lp.r += (d.right - lp.r) * k; lp.a += (d.um - lp.a) * k;
+  const hu = d.up - lp.u, hr = d.right - lp.r, ha = d.um - lp.a, mag = Math.hypot(hu, hr, ha);
+  const jetzt = performance.now();
+  an.gyro = Math.max(mag, an.gyro * 0.97);
+  if (mag > an.spitze || jetzt - an.spitzeT > 3000){ an.spitze = mag; an.spitzeT = jetzt; }
+  const p = anstoss.p;
   if (jetzt < sperre || p.gyro <= 0) return;
-  if (mag > p.schwelle && (!spitze || mag >= spitze.mag)){ spitze = { mag, hu, hr }; return; }   // steigt noch: auf die Spitze warten
+  if (mag > p.schwelle && (!spitze || mag >= spitze.mag)){ spitze = { mag, hu, hr, ha }; return; }   // steigt noch: auf die Spitze warten
   if (!spitze) return;
-  // Spitze vorbei: ein Stoss, so stark wie der Ruck über der Schwelle
-  const f = (spitze.mag - p.schwelle) * p.gyro / spitze.mag;
+  // Spitze vorbei: ein Stoss, so stark wie der Ruck über der Schwelle. Jeder Ruck wirft den Film im Kanal,
+  // die Richtung kommt von der stärksten Achse.
+  const staerke = (spitze.mag - p.schwelle) * p.gyro;
+  const achsen = [[Math.abs(spitze.hr), -Math.sign(spitze.hr)], [Math.abs(spitze.hu), Math.sign(spitze.hu)], [Math.abs(spitze.ha), Math.sign(spitze.ha)]];
+  const richtung = achsen.sort((x, y) => y[0] - x[0])[0][1] || 1;
   if (!p.nurMitFinger || ctx.eingabe.padFinger){
-    offen.x += spitze.hu * f; offen.y -= spitze.hr * f;
-    anstoss.anzeige.letzter = (spitze.mag - p.schwelle) * p.gyro;
+    offen.y += richtung * staerke; offen.x += spitze.hu / spitze.mag * staerke;
+    an.letzter = staerke;
   }
   spitze = null; sperre = jetzt + 250;
 }
 
+let gemeldet = false;
 export function initAnstoss(){
   hoere(onMotion);
   // den Sensor beim ersten Tipp ins Spiel freigeben (nicht auf der Startkarte und in Blättern, dort fragen schon Kamera und Mikrofon)
   ['touchend', 'click'].forEach(ev => document.addEventListener(ev, e => {
     if (anstoss.p.gyro <= 0 || (e.target && e.target.closest && e.target.closest('#startcard, .sheet'))) return;
-    frage();
+    frage().then(s => {
+      if (s === 'gesperrt' && !gemeldet){ gemeldet = true; ctx.sag('Der Bewegungssensor ist gesperrt, Anstossen geht nur übers Pad. Safari fragt erst wieder nach dem Löschen der Website-Daten (Einstellungen › Apps › Safari › Erweitert › Website-Daten).', true); }
+    });
   }, true));
 }

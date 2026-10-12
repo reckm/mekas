@@ -1,13 +1,13 @@
 // Die Kette, durch die jedes Bild läuft: Takt → Quelle → Belichtung → Entwickeln → Transport → Projektor.
 // Hier liegen die Liste der Module, ihre Werte und ihr Ein/Aus, das Sammeln des Lichts und die Hauptschleife.
-import { ctx, intern, out, hold, acc, actx, tmp, expC, ectx, hctx, einst } from './zustand.js?v=1.1.1';
-import { REF_ANGLE } from './mechanik.js?v=1.1.1';
-import liste from '../module/liste.js?v=1.1.1';
-import { anstoss, holeStoss } from './anstoss.js?v=1.1.1';
-import { kurbelTick } from './kurbel.js?v=1.1.1';
-import { sampleInto, sourceReady, syncFile } from './quelle.js?v=1.1.1';
-import { aufnahmeTick, projiziere, aufnahmeAnzeige, neuesBild } from './aufnahme.js?v=1.1.1';
-import { renderPad } from './bedienung.js?v=1.1.1';
+import { ctx, intern, out, hold, acc, actx, tmp, expC, ectx, hctx, einst } from './zustand.js?v=1.1.2';
+import { REF_ANGLE } from './mechanik.js?v=1.1.2';
+import liste from '../module/liste.js?v=1.1.2';
+import { anstoss, holeStoss } from './anstoss.js?v=1.1.2';
+import { kurbelTick } from './kurbel.js?v=1.1.2';
+import { sampleInto, sourceReady, syncFile } from './quelle.js?v=1.1.2';
+import { aufnahmeTick, projiziere, aufnahmeAnzeige, neuesBild } from './aufnahme.js?v=1.1.2';
+import { renderPad } from './bedienung.js?v=1.1.2';
 
 export const STATIONEN = ['takt', 'quelle', 'belichtung', 'entwickeln', 'transport', 'projektor'];
 

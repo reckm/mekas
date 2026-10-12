@@ -62,7 +62,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ## Runde 1a: Schwinger und Anstossen (gemeinsamer Kern)
 
-**Status:** veröffentlicht als 1.1.1 zusammen mit 1b (2026-10-12), Maris prüft auf dem iPhone
+**Status:** veröffentlicht als 1.1.2 zusammen mit 1b (2026-10-12), Maris prüft auf dem iPhone
 
 **Mechanik:** Ein gedämpfter Schwinger wie eine Masse an einer Feder. Ein Stoss gibt ihm Energie, er schwingt aus und kommt zur Ruhe. Dieser Kern wird von mehreren Modulen benutzt (Greifer, später Linse, Pendel, Zweiter Projektor). Jedes Modul sagt, auf welche Achsen es reagiert und welche Ruhelagen es hat.
 
@@ -84,12 +84,13 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 **Notizen:**
 - 2026-10-12: Anstossen im Kern (`kern/anstoss.js`), Schwinger (`kern/schwinger.js`), Bewegungssensor geteilt mit Schwenken. Gyroskop simuliert: ruhige Hand und Schwenk bis 96 °/s ohne Stoss, Ruck 700 °/s gibt einen kräftigen. Stärke Pad auf 20 angehoben, damit ein Stoss am Rand ins nächste Bild springt. Im Labor zeigt „Kern“ den Ruck in °/s zum Einstellen der Schwelle. Von Maris abgenommen („passt“), iPhone-Test offen.
+- 2026-10-12, iPhone: Gyroskop wirkte nicht, keine Frage nach der Berechtigung (vermutlich schon beim Schwenken erteilt). Geändert: Ein Ruck zählt jetzt auf allen drei Drehachsen (vorher nur zwei, und die Querrichtung erreichte den Greifer nicht), Schwelle 220 → 150 °/s. Das Labor zeigt unter „Kern“ den Sensorstatus, ob Daten kommen, und den höchsten Ruck der letzten 3 s. Gesperrter Sensor gibt jetzt eine Meldung.
 
 ---
 
 ## Runde 1b: Greifer mit Feder
 
-**Status:** veröffentlicht als 1.1.1 zusammen mit 1a (2026-10-12), Maris prüft auf dem iPhone
+**Status:** veröffentlicht als 1.1.2 zusammen mit 1a (2026-10-12), Maris prüft auf dem iPhone
 
 **Mechanik:** Der Filmstreifen sitzt normalerweise genau im Bildfenster. Ein Stoss lässt ihn senkrecht rutschen. Danach zieht ihn eine **Rastung** zur **nächsten stabilen Lage** (ganze Bildhöhe), auf dem **kürzesten Weg**, wie eine Feder mit **Einschwingen** (leichtes Überschwingen, dann Ruhe). Idee zur Umsetzung: ein periodisches Rastpotential, Kraft ∝ −sin(2π·Versatz/P). Damit ergibt sich die nächste Ruhelage von selbst.
 
@@ -116,6 +117,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 **Notizen:**
 - 2026-10-12: Gebaut. Stoss bis etwa halbe Stärke federt zurück, ab etwa zwei Dritteln ins nächste Bild, Ruhe nach 0,6–1,2 s, Überschwingen 5–10 %. Loslassen rastet nach 0,5–1,1 s ein, danach kein Kriechen. Beim Rutschen wird das Bild nicht dunkler (wäre Flackern), nur die Lichter ziehen. Der harte Sprung vom hellen Stapel zum frischen Bild beim Loslassen bleibt wie bisher (→ 1c/1d). Kontaktbögen Stoss und Halten mit der Demo, Blende 300° bzw. 200°.
+- 2026-10-12, Maris nach dem ersten iPhone-Test: zu viele Greifer-Regler im Labor. Die Grundeinstellung fühlt sich gut an, deshalb sind die Werte jetzt fest (`GREIFER` in `src/module/greifer.js`). Änderungen nur nach Bildbeobachtung, dann gezielt einen Wert vorschlagen. „Seitliches Spiel“ (war kaum sichtbar) und „Takt zur Blende“ (Rest der alten Takt-Achse) sind entfernt.
 
 ---
 

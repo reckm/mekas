@@ -24,10 +24,10 @@ export async function frage(){
   return status;
 }
 
-// rotation about the screen's up and right axes in °/s, whatever way the phone is held
+// rotation about the screen's up and right axes (and around the screen itself) in °/s, whatever way the phone is held
 export function drehung(e){
   const r = e.rotationRate; if (!r || r.beta === null) return null;
   const a = ((screen.orientation && screen.orientation.angle) || window.orientation || 0) * Math.PI / 180;
   const b = r.beta || 0, g = r.gamma || 0;
-  return { up: b * Math.sin(a) + g * Math.cos(a), right: b * Math.cos(a) - g * Math.sin(a) };
+  return { up: b * Math.sin(a) + g * Math.cos(a), right: b * Math.cos(a) - g * Math.sin(a), um: r.alpha || 0 };
 }

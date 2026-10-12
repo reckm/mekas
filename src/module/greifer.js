@@ -2,11 +2,24 @@
 // Ein Stoss lässt ihn rutschen; ein kleiner rollt zurück in dieselbe Lage, ein grosser über den Kamm ins nächste Bild,
 // mit leichtem Überschwingen. Halten auf dem Pad lässt ihn schlüpfen (Zug ≠ 1, der Bildstrich rollt), Loslassen gibt ihn
 // mit seinem Schwung an die Rastung zurück. Ist die Blende offen, während der Film zieht oder rutscht, ziehen Lichter Schlieren.
-import { TRANSPORT, transportOverlap } from '../kern/mechanik.js?v=1.1.1';
-import { Schwinger } from '../kern/schwinger.js?v=1.1.1';
+import { TRANSPORT, transportOverlap } from '../kern/mechanik.js?v=1.1.2';
+import { Schwinger } from '../kern/schwinger.js?v=1.1.2';
 
-// Kennlinie des Schlupfs: Pad-Höhe 0..1 → Bilder pro Zug. Mitte bei 0,6 mit Totzone, viel Weg für ruhige Werte, das Extreme am Rand
-export function zugOf(v, p){
+// Feste Werte (Maris 2026-10-12: die Grundeinstellung fühlt sich gut an, nicht alles als Regler ins Labor).
+// Änderungen nur nach Bildbeobachtung, dann gezielt einen dieser Werte.
+export const GREIFER = {
+  rastkraft: 360,      // Steifigkeit der Rastung: Eigenfrequenz ≈ √(rastkraft/masse) / 2π ≈ 3 Hz
+  masse: 1,            // träger Film: Stösse wirken schwächer, schwingt langsamer
+  daempfung: 0.45,     // Einschwingen: kleiner = mehr Überschwingen, 1 = gerade keins
+  kurve: 2.4,          // Schlupf: viel Weg für ruhige Werte nahe der Mitte
+  totzone: 0.07,       // Schlupf: kein Schlupf um die Mitte
+  maxOben: 1.5,        // Schlupf ganz oben: Bilder pro Zug (Lücken)
+  maxUnten: 0,         // Schlupf ganz unten: Bilder pro Zug (0 = Film steht)
+  schwelle: 180,       // ms: kürzer ist Tippen (Stoss), länger ist Halten (Schlupf)
+};
+
+// Kennlinie des Schlupfs: Pad-Höhe 0..1 → Bilder pro Zug. Mitte bei 0,6 mit Totzone, das Extreme am Rand
+export function zugOf(v, p = GREIFER){
   const c = 0.6, d = v >= c ? (v - c) / (1 - c) : (v - c) / c, dz = Math.min(0.95, p.totzone);
   if (Math.abs(d) < dz) return 1;
   const s = Math.pow((Math.abs(d) - dz) / (1 - dz), p.kurve);
@@ -20,24 +33,11 @@ export default {
   titel: 'Greifer',
   station: 'transport',
   anstoss: ['y'],
-  params: {
-    rastkraft: { min: 20, max: 2000, def: 360, schritt: 5, titel: 'Rastkraft' },
-    masse: { min: 0.2, max: 5, def: 1, schritt: 0.05, titel: 'Masse' },
-    daempfung: { min: 0.05, max: 1.5, def: 0.45, schritt: 0.01, titel: 'Dämpfung (Einschwingen)' },
-    kurve: { min: 1, max: 4, def: 2.4, schritt: 0.1, titel: 'Kurve des Schlupfs' },
-    totzone: { min: 0, max: 0.3, def: 0.07, schritt: 0.01, titel: 'Totzone des Schlupfs' },
-    maxOben: { min: 1, max: 3, def: 1.5, schritt: 0.05, titel: 'Schlupf oben (Bilder pro Zug)' },
-    maxUnten: { min: 0, max: 1, def: 0, schritt: 0.05, titel: 'Schlupf unten (Bilder pro Zug)' },
-    schwelle: { min: 80, max: 500, def: 180, schritt: 10, titel: 'Tippen oder Halten ab', einheit: ' ms' },
-    spiel: { typ: 'schalter', def: false, titel: 'Seitliches Spiel im Filmkanal' },
-    takt: { min: -180, max: 180, def: 0, schritt: 1, titel: 'Takt zur Blende', einheit: '°' },
-  },
   // the film strip near the gate: three frame pitches; exposures land at the gate, the projector window can slip
   setup(){
     [this.stripA, this.sa] = mk(); [this.stripB, this.sb] = mk(); [this.hiC, this.hictx] = mk();
     this.P = 0; this.GY = 0;
     this.s = new Schwinger();          // Lage des Films in Bildhöhen, Ruhelagen bei jeder ganzen Zahl
-    this.sx = new Schwinger();         // seitliches Spiel, Anteil der Bildbreite
     this.haelt = false; this.Z = 1; this.weg = []; this.gezeigt = null;
   },
   reset(ctx){
@@ -46,14 +46,13 @@ export default {
     this.P = H; this.GY = this.P;                      // frames sit flush, no black bar between them
     for (const c of [this.stripA, this.stripB]){ c.width = W; c.height = this.P * 3; }
     this.sa.fillStyle = '#000'; this.sa.fillRect(0, 0, W, this.P * 3);
-    this.s.ruhe(); this.sx.ruhe(); this.gezeigt = null;
+    this.s.ruhe(); this.gezeigt = null;
   },
   ein(ctx){ this.reset(ctx); this.haelt = ctx.eingabe.greiferHaelt; this.weg = []; },
   tick(ctx, dt){
-    const e = ctx.eingabe, p = this.p, s = this.s;
-    // Stösse: der Film rutscht senkrecht, seitlich nur mit Spiel im Filmkanal
+    const e = ctx.eingabe, p = GREIFER, s = this.s;
+    // Stösse: der Film rutscht im Filmkanal, also nur senkrecht
     if (ctx.stoss.y) s.stoss(ctx.stoss.y / p.masse);
-    if (p.spiel && ctx.stoss.x) this.sx.stoss(ctx.stoss.x / p.masse * 0.02);
     // Loslassen: die Rastung fasst den Film mit dem Schwung, den er beim Schlüpfen hatte
     if (this.haelt && !e.greiferHaelt) s.stoss((this.Z - 1) * ctx.kurbel.fps);
     this.haelt = e.greiferHaelt;
@@ -67,12 +66,6 @@ export default {
     while (this.weg.length && this.weg[0].t < ctx.jetzt - 1500) this.weg.shift();
     if (!this.haelt && Math.abs(s.v) < 0.003 && Math.abs(s.x - Math.round(s.x)) < 0.0015){ s.x = 0; s.v = 0; }
     else s.x -= Math.round(s.x);                        // nur die Lage im Bild zählt
-    // seitliches Spiel: eine weiche Feder, die Wand des Filmkanals begrenzt den Weg
-    if (p.spiel){
-      const om = TAU * 6;
-      this.sx.schritt(dt, x => -om * om * x, om, 0.5);
-      if (Math.abs(this.sx.x) > 0.004){ this.sx.x = Math.sign(this.sx.x) * 0.004; this.sx.v *= -0.3; }
-    } else this.sx.ruhe();
     this.zeigeFenster(ctx);
   },
   // what the projector window shows: the strip at the film's position (wrapped into one frame pitch)
@@ -81,14 +74,12 @@ export default {
     let off = this.s.x * P;
     while (off > 0) off -= P;
     while (off <= -P) off += P;
-    const y = Math.round(this.GY + off), lx = Math.round(this.sx.x * W);
-    const k = y + '|' + lx;
-    if (!immer && k === this.gezeigt) return;
-    this.gezeigt = k;
+    const y = Math.round(this.GY + off);
+    if (!immer && y === this.gezeigt) return;
+    this.gezeigt = y;
     const g = ctx.bildfenster;
     g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
-    if (lx){ g.fillStyle = '#000'; g.fillRect(0, 0, W, H); }
-    g.drawImage(this.stripA, 0, y, W, H, lx, 0, W, H);
+    g.drawImage(this.stripA, 0, y, W, H, 0, 0, W, H);
     if (!immer) ctx.zeichne();
   },
   // tails of the bright parts: the light kept falling while the film moved by `travel` pixels
@@ -107,7 +98,7 @@ export default {
   apply(ctx, bild){
     const { W } = ctx, P = this.P, GY = this.GY, z = bild.zyklus, expC = bild.belichtet, Z = this.Z;
     // Filmzug bei offener Blende (über 240°)
-    const ov = transportOverlap(z.winkel, this.p.takt);
+    const ov = transportOverlap(z.winkel, 0);
     const curOv = z.winkel > 0 ? ov / z.winkel : 0, curTravel = Z * P * (ov / TRANSPORT);
     // Rutschen nach einem Stoss, während Licht kam: Weg aus der Bewegung des Schwingers
     let netto = 0, pfad = 0;

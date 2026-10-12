@@ -1,6 +1,6 @@
 // Die Kurbel ist der Taktgeber: seitwärts übers Bild die Bildrate, hoch und runter der Zoom.
-import { ctx } from './zustand.js?v=1.1.1';
-import { clamp01, ZOOM_MAX } from './mechanik.js?v=1.1.1';
+import { ctx } from './zustand.js?v=1.1.2';
+import { clamp01, ZOOM_MAX } from './mechanik.js?v=1.1.2';
 
 // crank scale: 4-12 fps across most of the travel, 12 up to full speed at the end
 export function fpsOf(x){

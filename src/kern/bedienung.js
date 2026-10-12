@@ -1,15 +1,15 @@
 // Bedienung: Wischen übers Bild (Kurbel und Zoom), Halten, Blendenfader, Greifer-Pad, Blätter, Einstellungen, Tastatur, MIDI.
-import { ctx, intern, einst, $ } from './zustand.js?v=1.1.1';
-import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=1.1.1';
-import { VERSION } from './version.js?v=1.1.1';
-import { wert, setze, istAn, schalte, hinweise, setSize, modul } from './kette.js?v=1.1.1';
-import { padStoss } from './anstoss.js?v=1.1.1';
-import { fpsOf, zoomOf } from './kurbel.js?v=1.1.1';
-import { persist } from './speicher.js?v=1.1.1';
-import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=1.1.1';
-import { setAvDelay } from './ton.js?v=1.1.1';
-import { onRec, renderControls } from './aufnahme.js?v=1.1.1';
-import { zugOf } from '../module/greifer.js?v=1.1.1';
+import { ctx, intern, einst, $ } from './zustand.js?v=1.1.2';
+import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=1.1.2';
+import { VERSION } from './version.js?v=1.1.2';
+import { wert, setze, istAn, schalte, hinweise, setSize, modul } from './kette.js?v=1.1.2';
+import { padStoss } from './anstoss.js?v=1.1.2';
+import { fpsOf, zoomOf } from './kurbel.js?v=1.1.2';
+import { persist } from './speicher.js?v=1.1.2';
+import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=1.1.2';
+import { setAvDelay } from './ton.js?v=1.1.2';
+import { onRec, renderControls } from './aufnahme.js?v=1.1.2';
+import { zugOf, GREIFER } from '../module/greifer.js?v=1.1.2';
 
 let toastTimer = 0;
 export function say(text, warn){
@@ -65,12 +65,11 @@ export function renderExpo(){
 }
 function vReadText(){
   const a = Math.round(expo() * 360);
-  const schlieren = istAn('greifer') && transportOverlap(expo() * 360, wert('greifer', 'takt') ?? 0) > 0;
+  const schlieren = istAn('greifer') && transportOverlap(expo() * 360, 0) > 0;
   return (a === 0 ? 'zu' : a + '°') + (schlieren ? ' · Schlieren' : '');
 }
 
 /* ---------- Greifer pad: tap = a knock, hold = the film slips ---------- */
-const greiferWerte = () => modul('greifer').p;
 let lastGrip = '';
 export function renderGrip(){
   const e = ctx.eingabe, y = e.greiferHaelt ? e.greiferY : 0.6, x = e.greiferHaelt ? e.greiferX : 0.5;
@@ -80,10 +79,10 @@ export function renderGrip(){
   $('#gknob').style.left = (x * 100) + '%';
   $('#gknob').style.top = ((1 - y) * 100) + '%';
   $('#gZline').style.top = ((1 - 0.6) * 100) + '%';
-  $('#gpad').classList.toggle('off', e.greiferHaelt && zugOf(y, greiferWerte()) !== 1);
+  $('#gpad').classList.toggle('off', e.greiferHaelt && zugOf(y) !== 1);
 }
 function gReadText(){
-  const Z = zugOf(ctx.eingabe.greiferY, greiferWerte());
+  const Z = zugOf(ctx.eingabe.greiferY);
   return Z === 1 ? 'Zug 1' : Z < 0.02 ? 'Film steht' : 'Zug ' + comma(Z.toFixed(2));
 }
 
@@ -196,7 +195,7 @@ export function initBedienung(){
     const l = padLage(e);
     gFrom = { cx: e.clientX, cy: e.clientY, x: l.x, y: l.y, haelt: false };
     ctx.eingabe.padFinger = true; hideHint();
-    gTimer = setTimeout(halten, greiferWerte().schwelle);
+    gTimer = setTimeout(halten, GREIFER.schwelle);
   });
   gp.addEventListener('pointermove', e => {
     if (!gFrom) return;
