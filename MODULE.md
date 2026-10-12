@@ -11,15 +11,18 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 | Modul | Station | Status | Bemerkung |
 |---|---|---|---|
 | Kurbel | Takt (Kern) | abgenommen | 4–24 fps, 4–12 auf 0–80 % des Wegs |
+| Anstossen | Kern | auf dem iPhone getestet (2026-10-12) | Tippen aufs Greifer-Pad und Ruck mit dem Telefon (Gyroskop, alle Achsen, Schwelle 30 °/s, sättigend) |
 | Handkurbel | Takt | abgenommen | eigenes Modul seit Runde 0: Unregelmässigkeit in der Mikrozeit |
 | Blende | Belichtung | abgenommen | 0–360°, unter 36° gegen Schwarz. **Seitwärts-Achse (Schlitze) entfällt** |
 | Kammblende | Belichtung | verworfen als Bedienung | Code bleibt als Modul, im Labor schaltbar, nicht in der Bedienung |
 | Entwickeln | Entwickeln | abgenommen | Belichtung → Helligkeit, Anlaufblitz |
-| Greifer | Transport | wird umgebaut (Runde 1) | **Takt-Achse entfällt.** Zug bleibt als Schlupf beim Halten, automatische Rückkehr wird zur Feder |
+| Greifer | Transport | mit Feder, auf dem iPhone getestet (2026-10-12) | Tippen = Stoss, Halten = Schlupf, Loslassen = Feder rastet ein (Runde 1a/1b). Werte fest, Rastkraft 170 |
+| Stehender Film | Transport | im Labor (1.2.4) | Runde 1d: zwei Finger = accum., Material Sandwich mit Lichthof 0,4 |
 | Bildstand | Projektor | abgenommen | neue Lage nur bei neuem Bild |
+| Überblendender Projektor | Projektor | im Labor, abgenommen (2026-10-12) | Runde 1c: Blendzeit = 2 × so lange die Blende offen ist |
 | Doppel | Aufnahme | abgenommen | auf dem iPhone bestätigt (2026-10-12) |
 | Zeit-Modi | Aufnahme | Bild steht nach: abgenommen. Unterdreht: offen | Unterdreht überzeugt noch nicht, später |
-| Halten | Projektor | abgenommen | zwei Finger, Leertaste |
+| Halten | Kern | abgenommen | zwei Finger, Leertaste. Im Labor mit Stehendem Film: zwei Finger = accum., drei Finger (Taste H) = hält, friert das sichtbare Bild ein |
 | Schwenken mit dem Telefon | Quelle | abgenommen (2026-10-12) | nur Video und Demo, Richtung und Stärke auf dem iPhone bestätigt |
 
 ---
@@ -62,7 +65,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ## Runde 1a: Schwinger und Anstossen (gemeinsamer Kern)
 
-**Status:** veröffentlicht als 1.1.3 zusammen mit 1b, weichere Werte in 1.2.1 (2026-10-12), Maris prüft auf dem iPhone
+**Status:** auf dem iPhone getestet, Grundwerte angepasst (1.2.1, 2026-10-12). Offen: Frage unten zum Gyroskop.
 
 **Mechanik:** Ein gedämpfter Schwinger wie eine Masse an einer Feder. Ein Stoss gibt ihm Energie, er schwingt aus und kommt zur Ruhe. Dieser Kern wird von mehreren Modulen benutzt (Greifer, später Linse, Pendel, Zweiter Projektor). Jedes Modul sagt, auf welche Achsen es reagiert und welche Ruhelagen es hat.
 
@@ -92,7 +95,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ## Runde 1b: Greifer mit Feder
 
-**Status:** veröffentlicht als 1.1.3 zusammen mit 1a (2026-10-12), Maris prüft auf dem iPhone
+**Status:** auf dem iPhone getestet (2026-10-12), Feder weicher ab 1.2.1
 
 **Mechanik:** Der Filmstreifen sitzt normalerweise genau im Bildfenster. Ein Stoss lässt ihn senkrecht rutschen. Danach zieht ihn eine **Rastung** zur **nächsten stabilen Lage** (ganze Bildhöhe), auf dem **kürzesten Weg**, wie eine Feder mit **Einschwingen** (leichtes Überschwingen, dann Ruhe). Idee zur Umsetzung: ein periodisches Rastpotential, Kraft ∝ −sin(2π·Versatz/P). Damit ergibt sich die nächste Ruhelage von selbst.
 

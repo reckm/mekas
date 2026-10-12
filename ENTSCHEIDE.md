@@ -4,6 +4,8 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 ## 2026-10-12
 
+- **„Hält“ (drei Finger, Taste H) friert genau das sichtbare Bild ein**, mit allem Gesammelten. Das Labor zeigt die erkannten Finger.
+
 - **Grundwerte nach iPhone-Test 1.2.2:** Stehender Film mit Material Sandwich und Lichthof 0,4 (an, für alle Materialien), Solarisation wieder gleich schnell wie der Umkehrfilm. Überblendender Projektor: Länge 2 × Blendenzeit (weniger ruckelig, weniger Kopfweh bei tiefen fps).
 
 - **Stehender Film nach dem ersten iPhone-Test:** zwei Finger = accum. (auch bei geschlossener Blende), drei Finger = hält (Standbild). Solarisation 3,5-mal schneller. Anteil pro Durchgang und Schulter fest statt Regler. Lichthof bleibt (nicht dasselbe wie Bewegung) und ist jetzt sichtbar, Labor-Schalter. Sandwich und Graufilter vorerst drin, die Modi denkt Maris im Strategie-Chat neu.
