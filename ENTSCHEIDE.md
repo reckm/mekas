@@ -2,6 +2,10 @@
 
 Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder aufmachen ohne neuen Anlass.
 
+## 2026-10-12
+
+- **Stehender Film (Mehrfachbelichtung) wird Runde 1d**, nach 1c, vor der Linse. Ausgelöst über das bestehende **Halten**: geschlossene Blende = Standbild, offene Blende = Mehrfachbelichtung. Braucht die Überblendung aus 1c beim Loslassen. In der Runde zuerst nur das Material (wie der Film auf viel Licht reagiert). Gedächtnis und Mehrumlauf-Blende kommen später.
+
 ## 2026-10-09
 
 - **Kern und Module (Runde 0):** Kern sind Kurbel (fps-Skala), Zoom, Halten, Quellen, Doppel, Zeit-Modi, Klappe. Module sind Handkurbel, Schwenken, Blende, Kammblende (aus), Entwickeln mit Anlaufblitz, Greifer, Bildstand. **Handkurbel und Bildstand sind eigene Module**, weil beide analoge Unregelmässigkeit simulieren, in Mikrozeit und Mikroraum. Dafür hat die Kette vorne die Station **Takt**. Schnittstelle in `CLAUDE.md`.

@@ -129,6 +129,52 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ---
 
+## Runde 1d: Stehender Film (Mehrfachbelichtung)
+
+**Status:** Idee (für Runde 1d gewählt 2026-10-12)
+
+**Herkunft:** Das Stapeln im Greifer („Film steht“). Maris 2026-10-12: „das Aufsummieren zu Glühen und Ausbreiten ist spannend“. Hier ohne Greiferbewegung, als eigenes Modul. Hintergrund in `IDEEN.md` (Stehender Film, Mehrumlauf-Blende).
+
+**Mechanik:** Der Film steht im Bildfenster, die Blende dreht weiter. Jedes Kurbelbild belichtet dasselbe Stück Film noch einmal. Wie der Film auf das viele Licht reagiert, hängt vom **Material** ab (Kennlinie).
+- **Kurbel** = Durchgänge pro Sekunde. Bei 4 fps baut sich das Bild langsam auf, bei 24 fps schnell. Kein eigener Tempo-Regler.
+- **Blende** = wie stark jeder Durchgang einwirkt. Geschlossene Blende = Anteil 0 = Standbild, in jedem Material.
+
+**Bedienung:** über das bestehende **Halten** (zwei Finger, Leertaste), keine neue Geste.
+- Modul aus: Halten wie heute (Standbild).
+- Modul an: Beim Halten steht der Film, die Kurbel dreht weiter. **Änderung im Kern:** Heute setzt Halten die Kurbel auf 0 fps (`src/kern/kurbel.js`). Mit dem Modul muss sie weiterlaufen, der Projektor zeigt das gestapelte Bild.
+- **Loslassen:** Der Greifer zieht ein frisches Bild ins Fenster, weich übergeblendet, nie ein harter Sprung. Benutzt die Überblendung aus 1c, deshalb nach 1c.
+- Kurbel-Label beim Halten mit offener Blende: „belichtet mehrfach“ statt „hält“ (Wortlaut mit Maris klären).
+
+**Material (ein Regler, in dieser Runde nur im Labor):**
+- **Sandwich** (dunkler): wie zwei Dias übereinander oder Bipack im Kopierwerk. Licht muss durch alle Schichten, Schatten bleiben stehen. Für helle Szenen (Schnee, Himmel).
+- **Graufilter** (gleich hell): jeder Durchgang bekommt nur seinen Anteil. Stehendes wird satt und scharf, Bewegtes wird Nebel. Mitte des Reglers, viel Weg.
+- **Umkehrfilm mit Schulter** (heller): Lichter glühen und breiten sich aus, laufen aber weich und nicht hart ins Weiss. Das heutige Stapeln ohne Abschneiden.
+- **Solarisation**, hinter einem Strich am Ende: Überbelichtetes kippt langsam ins Dunkle. Höchstes Digital-Risiko, fliegt raus, wenn es nach Filter aussieht.
+- **Lichthof** (Labor-Schalter, Grundstellung aus): Licht streut in der Schicht. Der Hof um helle Stellen wächst nur mit dem gesammelten Licht, keine feste Färbung. Prüft, ob das „Ausbreiten“ so stärker wird.
+
+**Nicht in dieser Runde:** Gedächtnis (wer bleibt, Altes verblasst = Mehrumlauf-Blende) bleibt fest auf „alle Durchgänge gleich“. Bewegungsbelichtung (4) ebenfalls später. Kopplung an das Stapeln im Greifer: Schritt 2.
+
+**Umsetzung:** Station Transport, nach dem Greifer. Gesammelt wird in linearem Licht, die Kennlinie des Materials kommt erst beim Zeigen. Lange Stapel brauchen höhere Genauigkeit (WebGL mit Half-Float), sonst Farbstufen und eingefrorene Geister. Der Kontaktbogen braucht eine Möglichkeit, Halten für eine bestimmte Dauer auszulösen.
+
+**Parameter (Labor):** Material, Schulter (wie weich die Lichter auslaufen), Anteil pro Durchgang bei offener Blende, Lichthof an/aus und Stärke, Dauer der Überblendung beim Loslassen.
+
+**Kontaktbogen:** Material Sandwich, Graufilter, Umkehrfilm, Solarisation. Je ein Standbild nach 2 s, 5 s und 15 s Halten, bei 6 und 18 fps, Blende 180°. Quellen: Demo und ein Video mit Lichtern in der Nacht.
+
+**Erfolgskriterien:**
+- Halten mit offener Blende: Das Bild baut sich über Sekunden auf, Lichter glühen und breiten sich aus. Auch nach 15 s nicht flächig reines Weiss (Umkehrfilm).
+- Halten mit geschlossener Blende verhält sich wie heute.
+- Die Kurbel ist spürbar: bei 4 fps langsames, bei 24 fps schnelles Aufbauen.
+- Loslassen ohne harten Sprung.
+- Nach 30 s Halten keine Farbstufen und keine eingefrorenen Geister.
+- Kein Pulsieren, auch nicht bei Solarisation und schwankendem Licht.
+- Vorschau flüssig bei 720p auf dem iPhone.
+
+**Fragen an Maris nach dem Test:** Welche Materialien bleiben, und welches ist die Grundstellung? Solarisation behalten? Lichthof ja oder nein? Kommt das Material als Regler in die normale Bedienung, und wenn ja, wohin?
+
+**Notizen:**
+
+---
+
 ## Runde 2: Linse (das kaputte iPhone)
 
 **Status:** Idee

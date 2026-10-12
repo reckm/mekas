@@ -11,7 +11,7 @@ Was später kommen könnte. Nummern in Klammern verweisen auf `docs/zwischen-den
 
 ## Belichtung und Zeit
 
-- **Stehender Film (Mehrfachbelichtung), zusammen mit der Mehrumlauf-Blende (1).** Ausgangspunkt: das Stapeln im Greifer („Film steht“), Maris 2026-10-12: das Glühen und Ausbreiten beim Aufsummieren ist spannend. Neu als eigenes Modul ohne Greiferbewegung.
+- **Stehender Film (Mehrfachbelichtung), zusammen mit der Mehrumlauf-Blende (1).** Ausgangspunkt: das Stapeln im Greifer („Film steht“), Maris 2026-10-12: das Glühen und Ausbreiten beim Aufsummieren ist spannend. Neu als eigenes Modul ohne Greiferbewegung. **Material und Auslösen sind Runde 1d (Karte in `MODULE.md`).** Hier bleibt der Rest, vor allem Achse B.
   - *Mechanik:* Der Film steht, die Blende dreht weiter. Jedes Kurbelbild belichtet dasselbe Stück Film noch einmal. Kurbel = Durchgänge pro Sekunde, Blende = Licht pro Durchgang. Kein eigener Tempo-Regler.
   - *Auslösen:* über das bestehende **Halten** (zwei Finger). Halten bei geschlossener Blende = Standbild wie heute, Halten bei offener Blende = Mehrfachbelichtung. Loslassen: Der Greifer zieht ein frisches Bild ins Fenster, weich übergeblendet (siehe Runde 1c). Dafür muss die Kurbel beim Halten weiterdrehen (heute fps = 0), das ist eine Änderung im Kern.
   - *Achse A, Material (wie reagiert der Film auf viel Licht):* Sandwich/Bipack (dunkler, Schatten bleiben stehen, gut bei Schnee) ← Graufilter (gleich hell, Stehendes satt, Bewegtes wird Nebel) → Umkehrfilm mit Schulter (heller, Lichter glühen und breiten sich aus, ohne hart ins Weiss zu laufen) → hinter einem Strich: Solarisation (Überbelichtetes kippt ins Dunkle, höchstes Digital-Risiko). Variante: nur Veränderung belichtet (Bewegungsbelichtung, 4).
