@@ -17,16 +17,16 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 | Entwickeln | Entwickeln | abgenommen | Belichtung → Helligkeit, Anlaufblitz |
 | Greifer | Transport | wird umgebaut (Runde 1) | **Takt-Achse entfällt.** Zug bleibt als Schlupf beim Halten, automatische Rückkehr wird zur Feder |
 | Bildstand | Projektor | abgenommen | neue Lage nur bei neuem Bild |
-| Doppel | Aufnahme | abgenommen | auf dem iPhone noch zu bestätigen |
+| Doppel | Aufnahme | abgenommen | auf dem iPhone bestätigt (2026-10-12) |
 | Zeit-Modi | Aufnahme | Bild steht nach: abgenommen. Unterdreht: offen | Unterdreht überzeugt noch nicht, später |
 | Halten | Projektor | abgenommen | zwei Finger, Leertaste |
-| Schwenken mit dem Telefon | Quelle | im Labor | nur Video und Demo |
+| Schwenken mit dem Telefon | Quelle | abgenommen (2026-10-12) | nur Video und Demo, Richtung und Stärke auf dem iPhone bestätigt |
 
 ---
 
 ## Runde 0: Fundament
 
-**Status:** veröffentlicht als 0.0.1 (2026-10-09), Maris prüft auf dem iPhone
+**Status:** abgenommen (2026-10-12, iPhone: alle fünf Punkte ok)
 
 **Ziel:** Mekas sieht danach aus und verhält sich wie heute, nur aufgeräumt, aus Modulen gebaut, online über https und mit Labor und Tests. **Keine neuen Bildeffekte in dieser Runde.**
 
@@ -56,7 +56,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 **Notizen:**
 - 2026-10-09: Gebaut und von Maris abgenommen („passt“). Kontaktbogen Blende 30°/135°/240°/360° mit der Demo: neu und alte `mekas.html` sehen gleich aus, mittlere Helligkeit gleich (Abweichung ≤ 0,05 von 255). Kammblende ebenso. Rauchtest grün, „Unterdreht“ einmal durchgespielt.
 - Nicht auf der Karte, deshalb in `IDEEN.md`: geteilte Ansicht im Labor, Pad und Fader über dem Einstellungsblatt (war schon so), veraltete Meldungen „Datei direkt öffnen“.
-- iPhone-Test: offen.
+- 2026-10-12, iPhone mit 0.0.1: alle fünf Punkte ok (Kamera-Erlaubnis bleibt, Doppel nicht schwarz, Video laden, Fertig in Pause, Schwenken).
 
 ---
 
