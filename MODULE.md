@@ -65,7 +65,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ## Runde 1a: Schwinger und Anstossen (gemeinsamer Kern)
 
-**Status:** auf dem iPhone getestet, Grundwerte angepasst (1.2.1, 2026-10-12). Offen: Frage unten zum Gyroskop.
+**Status:** auf dem iPhone getestet, Grundwerte angepasst (1.2.1, 2026-10-12). Frage zum Gyroskop beantwortet (2026-10-13): vorerst immer gekoppelt, Entkoppeln über einen Knopf jederzeit möglich (Knopf noch zu bauen, `FAHRPLAN.md` Phase A).
 
 **Mechanik:** Ein gedämpfter Schwinger wie eine Masse an einer Feder. Ein Stoss gibt ihm Energie, er schwingt aus und kommt zur Ruhe. Dieser Kern wird von mehreren Modulen benutzt (Greifer, später Linse, Pendel, Zweiter Projektor). Jedes Modul sagt, auf welche Achsen es reagiert und welche Ruhelagen es hat.
 
@@ -207,7 +207,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
   - *Halten neu (nur im Labor, mit Stehendem Film):* **zwei Finger = accum.** (der Film steht, die Kurbel dreht weiter, auch bei geschlossener Blende, dann kommt einfach nichts dazu), **drei Finger = hält** (Standbild, die Kurbel steht). Am Rechner: Leertaste bzw. Taste H. Achtung: iOS kennt Gesten mit drei Fingern (Rückgängig), auf dem iPhone prüfen.
   - *Lichthof:* Maris fragte, ob man das nicht mit Bewegen der Kamera erzeugt. Nein: Bewegung gibt Spuren in Bewegungsrichtung, der Lichthof ist ein runder Schein um ruhende helle Punkte (Licht streut in der Schicht und wird vom Träger zurückgeworfen), der mit der Haltezeit wächst. Maris: sichtbar machen. Neu gebaut: Licht über der Schwelle wird in einem Sechzehntel der Auflösung gesammelt und weich verwischt (Gauss, Breite wächst mit ln W), dann über das Bild gelegt. Labor-Schalter (Grundstellung aus), Stärke 1,5. Kontaktbogen Nachtlichter 12 fps, Stärke 0/1,5/3 nach 2/5/15 s: weicher Schein um die Laternen, der wächst, ohne Gittermuster.
 - **2026-10-12, iPhone-Test 1.2.2 (Maris):** Solarisation 3,5-mal war definitiv zu stark, zurück auf gleich schnell wie der Umkehrfilm. Lichthof 1,5 sehr stark; **Sandwich mit Lichthof 0,4 „wunderschön“**, Sandwich jetzt cooler als Graufilter und Umkehrfilm. Neue Grundwerte (1.2.3): Material Sandwich, Lichthof an mit 0,4 für alle Materialien.
-- 2026-10-12, Maris: Beim Drücken von „hält“ fiel das Bild auf ein einzelnes Bild ohne Gesammeltes zurück. Am Rechner nicht nachvollziehbar (Stapel blieb). Ab 1.2.4 friert „hält“ genau das Ausgabebild ein, das gerade zu sehen ist. Das Labor zeigt die erkannten Finger, um zu prüfen, ob iOS drei Finger abbricht. Offen: Wie Maris es gemacht hat (dritter Finger dazu oder neu ansetzen).
+- 2026-10-12, Maris: Beim Drücken von „hält“ fiel das Bild auf ein einzelnes Bild ohne Gesammeltes zurück. Am Rechner nicht nachvollziehbar (Stapel blieb). Ab 1.2.4 friert „hält“ genau das Ausgabebild ein, das gerade zu sehen ist. Das Labor zeigt die erkannten Finger, um zu prüfen, ob iOS drei Finger abbricht. Offen: Wie Maris es gemacht hat (dritter Finger dazu oder neu ansetzen). **2026-10-13, Maris: Halten mit drei Fingern funktioniert auf dem iPhone.**
 - **2026-10-12, Strategie-Chat (Materialien):** Maris mag **Solarisation und Sandwich**. Neu: Wahl heisst „Accum. Material“, gilt nur für accum., im Labor als Fader mit Raststellen (Namen statt Zahlen). Graufilter fällt weg, Umkehrfilm und Solarisation werden zu „Aufsummieren“ (Solarisation kommt mit der Haltezeit), **Lith und Farbschichten neu zum Ausprobieren**. Beobachtet beim Durchsehen: Mit zwei Fingern steuert der erste Finger weiter Kurbel und Zoom. Zoomen während accum. gibt Strahlen aus der Bildmitte wie beim Zoomen während einer Langzeitbelichtung. Mechanisch echt, behalten. Deshalb ist eine Zwei-Finger-Bewegung für die Materialwahl nicht frei.
 - **2026-10-13, Accum. Material gebaut** (nur Labor): Fader mit Raststellen Sandwich · Lith · Aufsummieren · Farbschichten (neuer Param-Typ `wahl`, Wert ist der Name; alte Zahlenwerte im Labor-Speicher gelten nicht mehr, Grundstellung Sandwich).
   - *Sandwich:* unverändert (geometrisches Mittel plus Lichthof).
@@ -225,9 +225,9 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 - **2026-10-13, umgesetzt in 1.2.6:** Accum. Material, Lith-Sammelschicht und die drei vorübergehenden Regler entfernt. Der Stehende Film zeigt nur noch Sandwich mit Lichthof (spart eine Sammelschicht, also Speicher auf dem iPhone). Die Überblendung beim Loslassen läuft mit einer weichen Kurve (6t⁵ − 15t⁴ + 10t³): Sie beginnt und endet ohne Ruck, auch in der Geschwindigkeit. Linear änderte sich das Bild bis zum letzten Moment gleich schnell und stand dann plötzlich still, das wirkte wie ein Sprung. Kontaktbogen Laternen 12 fps: Der Hof klingt über etwa 0,5 s weich aus, ohne Knick am Ende. Der Param-Typ `wahl` bleibt im Labor für später. Der Rand des Lichthofs (Glocke läuft auf null aus) bleibt auch drin.
 ---
 
-## Runde 2: Linse (das kaputte iPhone)
+## Runde 3: Linse (das kaputte iPhone)
 
-**Status:** Idee
+**Status:** Idee. Bis 2026-10-13 als Runde 2 geplant. Jetzt nach dem Fundament (Runde 2: Teilbelichtungen, Gedächtnis-Schicht), weil die Linse die Teilmomente innerhalb der Belichtung aus dem neuen Sammeln nutzt. Siehe `FAHRPLAN.md`.
 
 **Mechanik (gemessen, siehe `docs/KONZEPT.md`, Teil 1):**
 - Die Linse schwingt entlang **einer Achse**: der Längsachse des Sensors. Im Hochformat ist das im Bild senkrecht.

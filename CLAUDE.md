@@ -1,6 +1,6 @@
 # Mekas: Arbeitsgrundlage für Claude Code
 
-Diese Datei liest Claude Code bei jedem Start. Sie beschreibt, **was Mekas ist, wie es gebaut ist und wie wir arbeiten**. Was gerade gebaut wird, steht in `MODULE.md`. Was entschieden ist, steht in `ENTSCHEIDE.md`. Was später kommen könnte, steht in `IDEEN.md`.
+Diese Datei liest Claude Code bei jedem Start. Sie beschreibt, **was Mekas ist, wie es gebaut ist und wie wir arbeiten**. Wohin es in Phasen geht, steht in `FAHRPLAN.md`. Was gerade gebaut wird, steht in `MODULE.md`. Was entschieden ist, steht in `ENTSCHEIDE.md`. Was später kommen könnte, steht in `IDEEN.md`.
 
 ## Was Mekas ist
 

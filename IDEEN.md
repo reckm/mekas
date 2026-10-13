@@ -5,8 +5,8 @@ Was später kommen könnte. Nummern in Klammern verweisen auf `docs/zwischen-den
 ## Bildbewegung (nutzen den Schwinger)
 
 - **Pendel beim Halten (7):** (Hinweis: im Labor sind zwei Finger seit Runde 1d „accum.“, drei Finger „hält“.) Das Halten hält das Bild nicht starr an, sondern zwischen den letzten zwei Bildern. Neigen oder Anstossen schaukelt vom einen zum anderen.
-- **Linse auf Federn (14):** Ohne Defekt, die gesunde Linse schwingt nach einem Ruck leicht nach. Eventuell Teil von Runde 2 als „Grundunruhe 0“.
-- **Fokus sucht (15):** Bild atmet unscharf und wieder scharf, mit minimaler Grössenänderung. Teilweise schon in Runde 2.
+- **Linse auf Federn (14):** Ohne Defekt, die gesunde Linse schwingt nach einem Ruck leicht nach. Eventuell Teil der Linse (Runde 3) als „Grundunruhe 0“.
+- **Fokus sucht (15):** Bild atmet unscharf und wieder scharf, mit minimaler Grössenänderung. Teilweise schon in der Linse (Runde 3).
 - **Zweiter Projektor (10):** Zwei Schichten derselben Szene, leicht verschieden schnell. Laufen auseinander und finden zurück wie Steve Reichs Phasenverschiebung. Braucht ein Bildgedächtnis von 1–2 s.
 
 ## Belichtung und Zeit
@@ -26,6 +26,8 @@ Was später kommen könnte. Nummern in Klammern verweisen auf `docs/zwischen-den
 - **Unterdreht überarbeiten:** wirkt noch wie „TikTok-Vorspulen“. Ideen: lange Belichtung plus Kamerabewegung (Marie Menken), Stösse (Mekas), Pixilation (McLaren). Maris klärt später, was genau nicht überzeugt.
 
 ## Kopierwerk (für geladenes Material, aber nicht darauf beschränkt)
+
+Kommt ganz am Schluss (`FAHRPLAN.md`, Phase F). Bis dahin soll geladenes Video einfach ähnlich brauchbar sein wie Live-Kamera (Maris 2026-10-13).
 
 - **Kopierdurchgänge (9):** Echos in festem Abstand wie McLarens Tanzfilm. Funktioniert vor dunklem Grund.
 - **Schwelle „nur Lichter kopieren“:** wie harter Lith-Kopierfilm. Macht 9 auch bei mittlerem Licht brauchbar. Wird als Raststelle „Lith“ im Accum. Material zuerst ausprobiert (Runde 1d).
@@ -71,14 +73,14 @@ Maris: Filme sollen einen **Charakter über die ganze Zeit** haben, nicht nur be
 - **Später oder eher nicht:** Ausbleichen (Anthotypie, Gedächtnis über Minuten: eher Foto-Modus, im Lauf nah am Overlay). Selbstmaskierung (Auskopierpapier: ohne Gedächtnis nur eine Kennlinie, eher accum.). Korn aus dem Modell (im Lauf neue Körner pro Kurbelbild = Flimmern, Regel 3 und 4), vorerst nicht. **Alter-Fader** statt „Rolle altert“: Der Film altert über eine Rolle (Bolex 100 ft = 4000 Bilder, 2:47 min bei 24 fps). Später, eventuell als Regler „Alter“.
 - **Vorbilder:** [Filmulator](https://github.com/CarVac/filmulator-gui/wiki) (müder Entwickler, offline), [Guy J. Brown: Digital Lith](https://www.guyjbrown.com/posts/digital-lith/) (Ansteckung, offline), [Flickr Lith Printing](https://www.flickr.com/groups/1113988@N24/), [AV Artifact Atlas: image lag](https://avartifactatlas.com/artifacts/image_lag.html) (Röhre), [Kinemacolor](https://en.wikipedia.org/wiki/Kinemacolor), [Photochromic lens](https://en.wikipedia.org/wiki/Photochromic_lens), [Afterimage](https://en.wikipedia.org/wiki/Afterimage).
 
-### Fahrplan Filmmaterial (Stand 2026-10-13, noch keine Runden gewählt)
+### Fahrplan Filmmaterial (Stand 2026-10-13, eingeordnet im globalen `FAHRPLAN.md`: 1–2 sind Runde 2, 3–5 sind Runde 4)
 
 1. **Kern: Teilbelichtungen sammeln.** Heute legt der Kern bei offener Blende bei jedem Bildschirm-Refresh (60 oder 120 pro Sekunde, nicht im Kameratakt) das aktuelle Kamerabild in Canvas 2D über das Gesammelte (laufendes Mittel, 8 Bit, nicht in linearem Licht, `kern/kette.js`, `sampleExposure`). Dasselbe Kamerabild zählt so oft mehrfach, und kein Modul sieht die einzelnen Kamerabilder. Neu:
    - Jedes echte Kamerabild zählt genau einmal (`requestVideoFrameCallback`, auch für Video). Die Demo bekommt einen festen 30-Hz-Takt. Das Gewicht ist die Zeit, in der die Blende während dieses Kamerabilds offen ist.
    - Gesammelt wird in WebGL mit Gleitkomma in linearem Licht (wie beim Stehenden Film).
    - Neue Stelle in der Kette für jede Teilbelichtung, an der die Emulsion ansetzt (Schwelle, Farbempfindlichkeit, Farbsektor).
    - Zustand, der über die Kurbelbilder lebt (für die Gedächtnis-Schicht).
-   - Derselbe Weg für Kurbelbild, accum. und Foto-Modus. Hilft auch der Linse (Runde 2, Teilmomente innerhalb der Belichtung).
+   - Derselbe Weg für Kurbelbild, accum. und Foto-Modus. Hilft auch der Linse (Runde 3, Teilmomente innerhalb der Belichtung).
 
    Sichtbar ändert sich nichts. Der Kontaktbogen muss gleich aussehen wie vorher, höchstens ruhiger bei kleiner Blende. Grösster Umbau im Kern seit Runde 0, Speicher auf dem iPhone beachten (eine Gleitkommafläche bei 720p etwa 15 MB).
 2. **Gedächtnis-Schicht mit dem Rezept „müder Entwickler“**, dazu Anstossen = Rühren. Der erste Film mit Charakter über die ganze Zeit.
