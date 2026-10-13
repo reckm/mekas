@@ -33,7 +33,7 @@ Was später kommen könnte. Nummern in Klammern verweisen auf `docs/zwischen-den
 ## Röhre (Video, 1970)
 
 - **Röhre atmen (12, neu gefasst):** Bei hellen Szenen wird das Bild etwas grösser und zieht sich langsam zurück, weil die Hochspannung nachgibt. Maris: „Genau so Bildeffekte suchen wir.“ Kandidat für eine frühe Runde.
-- Nachleuchten der Röhre, sichtbare Zeilen: noch offen, ob das zu sehr nach Overlay aussieht.
+- Nachleuchten der Röhre, sichtbare Zeilen: noch offen, ob das zu sehr nach Overlay aussieht. Das Nachziehen (Kometenschweife) ist jetzt ein Rezept der Gedächtnis-Schicht (siehe Filmmaterial).
 
 ## Licht
 
@@ -47,6 +47,46 @@ Ein anderer Film in der Kamera verhält sich überall anders: bei jedem Bild, be
 - **Lichthof:** 0,4 ist nachts super, am Tag bei den aufsummierenden Materialien fast zu extrem (der Hof wächst dort mit dem aufsummierten Licht). Beim Sandwich auch am Tag gut.
 - **Doppel, Kopierdurchgänge (9), Mehrumlauf-Blende (1)** würden dasselbe Material benutzen (siehe unten).
 - Offen: wie man den Film wechselt (Filmdose, Schild neben der Quelle?), und ob das zusammen mit den Gehäusen kommt.
+
+### Ein Film, drei Zeitfenster (Strategie-Chat 2026-10-13)
+
+Maris: Filme sollen einen **Charakter über die ganze Zeit** haben, nicht nur bei accum. Bei accum. zeigt sich der Charakter dann umso mehr. Angelehnt an Chemie und Physik, nicht nachgebaut („physikalisch gekoppelt, nicht korrekt“). Prüfsteine: entsteht über Zeit, nichtlinear, voneinander abhängig, was vorher war prägt was kommt. Hintergrund: Recherche „Filmchemie physikalisch simulieren“ und Skizzenseite „Mekas Filmküche“ (Artifact, Lith und müder Entwickler hatten Potential; Standbilder in tiefer Auflösung taugen nicht zum Beurteilen von Zeit).
+
+- **Teilbelichtungen:** Das iPhone liefert etwa 30 Kamerabilder pro Sekunde, die Kurbel zeigt 4–24. Jedes Kurbelbild ist schon eine kleine Mehrfachbelichtung (4 fps/360°: etwa 7,5 Kamerabilder, 6 fps/180°: 2,5, 12 fps/180°: 1,25, 24 fps/135°: etwa 0,5). Ein Film wirkt auf jede Teilbelichtung (ein Kamerabild, etwa 33 ms). Das Zeitfenster entscheidet, wie viele zusammenkommen: **Kurbelbild** (Blende offen, 30–250 ms), **accum.** (Sekunden), **Foto-Modus** (Anzahl und Tempo frei).
+- **Zwei Maschinen:**
+  1. **Sammeln (Kern):** wann, wie viel und durch welches Filter jede Teilbelichtung auf den Film kommt. Dazu gehören die Emulsion (weiche Schwelle pro Teilbelichtung: kurze, schwache Teilbelichtungen gehen verloren, Takt-Film; Farbempfindlichkeit, z. B. Lith rotblind) und die Farbsektoren (unten).
+  2. **Gedächtnis-Schicht:** ein Zustand pro Pixel, den Licht verändert und der sich mit der Zeit erholt. Er lebt von Kurbelbild zu Kurbelbild weiter und ändert sich glatt mit etwa 30 Hz, auch bei geschlossener Blende (die Zeit läuft). Die Kurbel schaut nur hin. Kein neuer Zufall pro Kurbelbild, das schützt vor Flackern. Eine Maschine, viele **Rezepte**:
+
+  | Rezept | Was das Licht tut | Spur hinter Bewegtem | Ausbreitung zu Nachbarn |
+  |---|---|---|---|
+  | Müder Entwickler | verbraucht Entwickler, grosse helle Flächen gedämpft, kleine Lichter funkeln | dunkel, erholt sich in Sekunden | ja (Säume an Kanten) |
+  | Lith | Schwarz steckt Nachbarn an, warme Lichter, harte Schatten | Schatten wachsen, wo es dunkel bleibt | ja (Ansteckung) |
+  | Röhre (Vidicon) | lädt die Schicht, Ladung baut sich langsam ab | hell (Kometenschweif), im Dunkeln stärker | leicht (Blooming) |
+  | Photochrom | dunkelt eine Vorschicht wie eine selbsttönende Brille | dunkel, ohne Säume | nein |
+  | Netzhaut | ermüdet je Farbe | Nachbild in der Gegenfarbe | nein |
+
+  Kopplungen: **Anstossen = Rühren** (frischer Entwickler, Säume und Spuren verschwinden; ruhig halten = Standentwicklung). Langsam kurbeln heisst mehr Teilbelichtungen pro Bild und damit mehr Verbrauch. **Bromid-Schlieren** als Teil des müden Entwicklers: Unter Lichtern ziehen weiche Schlieren nach unten, „unten“ nach Gyroskop. Risiken: Säume dürfen nicht nach HDR oder „Klarheit“ aussehen. Die Ansteckung darf nicht am Bildfenster kleben (sähe aus wie Schmutz auf der Linse), sie muss verblassen, wenn sich das Bild bewegt. Rechenzeit Entwickler geschätzt 3–10 ms.
+- **Farbsektoren in der Blende:** eine Sammelregel. Die Teilbelichtungen gehen reihum durch einen roten, grünen und blauen Sektor (wie Kinemacolor 1908 und der Harris-Shutter von Kodak). Was stillsteht, hat normale Farben, was sich bewegt, bekommt Farbsäume. Kurbel und Blende bestimmen die Breite. Sind in einem Kurbelbild weniger als drei Teilbelichtungen, behält jede Farbschicht ihr letztes Licht. Sonst zeigt ein Kurbelbild nur eine Farbe und flackert stark. Digital-Risiko: Den Harris-Shutter gibt es als Plug-in (Boris FX), die Säume müssen weich und aus der Mechanik kommen. Verwandt mit der Kammblende (Fenster mit Filter statt Schlitze).
+- **Foto-Modus (Maris):** eine flexible Anzahl Teilbelichtungen in einem flexiblen Tempo zu einem Foto summiert. Dieselbe Maschine mit einem dritten Zeitfenster, derselbe Film.
+- **Später oder eher nicht:** Ausbleichen (Anthotypie, Gedächtnis über Minuten: eher Foto-Modus, im Lauf nah am Overlay). Selbstmaskierung (Auskopierpapier: ohne Gedächtnis nur eine Kennlinie, eher accum.). Korn aus dem Modell (im Lauf neue Körner pro Kurbelbild = Flimmern, Regel 3 und 4), vorerst nicht. **Alter-Fader** statt „Rolle altert“: Der Film altert über eine Rolle (Bolex 100 ft = 4000 Bilder, 2:47 min bei 24 fps). Später, eventuell als Regler „Alter“.
+- **Vorbilder:** [Filmulator](https://github.com/CarVac/filmulator-gui/wiki) (müder Entwickler, offline), [Guy J. Brown: Digital Lith](https://www.guyjbrown.com/posts/digital-lith/) (Ansteckung, offline), [Flickr Lith Printing](https://www.flickr.com/groups/1113988@N24/), [AV Artifact Atlas: image lag](https://avartifactatlas.com/artifacts/image_lag.html) (Röhre), [Kinemacolor](https://en.wikipedia.org/wiki/Kinemacolor), [Photochromic lens](https://en.wikipedia.org/wiki/Photochromic_lens), [Afterimage](https://en.wikipedia.org/wiki/Afterimage).
+
+### Fahrplan Filmmaterial (Stand 2026-10-13, noch keine Runden gewählt)
+
+1. **Kern: Teilbelichtungen sammeln.** Heute legt der Kern bei offener Blende bei jedem Bildschirm-Refresh (60 oder 120 pro Sekunde, nicht im Kameratakt) das aktuelle Kamerabild in Canvas 2D über das Gesammelte (laufendes Mittel, 8 Bit, nicht in linearem Licht, `kern/kette.js`, `sampleExposure`). Dasselbe Kamerabild zählt so oft mehrfach, und kein Modul sieht die einzelnen Kamerabilder. Neu:
+   - Jedes echte Kamerabild zählt genau einmal (`requestVideoFrameCallback`, auch für Video). Die Demo bekommt einen festen 30-Hz-Takt. Das Gewicht ist die Zeit, in der die Blende während dieses Kamerabilds offen ist.
+   - Gesammelt wird in WebGL mit Gleitkomma in linearem Licht (wie beim Stehenden Film).
+   - Neue Stelle in der Kette für jede Teilbelichtung, an der die Emulsion ansetzt (Schwelle, Farbempfindlichkeit, Farbsektor).
+   - Zustand, der über die Kurbelbilder lebt (für die Gedächtnis-Schicht).
+   - Derselbe Weg für Kurbelbild, accum. und Foto-Modus. Hilft auch der Linse (Runde 2, Teilmomente innerhalb der Belichtung).
+
+   Sichtbar ändert sich nichts. Der Kontaktbogen muss gleich aussehen wie vorher, höchstens ruhiger bei kleiner Blende. Grösster Umbau im Kern seit Runde 0, Speicher auf dem iPhone beachten (eine Gleitkommafläche bei 720p etwa 15 MB).
+2. **Gedächtnis-Schicht mit dem Rezept „müder Entwickler“**, dazu Anstossen = Rühren. Der erste Film mit Charakter über die ganze Zeit.
+3. **Weitere Rezepte:** Lith, Röhre, eventuell Photochrom und Netzhaut. Jedes eher klein, weil die Maschine steht.
+4. **Farbsektoren in der Blende.**
+5. **Foto-Modus.**
+
+Skizzen ab jetzt im Labor mit Live-Kamera und Video auf dem iPhone, nicht mehr als Standbild.
 
 ## Gehäuse und Kopplungen (Schritt 2)
 

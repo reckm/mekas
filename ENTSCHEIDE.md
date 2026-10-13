@@ -4,6 +4,8 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 ## 2026-10-13
 
+- **Filmmaterial: Charakter über die ganze Zeit, nicht nur bei accum.** Ein Film wirkt auf jede Teilbelichtung (ein Kamerabild, etwa 30 pro Sekunde), das Zeitfenster (Kurbelbild, accum., Foto-Modus) entscheidet, wie viel davon sichtbar wird. Zwei Maschinen: **Sammeln** im Kern (wann, wie viel, durch welches Filter, dazu gehören auch die Farbsektoren in der Blende) und eine **Gedächtnis-Schicht** mit Rezepten (müder Entwickler, Lith, Röhre, eventuell Photochrom und Netzhaut). Eine Maschine, viele Rezepte statt eines Moduls pro Film. „Rolle altert“ fällt raus, vielleicht später als Alter-Fader. Korn vorerst nicht. Fahrplan in `IDEEN.md` (Filmmaterial).
+
 - **Der jetzige Film: Stehender Film fest mit Sandwich und Lichthof 0,4.** Die Materialwahl (Accum. Material) gehört ins Filmmaterial: Ein anderer Film verhält sich überall anders (jedes Bild, accum., Doppel), nicht nur beim Halten. Lith passt nur als ganzer Filmlook. Aufsummieren und Farbschichten werden dort eins (Farbschichten wirkt natürlicher). Ersetzt den Entscheid „Accum. Material“ vom 2026-10-12.
 
 - **Überblendung beim Loslassen mit weicher Kurve**, Dauer 0,6 s. Linear wirkte das Ende immer hart, egal wie lang.
