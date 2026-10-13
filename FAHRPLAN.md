@@ -26,7 +26,7 @@ Dazu ein **Bildgedächtnis** (die letzten Bilder als Ganzes, über Sekunden) fü
 
 - [x] Halten mit drei Fingern („hält“) funktioniert auf dem iPhone (2026-10-13).
 - [x] Gyroskop: vorerst **immer gekoppelt** (2026-10-13).
-- [ ] **Knopf zum Entkoppeln des Gyroskops**, jederzeit erreichbar. Heute gibt es nur den Labor-Schalter „nur mit Finger auf dem Pad“ und die Empfindlichkeit 0.
+- [ ] **Knopf zum Entkoppeln des Gyroskops auf dem Hauptbildschirm** (Maris 2026-10-13), jederzeit erreichbar, der Zustand ist sichtbar. Das Gyroskop wirkt schon in der normalen Bedienung, darum gehört der Knopf auch dorthin. Klein halten, zum Beispiel beim Greifer-Pad, Platz beim Bauen mit Maris klären. Heute gibt es nur den Labor-Schalter „nur mit Finger auf dem Pad“ und die Empfindlichkeit 0.
 
 ### B. Fundament (Runde 2)
 

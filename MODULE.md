@@ -65,7 +65,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ## Runde 1a: Schwinger und Anstossen (gemeinsamer Kern)
 
-**Status:** auf dem iPhone getestet, Grundwerte angepasst (1.2.1, 2026-10-12). Frage zum Gyroskop beantwortet (2026-10-13): vorerst immer gekoppelt, Entkoppeln über einen Knopf jederzeit möglich (Knopf noch zu bauen, `FAHRPLAN.md` Phase A).
+**Status:** auf dem iPhone getestet, Grundwerte angepasst (1.2.1, 2026-10-12). Frage zum Gyroskop beantwortet (2026-10-13): vorerst immer gekoppelt, Entkoppeln über einen Knopf auf dem Hauptbildschirm jederzeit möglich (Knopf noch zu bauen, `FAHRPLAN.md` Phase A).
 
 **Mechanik:** Ein gedämpfter Schwinger wie eine Masse an einer Feder. Ein Stoss gibt ihm Energie, er schwingt aus und kommt zur Ruhe. Dieser Kern wird von mehreren Modulen benutzt (Greifer, später Linse, Pendel, Zweiter Projektor). Jedes Modul sagt, auf welche Achsen es reagiert und welche Ruhelagen es hat.
 

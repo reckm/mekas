@@ -7,7 +7,7 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 - **Globaler Fahrplan** in `FAHRPLAN.md`: erst die Maschinen (Sammeln, Gedächtnis), dann die Rezepte. Reihenfolge: Runde 1 abschliessen, Fundament (Runde 2: Teilbelichtungen, Gedächtnis-Schicht mit müdem Entwickler), Linse (Runde 3, vorher als Runde 2 geplant), Filme (Runde 4), Gehäuse und Übernahme (Runde 5), Kopierwerk ganz am Schluss.
 - **Alles bleibt im Labor** bis zu den Gehäusen (Phase E). Kein früheres Bolex-Gehäuse in der normalen Bedienung.
 - **Geladenes Video soll ähnlich brauchbar sein wie Live-Kamera**, in jeder Runde. Das Kopierwerk (Tourmaterial, Trailer) kommt erst ganz am Schluss.
-- **Gyroskop vorerst immer gekoppelt**, Entkoppeln über einen Knopf jederzeit möglich (Knopf noch zu bauen, Phase A).
+- **Gyroskop vorerst immer gekoppelt**, Entkoppeln über einen Knopf jederzeit möglich, **auf dem Hauptbildschirm** (Knopf noch zu bauen, Phase A).
 - **Halten mit drei Fingern funktioniert** auf dem iPhone.
 
 - **Filmmaterial: Charakter über die ganze Zeit, nicht nur bei accum.** Ein Film wirkt auf jede Teilbelichtung (ein Kamerabild, etwa 30 pro Sekunde), das Zeitfenster (Kurbelbild, accum., Foto-Modus) entscheidet, wie viel davon sichtbar wird. Zwei Maschinen: **Sammeln** im Kern (wann, wie viel, durch welches Filter, dazu gehören auch die Farbsektoren in der Blende) und eine **Gedächtnis-Schicht** mit Rezepten (müder Entwickler, Lith, Röhre, eventuell Photochrom und Netzhaut). Eine Maschine, viele Rezepte statt eines Moduls pro Film. „Rolle altert“ fällt raus, vielleicht später als Alter-Fader. Korn vorerst nicht. Fahrplan in `IDEEN.md` (Filmmaterial).
