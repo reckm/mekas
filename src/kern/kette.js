@@ -1,19 +1,20 @@
-// Die Kette, durch die jedes Bild läuft: Takt → Quelle → Belichtung → Entwickeln → Transport → Projektor.
+// Die Kette, durch die jedes Bild läuft: Takt → Quelle → Belichtung → Emulsion → Entwickeln → Transport → Projektor.
 // Hier liegen die Liste der Module, ihre Werte und ihr Ein/Aus, das Sammeln des Lichts und die Hauptschleife.
 import { ctx, intern, out, hold, acc, actx, tmp, expC, ectx, hctx, einst } from './zustand.js?v=1.2.6';
 import { REF_ANGLE } from './mechanik.js?v=1.2.6';
 import liste from '../module/liste.js?v=1.2.6';
 import { anstoss, holeStoss } from './anstoss.js?v=1.2.6';
+import * as sammler from './sammeln.js?v=1.2.6';
 import { kurbelTick } from './kurbel.js?v=1.2.6';
 import { sampleInto, sourceReady, syncFile } from './quelle.js?v=1.2.6';
 import { aufnahmeTick, projiziere, aufnahmeAnzeige, neuesBild } from './aufnahme.js?v=1.2.6';
 import { renderPad } from './bedienung.js?v=1.2.6';
 
-export const STATIONEN = ['takt', 'quelle', 'belichtung', 'entwickeln', 'transport', 'projektor'];
+export const STATIONEN = ['takt', 'quelle', 'belichtung', 'emulsion', 'entwickeln', 'transport', 'projektor'];
 
 /* ---------- Module: Werte, Ein/Aus, Rechenzeit ---------- */
 export const module = liste;
-export const kernteile = [anstoss];     // Werte des Kerns, die das Labor zeigt (nicht schaltbar)
+export const kernteile = [anstoss, sammler.sammeln];     // Werte des Kerns, die das Labor zeigt (nicht schaltbar)
 for (const m of [...module, ...kernteile]){
   m.grund = m.an === 'labor' ? ctx.labor : m.an !== false; m.an = m.grund;   // 'labor': neu, nur im Labor an, bis Maris es abnimmt
   m.p = {}; for (const [n, d] of Object.entries(m.params || {})) m.p[n] = d.def;
@@ -56,6 +57,7 @@ export function hinweise(){
 export const zeiten = { sammeln: 0, zeichnen: 0, gesamt: 0 };
 const roh = { sammeln: 0, zeichnen: 0 };
 function zeitenNachfuehren(gesamt){
+  roh.sammeln += sammler.holeZeit();
   for (const m of module){ m.ms += (m._ms - m.ms) * 0.1; m._ms = 0; }
   for (const k of ['sammeln', 'zeichnen']){ zeiten[k] += (roh[k] - zeiten[k]) * 0.1; roh[k] = 0; }
   zeiten.gesamt += (gesamt - zeiten.gesamt) * 0.1;
@@ -66,14 +68,17 @@ export function setSize(w, h){
   const s = Math.min(1, einst.resCap / Math.max(w, h));
   ctx.W = Math.max(2, Math.round(w * s / 2) * 2); ctx.H = Math.max(2, Math.round(h * s / 2) * 2);
   for (const c of [out, hold, acc, tmp, expC]){ c.width = ctx.W; c.height = ctx.H; }
+  sammler.groesse(ctx.W, ctx.H);
   for (const m of module) if (m.reset) m.reset(ctx);       // auch ausgeschaltete, damit sie beim Einschalten passen
   intern.have = false;
 }
 export function setup(){ for (const m of module) if (m.setup) m.setup(ctx); }
-export function abbrechen(){ intern.offen = false; zyklus = null; intern.nextAt = 0; }
+export function abbrechen(){ intern.offen = false; zyklus = null; intern.nextAt = 0; sammler.abbrechen(); }
 
 /* ---------- Belichtung: Zeit sammeln ---------- */
-// one camera cycle: the open windows of the disc decide when light reaches the film
+// one camera cycle: the open windows of the disc decide when light reaches the film.
+// Neu (kern/sammeln.js): jedes Kamerabild zählt genau einmal, so lange, wie es während offener Blende zu sehen ist.
+// Alt (ohne WebGL2 oder im Labor ausgeschaltet): bei jedem Animationsbild das gerade sichtbare Bild ins laufende Mittel.
 let zyklus = null, accN = 0;
 function startExposure(now, T){
   const z = { t0: now, T, winkel: REF_ANGLE, fenster: [[0, T * REF_ANGLE / 360]], stops: 0, deckung: 1 };
@@ -84,9 +89,12 @@ function startExposure(now, T){
   z.E = z.fenster.reduce((s, f) => s + (f[1] - f[0]), 0) / 1000;
   z.naechstes = 0;                     // erstes Fenster, das noch kein Licht bekommen hat
   zyklus = z; intern.offen = true; accN = 0;
+  z.neu = sammler.sammeltNeu();
+  if (z.neu) sammler.beginne(z);
 }
 function sampleExposure(now){
   const z = zyklus, rel = now - z.t0;
+  if (z.neu){ if (now >= z.ende) closeShutter(now); return; }   // die Kamerabilder kommen über sammler.tick
   // every window gets at least one sample, and every frame while a window is open adds one
   let neu = false;
   while (z.naechstes < z.fenster.length && rel >= z.fenster[z.naechstes][0]){ z.naechstes++; neu = true; }
@@ -97,6 +105,7 @@ function sampleExposure(now){
 }
 function closeShutter(now){
   const z = zyklus, { W, H } = ctx;
+  if (z.neu) sammler.schliesse();      // das Mittel der Teilbelichtungen liegt danach in `acc`
   // entwickeln: das gesammelte Licht wird zum Bild, danach blendet die Blende ab
   ectx.globalCompositeOperation = 'source-over'; ectx.globalAlpha = 1;
   ectx.drawImage(acc, 0, 0);
@@ -150,6 +159,7 @@ function loop(now){
     const t = performance.now(); m.tick(ctx, dt); m._ms += performance.now() - t;
   }
   syncFile();
+  sammler.tick(now);
   if (ctx.aufnahme !== 'developing') belichtung(now);
   const t1 = performance.now(); projiziere(now); roh.zeichnen += performance.now() - t1;
   renderPad();

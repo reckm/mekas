@@ -1,15 +1,17 @@
-// Labor (nur mit ?labor): alle Module mit Ein/Aus und rohen Reglern, Vergleich, Schnappschuss, Rechenzeit.
+// Labor (nur mit ?labor): Quellen, die Module, die noch eingestellt werden, mit Ein/Aus und rohen Reglern, Rechenzeit.
 // Speichert nur in `mekas.labor`, die normale Bedienung bleibt unberührt.
-import { ctx, out, $ } from '../kern/zustand.js?v=1.2.6';
+import { ctx, $ } from '../kern/zustand.js?v=1.2.6';
 import { comma } from '../kern/mechanik.js?v=1.2.6';
 import { VERSION } from '../kern/version.js?v=1.2.6';
 import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=1.2.6';
 import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=1.2.6';
+import { sammeln, sammeltNeu } from '../kern/sammeln.js?v=1.2.6';
 import { persist } from '../kern/speicher.js?v=1.2.6';
 import { setMode, startCam, loadFile } from '../kern/quelle.js?v=1.2.6';
-import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=1.2.6';
+import { renderExpo, renderGrip, renderMenuWerte } from '../kern/bedienung.js?v=1.2.6';
+import { oeffne as bauplan } from './bauplan.js?v=1.2.6';
 
-const STATION_TITEL = { takt: 'Takt', quelle: 'Quelle', belichtung: 'Belichtung', entwickeln: 'Entwickeln', transport: 'Transport', projektor: 'Projektor' };
+const STATION_TITEL = { takt: 'Takt', quelle: 'Quelle', belichtung: 'Belichtung', emulsion: 'Emulsion', entwickeln: 'Entwickeln', transport: 'Transport', projektor: 'Projektor' };
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const ms = v => comma(v.toFixed(2)) + ' ms';
 function zeigeWert(d, v){
@@ -19,7 +21,27 @@ function zeigeWert(d, v){
   return s + (d.einheit || '');
 }
 
-let gewaehlt = 'blende';
+// Was das Labor nicht mehr zeigt (Maris 2026-10-13): Abgenommenes, und was auf dem Bildschirm oder im Menü schon einen Griff hat.
+// Alles steht weiter im Bauplan. ganz: das Modul fehlt im Labor; schalter: false = ohne Ein/Aus; an: läuft immer in seiner Grundstellung
+// (ein alter Labor-Stand schaltet es nicht mehr aus); fest: diese Werte gelten mit der Grundeinstellung und sind nicht zu sehen.
+const AUS_DEM_LABOR = {
+  schwenken: { ganz: true, fest: ['bildwinkel'] },                 // Ein/Aus im Menü
+  blende: { ganz: true, an: true },                                // Öffnung mit dem Fader
+  entwickeln: { ganz: true, an: true, fest: ['staerke'] },         // Anlaufblitz im Menü
+  greifer: { ganz: true, an: true },
+  stehenderfilm: { schalter: false, an: true, fest: ['lichthof'] },   // zwei Finger wählen ihn
+  bildstand: { ganz: true, an: true },                             // Stärke im Menü
+  anstossen: { ganz: true, fest: ['pad', 'gyro', 'schwelle', 'nurMitFinger'] },   // gekoppelt über den Knopf über dem Greifer
+};
+const zeigt = m => !(AUS_DEM_LABOR[m.id] && AUS_DEM_LABOR[m.id].ganz);
+function ausDemLabor(){
+  for (const [id, a] of Object.entries(AUS_DEM_LABOR)){
+    const m = modul(id); if (!m) continue;
+    if (a.an && m.station) schalte(id, m.grund);
+    for (const n of a.fest || []) if (m.params && m.params[n]) setze(id, n, m.params[n].def);
+  }
+}
+
 const regler = [];          // { id, name, d, input, val }
 
 function nachAenderung(){ renderExpo(); renderGrip(); renderMenuWerte(); persist(); }
@@ -31,6 +53,11 @@ function baue(){
   // Knopf oben in der Leiste
   const knopf = el('button', 'srcbtn laborbtn', 'LABOR'); knopf.type = 'button'; knopf.setAttribute('aria-label', 'Labor zeigen oder verbergen');
   $('.bar.top').insertBefore(knopf, $('#btnFilms'));
+  // daneben der Bauplan: die ganze Architektur auf einem Blatt
+  const bp = el('button', 'iconbtn bauplanbtn'); bp.type = 'button'; bp.setAttribute('aria-label', 'Bauplan: die Architektur mit allen Teilen');
+  bp.innerHTML = '<svg viewBox="0 0 24 24"><rect x="3" y="3.5" width="7" height="5" rx="1.2"/><rect x="14" y="3.5" width="7" height="5" rx="1.2"/><rect x="8.5" y="15.5" width="7" height="5" rx="1.2"/><path d="M6.5 8.5v3.5h11V8.5M12 12v3.5"/></svg>';
+  bp.addEventListener('click', bauplan);
+  $('.bar.top').insertBefore(bp, $('#btnFilms'));
 
   const p = el('aside', 'labor'); p.id = 'labor'; p.setAttribute('aria-label', 'Labor');
   const kopf = el('div', 'lab-kopf');
@@ -51,38 +78,23 @@ function baue(){
   q.append(bCam, bDemo, lVid);
   inhalt.append(q);
 
-  // Vergleich und Schnappschuss
-  const v = el('div', 'lab-zeile lab-knoepfe');
-  const bVgl = el('button', 'pill primary lab-vgl', ''); bVgl.type = 'button';
-  const bSnap = el('button', 'pill', 'Schnappschuss'); bSnap.type = 'button';
-  const bZurueck = el('button', 'pill', 'Zurücksetzen'); bZurueck.type = 'button';
-  bZurueck.addEventListener('click', zuruecksetzen);
-  const an = e => { e.preventDefault(); try { bVgl.setPointerCapture(e.pointerId); } catch (_) {} vergleiche(gewaehlt); bVgl.classList.add('aktiv'); };
-  const ab = () => { vergleiche(null); bVgl.classList.remove('aktiv'); };
-  bVgl.addEventListener('pointerdown', an);
-  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => bVgl.addEventListener(ev, ab));
-  bVgl.addEventListener('contextmenu', e => e.preventDefault());
-  bSnap.addEventListener('click', schnappschuss);
-  v.append(bVgl, bSnap, bZurueck);
-  inhalt.append(v);
-  const vglText = () => { const m = modul(gewaehlt); bVgl.textContent = m ? 'Ohne ' + m.titel + ' (halten)' : 'Modul antippen'; };
-
   // Module nach Stationen
   const zeilen = new Map();
   function kasten(m, schaltbar){
     const box = el('div', 'lab-modul');
     const zeile = el('div', 'lab-modulkopf');
-    const name = el('button', 'lab-name', m.titel); name.type = 'button';
+    const name = el('span', 'lab-name', m.titel);
     const zeit = el('span', 'lab-ms val', '');
     let sw = null;
-    if (schaltbar){
+    const a = AUS_DEM_LABOR[m.id] || {};
+    if (schaltbar && a.schalter !== false){
       sw = document.createElement('input'); sw.type = 'checkbox'; sw.className = 'switch'; sw.checked = m.an; sw.setAttribute('aria-label', m.titel + ' ein oder aus');
       sw.addEventListener('change', () => { schalte(m.id, sw.checked); nachAenderung(); });
-      name.addEventListener('click', () => { gewaehlt = m.id; zeilen.forEach((z, id) => z.box.classList.toggle('gewaehlt', id === gewaehlt)); vglText(); });
       zeile.append(sw);
     }
     zeile.append(name, zeit); box.append(zeile);
     for (const [n, d] of Object.entries(m.params || {})){
+      if ((a.fest || []).includes(n)) continue;
       const r = el('label', 'lab-regler');
       const t = el('span', 'lab-titel', d.titel || n), val = el('span', 'val', '');
       const input = document.createElement('input');
@@ -110,17 +122,15 @@ function baue(){
     return box;
   }
   for (const st of STATIONEN){
-    const ms_ = module.filter(m => m.station === st); if (!ms_.length) continue;
+    const ms_ = module.filter(m => m.station === st && zeigt(m)); if (!ms_.length) continue;
     inhalt.append(el('h3', 'lab-station', STATION_TITEL[st] || st));
     for (const m of ms_) inhalt.append(kasten(m, true));
   }
   // Kern
   inhalt.append(el('h3', 'lab-station', 'Kern'));
-  for (const k of kernteile) inhalt.append(kasten(k, false));
+  for (const k of kernteile.filter(zeigt)) inhalt.append(kasten(k, false));
   const kern = el('div', 'lab-modul lab-kern'); inhalt.append(kern);
 
-  zeilen.forEach((z, id) => z.box.classList.toggle('gewaehlt', id === gewaehlt));
-  vglText();
   document.body.querySelector('.app').append(p);
 
   knopf.addEventListener('click', () => p.classList.toggle('weg'));
@@ -131,7 +141,7 @@ function baue(){
   setInterval(() => {
     if (p.classList.contains('weg')) return;
     gesamt.textContent = ms(zeiten.gesamt) + '/Bild';
-    zeilen.forEach(z => { z.zeit.textContent = ms(z.m.ms); if (z.sw.checked !== z.m.an) z.sw.checked = z.m.an; });
+    zeilen.forEach(z => { z.zeit.textContent = ms(z.m.ms); if (z.sw && z.sw.checked !== z.m.an) z.sw.checked = z.m.an; });
     for (const r of regler){
       const v = r.m.p[r.n];
       const iv = r.d.typ === 'wahl' ? r.d.werte.indexOf(v) : v;
@@ -139,7 +149,10 @@ function baue(){
       r.val.textContent = zeigeWert(r.d, v);
       if (r.namen) [...r.namen.children].forEach((b, i) => b.classList.toggle('an', i === iv));
     }
+    const sa = sammeln.anzeige;
     kern.textContent = 'Kurbel ' + comma(ctx.kurbel.fps.toFixed(1)) + ' fps · Bild ' + ctx.W + '×' + ctx.H +
+      ' · Kamera ' + comma(sa.kameraFps.toFixed(1)) + ' Bilder/s · ' +
+      (sammeltNeu() ? comma(sa.teile.toFixed(1)) + ' Teilbelichtungen pro Kurbelbild' : 'altes Sammeln' + (sa.fehler ? ' (' + sa.fehler + ')' : '')) +
       ' · Licht sammeln ' + ms(zeiten.sammeln) + ' · Projektor ' + ms(zeiten.zeichnen) +
       ' · Finger ' + ctx.eingabe.finger + (ctx.standbild ? ' (hält)' : ctx.halten ? ' (accum.)' : '') +
       ' · Sensor ' + ({ neu: 'noch nicht gefragt', fragt: 'fragt', an: 'an', gesperrt: 'gesperrt', fehlt: 'fehlt' }[bewegungStatus()]) +
@@ -148,16 +161,7 @@ function baue(){
   }, 250);
 }
 
-// alle Module und Kern-Werte auf die Grundeinstellung, Module auf ihre Grundstellung ein/aus
-function zuruecksetzen(){
-  for (const m of [...module, ...kernteile]){
-    for (const [n, d] of Object.entries(m.params || {})) setze(m.id, n, d.def);
-    if (m.station && m.an !== m.grund) schalte(m.id, m.grund);
-  }
-  nachAenderung(); say('Labor auf die Grundeinstellung zurückgesetzt.');
-}
-
-/* ---------- Schnappschuss: Bild als PNG, alle Werte als JSON ---------- */
+// alle Werte auf einen Blick (für die Tests)
 function werte(){
   return {
     version: VERSION, zeit: new Date().toISOString(), quelle: ctx.quelle, aufnahme: ctx.aufnahme, zeitModus: ctx.zeitModus,
@@ -166,25 +170,10 @@ function werte(){
     module: Object.fromEntries(module.map(m => [m.id, { an: m.an, station: m.station, werte: { ...m.p }, ms: +m.ms.toFixed(3) }])),
   };
 }
-async function schnappschuss(){
-  const d = new Date(), p = n => String(n).padStart(2, '0');
-  const base = 'mekas-labor-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
-  const png = await new Promise(res => out.toBlob(res, 'image/png'));
-  const json = new Blob([JSON.stringify(werte(), null, 2)], { type: 'application/json' });
-  const files = [new File([png], base + '.png', { type: 'image/png' }), new File([json], base + '.json', { type: 'application/json' })];
-  if (navigator.canShare && navigator.canShare({ files })){
-    try { await navigator.share({ files }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
-  }
-  for (const f of files){
-    const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name;
-    document.body.appendChild(a); a.click(); a.remove();
-  }
-  say('Schnappschuss gesichert: ' + base);
-}
-
 export function starteLabor(){
+  ausDemLabor(); nachAenderung();
   baue();
-  // für die Tests (tests/rauch.py, tests/bogen.py)
+  // für die Tests (tests/rauch.py, tests/bogen.py); vergleiche(id) zeigt das Bild ohne dieses Modul
   window.mekas = {
     version: VERSION, ctx, zeiten, werte,
     module: () => module.map(m => ({ id: m.id, titel: m.titel, station: m.station, an: m.an, werte: { ...m.p } })),

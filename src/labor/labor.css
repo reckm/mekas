@@ -1,7 +1,8 @@
 /* Labor: Tafel oben links, ohne Abdunkeln. Bild und Bedienung unten bleiben spielbar. */
 .laborbtn{background:var(--sky);color:var(--velvet);border-color:var(--sky)}
+@media (max-width:420px){.laborbtn{padding:0 10px;letter-spacing:.06em}.bar.top{gap:6px}}
 .labor{position:absolute;left:12px;top:calc(72px + env(safe-area-inset-top,0px));width:min(420px,calc(100% - 24px));max-height:46%;display:flex;flex-direction:column;background:rgba(24,23,29,.88);border:1px solid var(--line);border-radius:16px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);z-index:3;overflow:hidden}
-@media (max-width:560px){.labor{max-height:calc(100% - 480px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}}
+@media (max-width:560px){.labor{max-height:calc(100% - 535px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}}
 .labor.weg{display:none}
 .labor.klein .lab-inhalt{display:none}
 .lab-kopf{display:flex;align-items:center;gap:10px;padding:8px 8px 8px 14px;border-bottom:1px solid var(--line)}
@@ -11,14 +12,11 @@
 .lab-inhalt{overflow:auto;overscroll-behavior:contain;padding:8px 12px 14px}
 .lab-zeile{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 .lab-knoepfe .pill{flex:1 1 90px;min-height:40px;font-size:.88rem;padding:0 10px}
-.lab-vgl{flex:2 1 160px!important;touch-action:none;-webkit-user-select:none;user-select:none}
-.lab-vgl.aktiv{background:var(--rec);border-color:var(--rec);color:#fff}
 .lab-station{margin:12px 0 4px;font-size:.68rem;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:500}
 .lab-modul{border:1px solid var(--line);border-radius:12px;padding:6px 10px 8px;margin-bottom:6px;background:rgba(13,12,16,.4)}
-.lab-modul.gewaehlt{border-color:var(--sky)}
 .lab-modulkopf{display:flex;align-items:center;gap:10px}
 .lab-modulkopf .switch{transform:scale(.8);transform-origin:left center;margin-right:-8px}
-.lab-name{flex:1;text-align:left;border:0;background:none;font-weight:700;font-size:.92rem;cursor:pointer;padding:6px 0}
+.lab-name{flex:1;font-weight:700;font-size:.92rem;padding:6px 0}
 .lab-ms{font-size:.78rem}
 .lab-regler{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;font-size:.84rem;margin-top:2px}
 .lab-regler input[type=range]{grid-column:1 / -1;height:30px}

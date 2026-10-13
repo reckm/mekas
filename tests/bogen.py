@@ -11,6 +11,8 @@
 --setze    weitere Werte vorher, z. B. --setze blende.winkel=300 (mehrfach möglich)
 --fps      Kurbel auf dieses Tempo stellen (4–24)
 --ohne     dazu eine Reihe mit ausgeschaltetem Modul, zum Vergleich
+--vergleich modul.param=wert: dazu eine Reihe mit diesem Wert, z. B. --vergleich sammeln.neu=false (altes Sammeln)
+Jede Reihe zeigt die mittlere Helligkeit ihrer Standbilder (Ø, 0–255).
 
     .venv/bin/python tests/bogen.py --modul greifer --aktion stoss --werte 0.3,0.6,1 --setze blende.winkel=300 --bilder 8 --abstand 120
 Ausgabe nach tests/out/bogen-<modul>-<zeit>/index.html (nicht im Repository).
@@ -35,7 +37,6 @@ ALT_FELD = {
     ('bildstand', 'staerke'): ('weave', lambda w: round(w * 100)),
     ('handkurbel', 'unruhe'): ('jitter', lambda w: w),
     ('entwickeln', 'anlaufblitz'): ('startFlash', lambda w: bool(w)),
-    ('kammblende', 'schlitze'): ('slits', lambda w: w),
 }
 
 CLIP_START = """() => {
@@ -80,10 +81,21 @@ def mp4(ordner, name, daten):
     return webm.name
 
 
+HELLIGKEIT = {}      # Standbild → mittlere Helligkeit (0–255)
+STANDBILD_JS = """() => {
+  const o = document.querySelector('#out'), c = document.createElement('canvas'); c.width = 160; c.height = 90;
+  const g = c.getContext('2d'); g.drawImage(o, 0, 0, 160, 90);
+  const d = g.getImageData(0, 0, 160, 90).data; let s = 0;
+  for (let i = 0; i < d.length; i += 4) s += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+  return [o.toDataURL('image/png'), s / (d.length / 4)];
+}"""
+
+
 def standbild(page, ordner, name):
-    daten = page.evaluate("document.querySelector('#out').toDataURL('image/png')").split(',')[1]
+    url, hell = page.evaluate(STANDBILD_JS)
     datei = ordner / f'{name}.png'
-    datei.write_bytes(base64.b64decode(daten))
+    datei.write_bytes(base64.b64decode(url.split(',')[1]))
+    HELLIGKEIT[datei.name] = hell
     return datei.name
 
 
@@ -147,7 +159,7 @@ def starte_quelle(page, kamera):
     page.click('#cardCam' if kamera else '#cardDemo')
 
 
-def lauf_neu(browser, url, a, wert, ordner, kamera, an=True):
+def lauf_neu(browser, url, a, wert, ordner, kamera, an=True, vergleich=None):
     context = browser.new_context(viewport={'width': 1280, 'height': 800})
     context.add_init_script(SAAT)
     page = context.new_page()
@@ -160,7 +172,7 @@ def lauf_neu(browser, url, a, wert, ordner, kamera, an=True):
         import math
         x = 0.8 * math.log(a.fps / 4) / math.log(3) if a.fps <= 12 else 0.8 + 0.2 * math.log(a.fps / 12) / math.log(24 / 12)
         page.evaluate(f"Object.assign(window.mekas.ctx.kurbel, {{ zielX: {x}, x: {x} }})")
-    for s in a.setze:
+    for s in a.setze + ([vergleich] if vergleich else []):
         ziel, w = s.split('=')
         mid, par = ziel.split('.')
         page.evaluate(f"window.mekas.setze({json.dumps(mid)}, {json.dumps(par)}, {json.dumps(zahl(w))})")
@@ -169,12 +181,13 @@ def lauf_neu(browser, url, a, wert, ordner, kamera, an=True):
         page.evaluate(f"window.mekas.setze({json.dumps(mid)}, {json.dumps(par)}, {json.dumps(wert)})")
     page.wait_for_timeout(a.warten * 1000)
     fps = page.evaluate('window.mekas.ctx.kurbel.fps')
+    name = f'{"vgl" if vergleich else "neu" if an else "ohne"}-{wert}'
     if a.aktion == 'accum':
-        ergebnis = accum(page, ordner, f'{"neu" if an else "ohne"}-{wert}', a)
+        ergebnis = accum(page, ordner, name, a)
     elif a.aktion:
-        ergebnis = mit_aktion(page, ordner, f'{"neu" if an else "ohne"}-{wert}', a, wert)
+        ergebnis = mit_aktion(page, ordner, name, a, wert)
     else:
-        ergebnis = aufnehmen(page, ordner, f'{"neu" if an else "ohne"}-{wert}', a.bilder, a.clip, a.abstand)
+        ergebnis = aufnehmen(page, ordner, name, a.bilder, a.clip, a.abstand)
     context.close()
     return ergebnis, fps
 
@@ -197,6 +210,9 @@ def lauf_alt(browser, url, a, wert, ordner, kamera):
 def seite(a, ordner, zeilen, referenz, fps):
     def zelle(standbilder, clip, label):
         bilder = ''.join(f'<a href="{b}"><img src="{b}" loading="lazy"></a>' for b in standbilder)
+        hell = [HELLIGKEIT[b] for b in standbilder if b in HELLIGKEIT]
+        if hell:
+            label += f'<br>Ø {sum(hell) / len(hell):.1f}'
         return f'<div class="reihe"><span class="was">{label}</span>{bilder}<video src="{clip}" controls loop muted playsinline></video></div>'
     teile = []
     for z in zeilen:
@@ -204,6 +220,8 @@ def seite(a, ordner, zeilen, referenz, fps):
         t += zelle(*z['neu'], f'jetzt {VERSION}')
         if z.get('ohne'):
             t += zelle(*z['ohne'], 'ohne Modul')
+        if z.get('vergleich'):
+            t += zelle(*z['vergleich'], 'mit ' + html.escape(a.vergleich))
         if z.get('alt'):
             t += zelle(*z['alt'], 'vorher')
         if referenz:
@@ -243,6 +261,7 @@ def main():
     ap.add_argument('--abstand', type=int, default=500, help='ms zwischen den Standbildern')
     ap.add_argument('--fps', type=float, default=None)
     ap.add_argument('--ohne', action='store_true')
+    ap.add_argument('--vergleich', default=None, help='modul.param=wert: eine zweite Reihe mit diesem Wert, z. B. sammeln.neu=false')
     ap.add_argument('--setze', action='append', default=[], help='modul.param=wert, vor dem Durchschalten')
     ap.add_argument('--warten', type=float, default=2.0, help='Sekunden nach dem Einstellen')
     a = ap.parse_args()
@@ -270,6 +289,8 @@ def main():
             z = {'label': f'{titel} {w}{einheit}' if a.aktion and not a.param else f'{w}{einheit}', 'neu': neu}
             if a.ohne:
                 z['ohne'] = lauf_neu(browser, s.url, a, w, ordner, kamera, an=False)[0]
+            if a.vergleich:
+                z['vergleich'] = lauf_neu(browser, s.url, a, w, ordner, kamera, vergleich=a.vergleich)[0]
             if a.alt:
                 z['alt'] = lauf_alt(browser, s.url, a, w, ordner, kamera)
             zeilen.append(z)

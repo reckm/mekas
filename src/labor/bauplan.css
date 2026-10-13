@@ -1,0 +1,72 @@
+/* Bauplan: ganzer Bildschirm, ruhig, dieselben Farben wie Mekas. Die Kette als senkrechter Fluss, Teile als Karten. */
+.bauplan{position:absolute;inset:0;z-index:30;background:var(--velvet);overflow:auto;overscroll-behavior:contain;
+  padding:0 max(16px,env(safe-area-inset-right,0px)) calc(28px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.bp-oben{position:sticky;top:0;z-index:2;margin:0 -16px;padding:calc(8px + env(safe-area-inset-top,0px)) 16px 8px;background:var(--velvet);border-bottom:1px solid var(--line)}
+.bp-zeile{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1100px;margin:0 auto}
+.bp-titel{display:flex;align-items:baseline;gap:10px}
+.bp-titel b{font-family:var(--type);font-size:1.2rem;letter-spacing:.06em}
+.bp-titel span{font-family:var(--type);font-size:.8rem;color:var(--muted)}
+.bp-info{max-width:1100px;margin:4px auto 0;font-size:.86rem;line-height:1.4;color:var(--sky);min-height:2.8em;text-wrap:pretty}
+.bp-info b{color:var(--paper)}
+.bp-abschnitt{max-width:1100px;margin:18px auto 0}
+.bp-abschnitt h2{margin:0;font-family:var(--type);font-size:1rem;letter-spacing:.08em}
+.bp-sub{margin:2px 0 10px;color:var(--muted);font-size:.82rem}
+.bp-legende{max-width:1100px;margin:22px auto 0}
+
+.bp-teile{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:8px;min-width:0}
+.bp-haende{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.bp-teil{display:flex;flex-direction:column;gap:3px;padding:8px 10px 9px;border-radius:12px;border:1px solid rgba(239,236,243,.4);background:var(--plate);
+  cursor:pointer;text-align:left;min-width:0;transition:opacity .2s,border-color .2s,background .2s}
+.bp-teil:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.bp-hand{border-color:var(--line);background:rgba(169,203,232,.06)}
+.bp-labor{border-color:rgba(169,203,232,.7)}
+.bp-geplant{border-style:dashed;border-color:rgba(239,236,243,.28);background:transparent}
+.bp-geplant .bp-kopf b,.bp-geplant .bp-kurz{color:var(--muted)}
+.bp-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.bp-kopf b{font-size:.92rem;line-height:1.25}
+.bp-jetzt{font-size:.78rem;white-space:nowrap}
+.bp-stand{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.bp-labor .bp-stand{color:var(--sky)}
+.bp-kurz{font-size:.82rem;line-height:1.35;text-wrap:pretty}
+.bp-griff{font-size:.76rem;color:var(--muted)}
+.bp-an{font-size:.72rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:2px}
+.bp-an i{font-style:normal;border:1px solid var(--line);border-radius:999px;padding:1px 7px;color:var(--paper)}
+.bp-an i.an{background:var(--sky);border-color:var(--sky);color:var(--velvet)}
+.bp-aus{opacity:.5}
+
+/* die Kette: links der Fluss mit den Stationen */
+.bp-fluss{position:relative;display:flex;flex-direction:column;gap:14px;padding-left:16px}
+.bp-fluss::before{content:"";position:absolute;left:4px;top:8px;bottom:8px;width:2px;border-radius:1px;background:linear-gradient(var(--sky),rgba(169,203,232,.15))}
+.bp-station{position:relative;display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:start}
+.bp-station::before{content:"";position:absolute;left:-16px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--velvet);border:2px solid var(--sky)}
+.bp-ort{display:flex;flex-direction:column;padding-top:2px}
+.bp-ort b{font-size:.74rem;text-transform:uppercase;letter-spacing:.14em}
+.bp-ort small{font-size:.78rem;color:var(--muted);line-height:1.3}
+.bp-leer{font-size:.8rem;color:var(--muted);padding:8px 0}
+@media (max-width:640px){
+  .bp-station{grid-template-columns:1fr;gap:6px}
+  .bp-teile{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+  .bp-abschnitt{margin-top:14px}
+  /* kompakt: Griff und Abhängigkeiten zeigt nur die angetippte Karte, die Zeile oben sagt sie in Worten */
+  .bp-teil{padding:7px 9px 8px}
+  .bp-teil .bp-griff,.bp-teil .bp-an{display:none}
+  .bp-teil.bp-gewaehlt .bp-griff,.bp-teil.bp-gewaehlt .bp-an{display:flex}
+  .bp-teil.bp-gewaehlt .bp-griff{display:block}
+  .bp-hand .bp-kurz{display:none}
+  .bp-hand.bp-gewaehlt .bp-kurz{display:block}
+  .bp-kurz{font-size:.78rem}
+}
+
+/* Auswahl: das Gewählte, was davon abhängt (hell), woran es hängt (gestrichelt), der Rest tritt zurück */
+.bp-auswahl .bp-teil{opacity:.3}
+.bp-auswahl .bp-teil.bp-gewaehlt{opacity:1;border-color:var(--sky);background:var(--sky);color:var(--velvet)}
+.bp-auswahl .bp-gewaehlt .bp-stand,.bp-auswahl .bp-gewaehlt .bp-griff,.bp-auswahl .bp-gewaehlt .bp-an,.bp-auswahl .bp-gewaehlt .bp-kurz,.bp-auswahl .bp-gewaehlt .bp-jetzt,.bp-auswahl .bp-gewaehlt b{color:var(--velvet)}
+.bp-auswahl .bp-gewaehlt .bp-an i{color:var(--velvet);border-color:rgba(13,12,16,.35)}
+.bp-auswahl .bp-teil.bp-wirkt{opacity:1;border-color:var(--sky);background:rgba(169,203,232,.2)}
+.bp-auswahl .bp-teil.bp-wirkt2{opacity:.8;border-color:rgba(169,203,232,.55);background:rgba(169,203,232,.08)}
+.bp-auswahl .bp-teil.bp-haengt{opacity:1;border-color:var(--paper);box-shadow:0 0 0 1px var(--paper)}
+
+.bp-fahrplan{list-style:none;margin:0;padding:0;display:grid;gap:6px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.bp-fahrplan li{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;font-size:.82rem}
+.bp-fahrplan li span{color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.bp-teil{transition:none}}

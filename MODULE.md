@@ -14,12 +14,13 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 | Anstossen | Kern | auf dem iPhone getestet (2026-10-12) | Tippen aufs Greifer-Pad und Ruck mit dem Telefon (Gyroskop, alle Achsen, Schwelle 30 °/s, sättigend). Knopf über dem Greifer koppelt das Gyroskop ab und an (2026-10-13) |
 | Handkurbel | Takt | abgenommen | eigenes Modul seit Runde 0: Unregelmässigkeit in der Mikrozeit |
 | Blende | Belichtung | abgenommen | 0–360°, unter 36° gegen Schwarz. **Seitwärts-Achse (Schlitze) entfällt** |
-| Kammblende | Belichtung | verworfen als Bedienung | Code bleibt als Modul, im Labor schaltbar, nicht in der Bedienung |
+| Kammblende | Belichtung | entfernt (2026-10-13) | Maris braucht sie nicht. Der Code liegt in der Geschichte des Repositorys (`src/module/kammblende.js` bis Commit 14624e9) |
 | Entwickeln | Entwickeln | abgenommen | Belichtung → Helligkeit, Anlaufblitz |
 | Greifer | Transport | mit Feder, auf dem iPhone getestet (2026-10-12) | Tippen = Stoss, Halten = Schlupf, Loslassen = Feder rastet ein (Runde 1a/1b). Werte fest, Rastkraft 170 |
 | Stehender Film | Transport | im Labor (1.2.6) | Runde 1d: zwei Finger = accum., fest Sandwich mit Lichthof 0,4, Loslassen mit weicher Überblendung (0,6 s). Andere Materialien: Filmmaterial in `IDEEN.md` |
 | Bildstand | Projektor | abgenommen | neue Lage nur bei neuem Bild |
 | Überblendender Projektor | Projektor | im Labor, abgenommen (2026-10-12) | Runde 1c: Blendzeit = 2 × so lange die Blende offen ist |
+| Sammeln | Kern (Belichtung, Emulsion) | gebaut, im Labor (2026-10-13) | Runde 2a: jedes Kamerabild eine Teilbelichtung, lineares Licht. Im Labor neu/alt zum Vergleichen |
 | Doppel | Aufnahme | abgenommen | auf dem iPhone bestätigt (2026-10-12) |
 | Zeit-Modi | Aufnahme | Bild steht nach: abgenommen. Unterdreht: offen | Unterdreht überzeugt noch nicht, später |
 | Halten | Kern | abgenommen | zwei Finger, Leertaste. Im Labor mit Stehendem Film: zwei Finger = accum., drei Finger (Taste H) = hält, friert das sichtbare Bild ein |
@@ -224,6 +225,67 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
   - *Überblendung beim Loslassen:* fühlt sich nicht gut an, zu lang oder zu kurz, der Übergang von überblendet zu einem Bild ist immer zu hart. Etwa 0,6 s ist ein guter Mittelwert, gewünscht ist eine Easing-Kurve.
   - *Entscheid:* Die Materialwahl gehört ins Filmmaterial (andere Filme mit eigenem Verhalten). Der jetzige Film nimmt fest Sandwich mit Lichthof 0,4.
 - **2026-10-13, umgesetzt in 1.2.6:** Accum. Material, Lith-Sammelschicht und die drei vorübergehenden Regler entfernt. Der Stehende Film zeigt nur noch Sandwich mit Lichthof (spart eine Sammelschicht, also Speicher auf dem iPhone). Die Überblendung beim Loslassen läuft mit einer weichen Kurve (6t⁵ − 15t⁴ + 10t³): Sie beginnt und endet ohne Ruck, auch in der Geschwindigkeit. Linear änderte sich das Bild bis zum letzten Moment gleich schnell und stand dann plötzlich still, das wirkte wie ein Sprung. Kontaktbogen Laternen 12 fps: Der Hof klingt über etwa 0,5 s weich aus, ohne Knick am Ende. Der Param-Typ `wahl` bleibt im Labor für später. Der Rand des Lichthofs (Glocke läuft auf null aus) bleibt auch drin.
+---
+
+## Labor aufgeräumt, Bauplan (2026-10-13)
+
+**Status:** gebaut, nicht veröffentlicht.
+
+**Maris:** Im Labor nur noch, was noch eingestellt wird. Raus: Schwenken (Schalter und Bildwinkel), Blende (gibt es als Fader), Kammblende (ganz entfernt), Entwickeln (Stärke fest, gehört eher zum Filmmaterial), Anlaufblitz, Schalter des Stehenden Films (zwei Finger wählen ihn), Lichthof-Schalter, Bildstand, Greifer, alle Werte von Anstossen (gekoppelt über den Knopf). Bleiben: Handkurbel (nicht erwähnt), Stehender Film mit Stärke Lichthof und Überblendung beim Loslassen, Überblendender Projektor, Sammeln (neu/alt). Oben nur noch Kamera, Demo, Video laden: Vergleich („Ohne … (halten)“), Schnappschuss und Zurücksetzen sind weg. Neben dem Labor ein **Bauplan** auf dem ganzen Bildschirm: Architektur, Module, Funktionen, Griffe, Zusammenhänge und Abhängigkeiten, nicht jedes Detail.
+
+**Notizen:**
+- Was das Labor nicht zeigt, steht in `AUS_DEM_LABOR` (`src/labor/labor.js`). Ausgeblendete Module laufen im Labor immer in ihrer Grundstellung, ausgeblendete Werte gelten mit der Grundeinstellung (ein alter Labor-Stand kann nichts mehr unsichtbar verstellen). Werte mit einem Griff auf dem Bildschirm oder im Menü (Blende, Gyroskop gekoppelt, Bildstand, Anlaufblitz, Schwenken ein/aus) bleiben, wie sie dort stehen.
+- Bauplan (`src/labor/bauplan.js`): Hände, Kette mit acht Stationen (mit Aufnahme), Maschinen im Kern, Fahrplan. 36 Karten, davon 7 geplant (Linse, Farbsektoren, Filme, Foto-Modus, Gedächtnis-Schicht, Bildgedächtnis). Live: Kurbel, Zoom, Quelle, Blende, Gyroskop, Zeit, Teilbelichtungen pro Kurbelbild, accum. und hält. Auf dem Telefon zeigt nur die angetippte Karte Griff und Abhängigkeiten.
+- Labor-Tafel auf dem Telefon etwas kürzer, damit sie den Gyroskop-Knopf nicht verdeckt.
+
+---
+
+## Runde 2a: Teilbelichtungen sammeln (Kern)
+
+**Status:** gebaut, im Labor zum Vergleichen (2026-10-13, noch nicht veröffentlicht). iPhone-Test offen. Teil der Maschine **Sammeln** (`FAHRPLAN.md`, Phase B). Hintergrund in `IDEEN.md` (Filmmaterial, Ein Film, drei Zeitfenster).
+
+**Mechanik:** Das iPhone liefert etwa 30 Kamerabilder pro Sekunde, jedes etwa 33 ms lang. Das sind die **Teilbelichtungen**. Solange die Blende offen ist, fällt jede davon auf den Film, und zwar genau so lange, wie sich ihre Zeit mit dem offenen Fenster deckt. Ein Kurbelbild ist so schon eine kleine Mehrfachbelichtung: bei 4 fps und 360° etwa 7,5 Teilbelichtungen, bei 12 fps und 180° etwa 1,25, bei 24 fps und 135° nur ein Stück einer einzigen. Licht addiert sich dabei wie Licht (linear), nicht wie Pixelwerte.
+
+**Heute (zum Vergleich):** Der Kern legt bei offener Blende bei jedem Bildschirm-Refresh (60 oder 120 pro Sekunde, je nach iPhone) das gerade sichtbare Kamerabild über das Gesammelte, als laufendes Mittel in 8 Bit und in Pixelwerten statt Licht (`kern/kette.js`, `sampleExposure`). Dasselbe Kamerabild zählt so zwei- bis viermal, und wie oft, hängt vom Bildschirm ab statt von der Zeit. Kein Modul sieht die einzelnen Kamerabilder.
+
+**Bild:** Es soll gleich aussehen wie vorher. Kleine erwartete Unterschiede:
+- Bewegte helle Stellen verwischen etwas heller, weil Licht sich addiert (wie bei echtem Film). Dunkles, das vor Hellem vorbeizieht, wird dafür etwas durchsichtiger.
+- Die Demo läuft neu mit einem festen Takt von 30 Bildern pro Sekunde wie eine Kamera, heute wird sie bei jedem Refresh neu gezeichnet. Ihr Verwischen wird darum minimal stufiger.
+- Bei kleiner Blende eher ruhiger: Heute entscheidet der Zufall des Refreshs, ob ein kurzes Fenster ein oder zwei Kamerabilder erwischt.
+
+**Umsetzung:**
+- Neu `kern/sammeln.js` mit WebGL2, Gleitkomma (16 Bit, 32 Bit wenn vorhanden). Gesammelt werden das Licht × Zeit und die Zeit selbst. Daraus wird beim Schliessen der Blende das Mittel, zurück in Pixelwerte, und das geht wie heute als `roh` ins Entwickeln. Entwickeln, Greifer, Stehender Film und Projektor bleiben unverändert in Canvas 2D.
+- Jedes Kamerabild zählt genau einmal: `requestVideoFrameCallback` an Kamera und geladenem Video, die Demo mit festem 30-Hz-Takt. Ein Kamerabild gilt von seinem Eintreffen bis zum nächsten, sein Gewicht ist die Zeit, in der in dieser Spanne die Blende offen ist. So bekommt jede Millisekunde offener Blende genau ein Bild, ohne Wartezeit beim Schliessen. Mehrere Fenster (Kammblende) gehen von selbst.
+- Hochgeladen wird ein Kamerabild nur, wenn es Licht bekommt.
+- **Neue Station `emulsion`** in der Kette, zwischen Belichtung und Entwickeln, für jede Teilbelichtung: `{ t, licht (ms), filter: [r, g, b] }`. Ein Modul kann dort das Gewicht und die Farbempfindlichkeit dieser einen Teilbelichtung ändern. Das brauchen später die Farbsektoren (Runde 4) und ein rotblinder Film. In 2a hängt noch kein Modul dort. Schwelle und Zustand pro Pixel kommen mit ihrem ersten Rezept (2b: müder Entwickler), damit nichts auf Vorrat gebaut wird.
+- Ohne WebGL2 oder ohne Gleitkomma läuft das alte Sammeln weiter.
+- Zusätzlicher Speicher etwa 19 MB bei 720p (Fläche für das Kamerabild, Textur, Gleitkommafläche 16 Bit, WebGL-Bild).
+
+**Nicht in dieser Runde:** Stehender Film, Foto-Modus, Gedächtnis-Schicht, Farbsektoren, Schwelle. Kein neuer Regler in der Bedienung.
+
+**Parameter (Labor):** Unter „Kern“ ein Schalter **„Teilbelichtungen (neu)“** zum Vergleichen mit dem alten Sammeln. In der grauen Zeile: Kamerabilder pro Sekunde und Teilbelichtungen pro Kurbelbild.
+
+**Kontaktbogen:** Blende 30°, 135°, 240°, 360° bei 4, 12 und 24 fps, neu und alt nebeneinander (alt mit `--setze sammeln.neu=false`). Quellen: Demo und ein Video als falsche Kamera (`--quelle`). Dazu die mittlere Helligkeit von 20 Kurbelbildern hintereinander bei 24 fps und 30°, um das Flackern bei kleiner Blende zu messen.
+
+**Erfolgskriterien:**
+- Der Kontaktbogen sieht gleich aus wie vorher, abgesehen von den erwarteten Unterschieden oben. Mittlere Helligkeit gleich.
+- Bei kleiner Blende nicht unruhiger als vorher (Helligkeit von Kurbelbild zu Kurbelbild).
+- Live-Kamera und geladenes Video verhalten sich gleich.
+- Das Labor zeigt etwa 30 Kamerabilder pro Sekunde und bei 4 fps/360° etwa 7,5, bei 12 fps/180° etwa 1,25 Teilbelichtungen pro Kurbelbild.
+- Vorschau flüssig bei 720p auf dem iPhone, „Licht sammeln“ im Labor nicht mehr als heute.
+- Rauchtest grün, auch mit ausgeschaltetem neuem Sammeln.
+
+**Frage an Maris vor dem Bau (beantwortet):** Soll der Stehende Film (accum.) schon jetzt aus den Teilbelichtungen sammeln? Heute zählt dort jedes Kurbelbild als ein Durchgang, darum baut sich das Bild bei 24 fps schneller auf als bei 4 fps (die Kurbel ist spürbar). Sammelt er aus den Teilbelichtungen, zählt die Zeit: Wie schnell es sich aufbaut, hängt dann nur an der Blende, nicht mehr an der Kurbel. Das ist mechanisch richtig (der Film steht, pro Sekunde fällt gleich viel Licht), aber die Kurbel verliert bei accum. ihre Rolle. Vorschlag: in 2a nicht, erst in 2b, wenn der müde Entwickler auch bei accum. wirken soll. **Maris 2026-10-13: erst in 2b.**
+
+**Notizen:**
+- 2026-10-13, gebaut: `kern/sammeln.js` (Kernteil „Sammeln“, im Labor unter „Kern“), eingehängt in `kern/kette.js` (`beginne` beim Öffnen, `tick` jedes Animationsbild, `schliesse` vor dem Entwickeln). Ein Kamerabild gilt von seinem Eintreffen bis zum nächsten. Trifft ein neues ein, bekommt das alte sein Licht bis dahin, beim Schliessen bekommt das letzte sein Licht bis zum Ende des Fensters. Hochgeladen wird ein Bild, sobald die Blende offen ist oder in den nächsten 45 ms öffnet. Gesammelt wird in RGBA16F mit additivem Mischen: Licht × Zeit (rgb) und Zeit (a). Beim Schliessen kommt das Mittel als Pixelwerte (Gamma 2,2 wie beim Stehenden Film) nach `acc`. Ist die Blende ganz zu, kommt wie bisher das aktuelle Bild hinein, abgeblendet wird danach.
+- Station `emulsion` ist in der Kette (`STATIONEN`, Labor, `CLAUDE.md`), noch ohne Modul.
+- Labor, graue Zeile unter „Kern“: Kamera 29,5–30 Bilder/s (Demo, falsche Kamera in Chrome). Teilbelichtungen pro Kurbelbild (gezählt sind die Kamerabilder, die Licht bekommen): 4 fps/360° etwa 7,5 bis 8,5, 12 fps/180° 2,5, 24 fps/135° 1,3, 24 fps/30° 1,0.
+- Kontaktbögen neu gegen alt (`--vergleich sammeln.neu=false`), Blende 30°/135°/240°/360°, Demo bei 4, 12 und 24 fps, dazu `laternen-hell.mp4` als falsche Kamera bei 4 und 24 fps (30°/135°/360°): mittlere Helligkeit überall gleich (Abweichung höchstens 0,1 von 255). Bei 4 fps und 360° sind die Abdrücke bewegter Dinge gleichmässig hell, weil jedes Kamerabild nach seiner Zeit zählt. Im alten Sammeln hingen sie vom Refresh ab. Sonst kein Unterschied zu sehen.
+- Rechenzeit „Licht sammeln“ am Mac in Chrome: neu 0,15–0,36 ms, alt 0,09–0,11 ms pro Animationsbild. Auf dem iPhone noch messen.
+- Ohne WebGL2 (Chrome mit `--disable-webgl2`): altes Sammeln, das Labor zeigt „altes Sammeln (kein WebGL2)“, keine Fehler. Rauchtest schaltet neu und alt einmal um.
+- Kontaktbogen kann jetzt `--vergleich modul.param=wert` (eine Reihe mit diesem Wert daneben) und zeigt pro Reihe die mittlere Helligkeit.
+
 ---
 
 ## Runde 3: Linse (das kaputte iPhone)

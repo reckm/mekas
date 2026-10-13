@@ -4,6 +4,14 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 ## 2026-10-13
 
+- **Labor nur für das, was noch eingestellt wird.** Abgenommenes und was auf dem Bildschirm oder im Menü schon einen Griff hat, verschwindet aus dem Labor. Die Übersicht gibt neu der **Bauplan** (Knopf neben LABOR): Architektur, Zusammenhänge, Abhängigkeiten statt Einzelwerte.
+- **Kammblende entfernt.** Maris braucht sie nicht.
+- **Im Labor oben nur Kamera, Demo, Video laden.** Vergleich, Schnappschuss und Zurücksetzen fallen weg.
+- **Entwickeln gehört eher zum Filmmaterial** (Maris). Im Labor fest, wird mit der Gedächtnis-Schicht (2b) Teil der Filme.
+
+- **Runde 2a: Der Stehende Film (accum.) sammelt vorerst weiter aus Kurbelbildern**, nicht aus den Teilbelichtungen. Sonst zählte die Zeit statt der Durchgänge, und die Kurbel verlöre bei accum. ihre Rolle (bei 24 fps baut es sich heute schneller auf als bei 4 fps). Umstellen erst in 2b, wenn der müde Entwickler auch bei accum. wirken soll.
+- **Gyroskop-Knopf über dem Greifer-Pad**, er schaltet nur den Ruck. Schwenken behält seinen Schalter im Menü.
+
 - **Globaler Fahrplan** in `FAHRPLAN.md`: erst die Maschinen (Sammeln, Gedächtnis), dann die Rezepte. Reihenfolge: Runde 1 abschliessen, Fundament (Runde 2: Teilbelichtungen, Gedächtnis-Schicht mit müdem Entwickler), Linse (Runde 3, vorher als Runde 2 geplant), Filme (Runde 4), Gehäuse und Übernahme (Runde 5), Kopierwerk ganz am Schluss.
 - **Alles bleibt im Labor** bis zu den Gehäusen (Phase E). Kein früheres Bolex-Gehäuse in der normalen Bedienung.
 - **Geladenes Video soll ähnlich brauchbar sein wie Live-Kamera**, in jeder Runde. Das Kopierwerk (Tourmaterial, Trailer) kommt erst ganz am Schluss.

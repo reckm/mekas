@@ -15,7 +15,7 @@ Wohin Mekas geht, in Phasen. Stand 2026-10-13. Was gerade gebaut wird, steht als
 | Maschine | Stand | Was daran hängt |
 |---|---|---|
 | **Schwinger** (Federn, Stösse) | gebaut (Runde 1a) | Greifer, Linse, Linse auf Federn, Fokus sucht, Pendel, Röhre atmen, Anstossen beim Zweiten Projektor |
-| **Sammeln** (Teilbelichtungen) | Phase B | Emulsion mit Schwelle (Takt-Film), Farbsektoren, Foto-Modus, Teilmomente der Linse, Zeitkamm (3), Bewegungsbelichtung (4), Kammblende |
+| **Sammeln** (Teilbelichtungen) | Phase B | Emulsion mit Schwelle (Takt-Film), Farbsektoren, Foto-Modus, Teilmomente der Linse, Zeitkamm (3), Bewegungsbelichtung (4) |
 | **Gedächtnis** (Zustand pro Pixel) | Phase B | müder Entwickler, Lith, Röhre, Photochrom, Netzhaut, Mehrumlauf-Blende (1, „Altes verblasst“), Nachtverarbeitung (18) |
 
 Dazu ein **Bildgedächtnis** (die letzten Bilder als Ganzes, über Sekunden) für Zweiten Projektor (10), Kopierdurchgänge (9) und Pendel (7).
@@ -30,7 +30,7 @@ Dazu ein **Bildgedächtnis** (die letzten Bilder als Ganzes, über Sekunden) fü
 
 ### B. Fundament (Runde 2)
 
-- [ ] **2a Kern: Teilbelichtungen sammeln.** Jedes Kamerabild zählt genau einmal, gewichtet mit der offenen Blende. Gesammelt in Gleitkomma und linearem Licht. Eine Stelle in der Kette für jede Teilbelichtung (Emulsion) und Zustand über die Kurbelbilder. Derselbe Weg für Kurbelbild, accum. und Foto-Modus. Nichts Sichtbares: Der Kontaktbogen muss gleich aussehen wie vorher. Einzelheiten in `IDEEN.md` (Filmmaterial, Fahrplan).
+- [ ] **2a Kern: Teilbelichtungen sammeln.** Gebaut 2026-10-13 (Karte in `MODULE.md`), iPhone-Test offen. Stehender Film zieht erst in 2b um (Maris). Jedes Kamerabild zählt genau einmal, gewichtet mit der offenen Blende. Gesammelt in Gleitkomma und linearem Licht. Eine Stelle in der Kette für jede Teilbelichtung (Emulsion) und Zustand über die Kurbelbilder. Derselbe Weg für Kurbelbild, accum. und Foto-Modus. Nichts Sichtbares: Der Kontaktbogen muss gleich aussehen wie vorher. Einzelheiten in `IDEEN.md` (Filmmaterial, Fahrplan).
 - [ ] **2b Gedächtnis-Schicht mit dem Rezept „müder Entwickler“.** Anstossen = Rühren. Danach hat der Film Charakter über die ganze Zeit, nicht nur bei accum.
 
 ### C. Telefon: die Linse (Runde 3)

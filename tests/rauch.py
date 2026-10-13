@@ -1,5 +1,5 @@
 """Rauchtest: Demo → Aufnehmen → Pause → Doppel → Doppel starten → Fertig, ohne Konsolenfehler.
-Dazu: alle Importe tragen die aktuelle Version, und das Labor zeigt alle Module.
+Dazu: alle Importe tragen die aktuelle Version, das Labor zeigt nur, was noch eingestellt wird, und der Bauplan beschreibt alle Module.
 
     .venv/bin/python tests/rauch.py
 """
@@ -80,17 +80,27 @@ def labor(page, browser_url):
     page.wait_for_function('window.mekas')
     module = page.evaluate('window.mekas.module()')
     ids = [m['id'] for m in module]
-    erwartet = ['handkurbel', 'schwenken', 'blende', 'kammblende', 'entwickeln', 'greifer', 'stehenderfilm', 'bildstand', 'ueberblenden']
+    erwartet = ['handkurbel', 'schwenken', 'blende', 'entwickeln', 'greifer', 'stehenderfilm', 'bildstand', 'ueberblenden']
     if ids != erwartet:
         fehler.append(f'Labor: Module {ids}, erwartet {erwartet}')
-    if page.locator('.lab-modulkopf .switch').count() != len(erwartet):
-        fehler.append('Labor: nicht alle Module in der Liste')
+    # das Labor zeigt nur, was noch eingestellt wird; Abgenommenes steht im Bauplan
+    namen = page.eval_on_selector_all('.lab-name', 'els => els.map(e => e.textContent)')
+    for weg in ['Blende', 'Greifer', 'Bildstand', 'Entwickeln', 'Schwenken mit dem Telefon', 'Anstossen']:
+        if weg in namen:
+            fehler.append(f'Labor: {weg} sollte nicht mehr im Labor stehen')
     page.click('#cardDemo')
     for m in module:                           # jedes Modul einmal um und wieder zurück
         page.evaluate(f"window.mekas.schalte('{m['id']}', {str(not m['an']).lower()})")
         page.wait_for_timeout(300)
         page.evaluate(f"window.mekas.schalte('{m['id']}', {str(m['an']).lower()})")
         page.wait_for_timeout(200)
+    # Sammeln: das alte und das neue (Teilbelichtungen), beide ohne Fehler
+    page.evaluate("window.mekas.setze('sammeln', 'neu', false)")
+    page.wait_for_timeout(800)
+    page.evaluate("window.mekas.setze('sammeln', 'neu', true)")
+    page.wait_for_timeout(800)
+    if 'Teilbelichtungen pro Kurbelbild' not in page.text_content('.lab-kern'):
+        fehler.append('Labor: das neue Sammeln läuft nicht')
     # Greifer: Stoss, Halten (Schlupf), Loslassen (Feder)
     page.evaluate('window.mekas.stoss(0, 1)')
     page.wait_for_timeout(600)
@@ -113,9 +123,23 @@ def labor(page, browser_url):
     page.evaluate("window.mekas.vergleiche('greifer')")
     page.wait_for_timeout(300)
     page.evaluate('window.mekas.vergleiche(null)')
-    with page.expect_download() as d1:
-        page.click('text=Schnappschuss')
-    print(f'  Labor: {len(ids)} Module, Schnappschuss {d1.value.suggested_filename}')
+    # Bauplan: jedes Modul der Kette hat eine beschriebene Karte, Antippen zeigt, was davon abhängt
+    page.click('.bauplanbtn')
+    page.wait_for_selector('#bauplan:not([hidden])')
+    for m in ids:
+        if page.locator(f'.bp-teil[data-id="{m}"]').count() != 1:
+            fehler.append(f'Bauplan: keine Karte für {m}')
+    if page.locator('text=noch nicht im Bauplan beschrieben').count():
+        fehler.append('Bauplan: ein Modul ist nicht beschrieben')
+    page.click('.bp-teil[data-id="blende"]')
+    if page.locator('.bp-wirkt').count() < 3:
+        fehler.append('Bauplan: die Blende wirkt auf nichts')
+    page.keyboard.press('Escape')
+    if page.is_visible('#bauplan'):
+        fehler.append('Bauplan: Escape schliesst nicht')
+    if page.locator('.lab-knoepfe .pill').count() != 3:
+        fehler.append('Labor: oben gehören nur Kamera, Demo und Video laden hin')
+    print(f'  Labor: {len(ids)} Module, Bauplan ok')
     ablauf(page, 'Labor')
 
 

@@ -29,17 +29,17 @@ Nicht Filter, sondern **Mechanik und Zeit** machen den Look. Farbe, Schärfe und
 ### Die Kette, durch die jedes Bild läuft
 
 ```
-Takt → Quelle → Belichtung → Entwickeln → Transport → Projektor → Aufnahme
-(Kurbel, (Kamera,  (Blende,     (Helligkeit) (Greifer,   (Bildstand,   (MediaRecorder,
- Hand-    Video,    Linse,                    Filmstreifen) Überblenden) IndexedDB)
+Takt → Quelle → Belichtung → Emulsion → Entwickeln → Transport → Projektor → Aufnahme
+(Kurbel, (Kamera,  (Blende,     (jede Teil- (Helligkeit) (Greifer,   (Bildstand,   (MediaRecorder,
+ Hand-    Video,    Linse,       belichtung)              Filmstreifen) Überblenden) IndexedDB)
  kurbel)  Demo)     Zeit sammeln)
 ```
 
-Taktgeber ist die **Kurbel** (4–24 Kurbelbilder pro Sekunde). Kamerabilder kommen mit etwa 30 pro Sekunde. Ausgabe mit 24, 25 oder 30 pro Sekunde.
+Taktgeber ist die **Kurbel** (4–24 Kurbelbilder pro Sekunde). Kamerabilder kommen mit etwa 30 pro Sekunde, jedes ist eine **Teilbelichtung**: Es fällt so lange auf den Film, wie es während offener Blende zu sehen ist, und zählt genau einmal (`kern/sammeln.js`, WebGL2, lineares Licht, Gleitkomma; die Demo mit festem 30-Hz-Takt; ohne WebGL2 das alte Sammeln). Ausgabe mit 24, 25 oder 30 pro Sekunde.
 
 ### Kern und Module
 
-**Kern** (`src/kern/`, immer da): Kurbel mit fps-Skala, Zoom, Halten (zwei Finger oder Leertaste: die Kurbel steht, mit Stehendem Film dreht sie weiter und es heisst „accum.“; drei Finger oder Taste H: „hält“, friert genau das sichtbare Bild ein), Quellen, Doppel, Zeit-Modi, Klappe, Aufnahme, Speicher, Bedienung, dazu **Anstossen** (Stösse vom Greifer-Pad und vom Gyroskop, `kern/anstoss.js`), der **Schwinger** (`kern/schwinger.js`, gedämpfte Feder für Module) und der geteilte **Bewegungssensor** (`kern/bewegung.js`, iPhone fragt nur einmal). **Module** (`src/module/`, im Labor schaltbar): Handkurbel, Schwenken, Blende, Kammblende (Grundstellung aus), Entwickeln mit Anlaufblitz, Greifer (mit Feder, Werte fest in `GREIFER`), Stehender Film und Überblendender Projektor (beide Grundstellung „nur im Labor an“), Bildstand. Die Reihenfolge der Kette steht in `src/module/liste.js`.
+**Kern** (`src/kern/`, immer da): Kurbel mit fps-Skala, Zoom, Halten (zwei Finger oder Leertaste: die Kurbel steht, mit Stehendem Film dreht sie weiter und es heisst „accum.“; drei Finger oder Taste H: „hält“, friert genau das sichtbare Bild ein), Quellen, Doppel, Zeit-Modi, Klappe, Aufnahme, Speicher, Bedienung, dazu **Anstossen** (Stösse vom Greifer-Pad und vom Gyroskop, `kern/anstoss.js`), der **Schwinger** (`kern/schwinger.js`, gedämpfte Feder für Module), der geteilte **Bewegungssensor** (`kern/bewegung.js`, iPhone fragt nur einmal) und **Sammeln** (`kern/sammeln.js`, Teilbelichtungen). **Module** (`src/module/`): Handkurbel, Schwenken, Blende, Entwickeln mit Anlaufblitz, Greifer (mit Feder, Werte fest in `GREIFER`), Stehender Film und Überblendender Projektor (beide Grundstellung „nur im Labor an“), Bildstand. Die Reihenfolge der Kette steht in `src/module/liste.js`.
 
 **Vorerst wird nur im Labor gebaut** (Entscheid 2026-10-12): Neues bekommt die Grundstellung `an: 'labor'`, die normale Bedienung bleibt beim abgenommenen Stand, bis die Kamera fertig ist.
 
@@ -50,7 +50,7 @@ Jedes Modul ist eine eigene Datei, die an genau einer Station ansetzt (Schnittst
 export default {
   id: 'beispiel',
   titel: 'Beispiel',            // so heisst es im Labor
-  station: 'belichtung',        // takt | quelle | belichtung | entwickeln | transport | projektor
+  station: 'belichtung',        // takt | quelle | belichtung | emulsion | entwickeln | transport | projektor
   an: true,                     // Grundstellung: true, false (nur im Labor einschaltbar) oder 'labor' (neu: im Labor an, in der Bedienung aus, bis Maris es abnimmt)
   params: {                     // erscheinen im Labor automatisch als Regler; aktuelle Werte in this.p
     staerke: { min: 0, max: 1, def: 0.5, schritt: 0.01, titel: 'Stärke', einheit: '' },
@@ -75,6 +75,7 @@ Was `bild` an jeder Station ist (das Modul verändert es, der Kern macht weiter)
 | takt | Anfang jedes Kurbelbilds | `{ T, abstand }` in ms bis zum nächsten | gleichmässig |
 | quelle | jedes Abtasten der Quelle | `{ dw, dh, dx, dy }`, Lage der Quelle | Mitte |
 | belichtung | Anfang jedes Kurbelbilds | `{ t0, T, winkel, fenster: [[a, b], …] ms, stops, deckung }` | feste 135° |
+| emulsion | jede Teilbelichtung (Kamerabild, etwa 30 pro Sekunde), solange Licht kommt | `{ t, licht, filter: [r, g, b] }`: `licht` in ms, wie lange dieses Kamerabild bei offener Blende zu sehen war; `filter` die Farbempfindlichkeit | jedes Kamerabild voll, gewichtet mit seiner Zeit |
 | entwickeln | Blende schliesst | `{ g, roh, E, zyklus }`: in `g` liegt schon das Rohbild, `roh` ist das gesammelte Licht, `E` die Belichtung in s | Rohbild; danach legt der Kern `deckung` (Abblenden) darüber |
 | transport | nach dem Entwickeln | `{ belichtet, g, zyklus }`: `g` ist das Bildfenster | Bild liegt genau im Fenster |
 | projektor | jedes Ausgabebild | `{ lage: { x, y, s }, quelle }`: `quelle` ist das Bildfenster, ein Modul darf ein eigenes Canvas einsetzen (Überblenden) | Bild sitzt fest, springt hart |
@@ -93,9 +94,9 @@ Regeln für Module:
 ```
 index.html          Mekas für Maris (nur Markup), lädt src/stil.css und src/main.js
 src/main.js         Start: Module einrichten, Einstellungen zurückholen, Schleife starten
-src/kern/           zustand (ctx), kette, kurbel, quelle, ton, aufnahme, rekorder, filme, speicher, bedienung, mechanik, version
+src/kern/           zustand (ctx), kette, sammeln, kurbel, quelle, ton, aufnahme, rekorder, filme, speicher, bedienung, mechanik, version
 src/module/         ein Modul pro Datei, Reihenfolge in liste.js
-src/labor/          Labor-Oberfläche (nur mit ?labor geladen)
+src/labor/          Labor-Oberfläche und Bauplan (nur mit ?labor geladen)
 tests/              Python-Playwright: rauch.py, bogen.py
 tools/version.py    Version erhöhen
 referenz/           Maris’ Referenzmaterial (NICHT im Repository, siehe .gitignore)
@@ -115,13 +116,12 @@ Keine Build-Stufe: reine ES-Module, direkt von GitHub Pages ausgeliefert. Lokal 
 
 Erreichbar über `?labor`. Maris’ normale Bedienung bleibt davon unberührt.
 
-- Liste aller Module mit Ein/Aus und allen `params` als rohe Regler (`typ: 'wahl'` als Fader mit Raststellen, darunter die Namen zum Antippen).
-- **Vergleich:** Modulnamen antippen wählt es, der Knopf „Ohne … (halten)“ zeigt das Bild ohne dieses Modul, solange er gedrückt ist. (Geteilte Ansicht: später, siehe `IDEEN.md`.)
-- **Quellen:** Kamera, Demo, Video laden. Die Referenzvideos lädt Maris dort selbst.
-- **Schnappschuss:** speichert das Bild als PNG und alle Werte als JSON. Maris schickt beides, wenn ihr etwas gefällt oder missfällt.
+- Module mit Ein/Aus und ihren `params` als rohe Regler (`typ: 'wahl'` als Fader mit Raststellen, darunter die Namen zum Antippen). **Nur, was noch eingestellt wird** (Maris 2026-10-13): Abgenommenes und was auf dem Bildschirm oder im Menü schon einen Griff hat, steht in `AUS_DEM_LABOR` (`src/labor/labor.js`) und erscheint nur im Bauplan. Ein neues Modul erscheint von selbst mit allen Reglern.
+- **Bauplan** (Knopf neben LABOR, ganzer Bildschirm, `src/labor/bauplan.js`): Hände (was Maris spielt), die Kette Station für Station und die Maschinen im Kern, jedes Teil mit Stand (Bedienung, Labor, geplant), Griff und woran es hängt. Antippen zeigt, was davon abhängt (blau) und woran es hängt (weiss umrandet), oben in Worten. Dazu der Fahrplan. Ein Modul ohne Eintrag erscheint mit „noch nicht im Bauplan beschrieben“.
+- **Quellen:** Kamera, Demo, Video laden (die einzigen Knöpfe oben, Maris 2026-10-13). Die Referenzvideos lädt Maris dort selbst.
 - Rechenzeit pro Modul in ms pro Animationsbild, dazu Licht sammeln, Projektor und gesamt.
-- Unter „Kern“ die Werte von Anstossen (Stärke Pad, Gyroskop) und eine graue Zeile mit Kurbel, Bildgrösse, Rechenzeit, erkannten Fingern (accum./hält), Sensorstatus, Ruck jetzt und höchster der letzten 3 s (°/s) und dem letzten Stoss.
-- Speichert nur in `mekas.labor` (beim ersten Öffnen aus `kurbel.v3` vorbelegt), und nur Werte, die von der Grundeinstellung abweichen. So kommen neue Grundwerte auch im Labor an. „Zurücksetzen“ stellt alles auf die Grundeinstellung. Für Tests gibt es dort `window.mekas` (`setze`, `schalte`, `vergleiche`, `module`, `werte`, `stoss(x, y)`, `halte(y)` und `lass()` fürs Greifer-Pad, `halteBild(an)` wie zwei Finger, `standBild(an)` wie drei Finger).
+- Unter „Kern“ die Werte von Anstossen (Stärke Pad, Gyroskop, gekoppelt) und Sammeln (Schalter „Teilbelichtungen (neu)“, aus = altes Sammeln zum Vergleich) und eine graue Zeile mit Kurbel, Bildgrösse, Kamerabildern pro Sekunde, Teilbelichtungen pro Kurbelbild, Rechenzeit, erkannten Fingern (accum./hält), Sensorstatus, Ruck jetzt und höchster der letzten 3 s (°/s) und dem letzten Stoss.
+- Speichert nur in `mekas.labor` (beim ersten Öffnen aus `kurbel.v3` vorbelegt), und nur Werte, die von der Grundeinstellung abweichen. So kommen neue Grundwerte auch im Labor an. Für Tests gibt es dort `window.mekas` (`setze`, `schalte`, `vergleiche` (Bild ohne ein Modul), `module`, `werte`, `stoss(x, y)`, `halte(y)` und `lass()` fürs Greifer-Pad, `halteBild(an)` wie zwei Finger, `standBild(an)` wie drei Finger).
 
 Ein Modul kommt erst in die normale Bedienung, wenn Maris es abgenommen hat (Status in `MODULE.md`).
 
@@ -129,8 +129,8 @@ Ein Modul kommt erst in die normale Bedienung, wenn Maris es abgenommen hat (Sta
 
 Einmal einrichten: `python3 -m venv .venv && .venv/bin/pip install -r tests/requirements.txt`. Die Tests nehmen das installierte Google Chrome (sonst `.venv/bin/playwright install chromium`).
 
-1. **Rauchtest** (`.venv/bin/python tests/rauch.py`): Demo → Aufnehmen → Pause → Doppel → Doppel starten → Fertig, ohne Konsolenfehler, normal und mit `?labor`. Prüft auch, dass jeder Import `?v=<version>` trägt und das Labor alle Module zeigt. Nach jeder Änderung.
-2. **Kontaktbogen** (`.venv/bin/python tests/bogen.py --modul blende --param winkel --werte 30,135,240,360`): schaltet das Modul ein, stellt die Werte nacheinander ein und schreibt eine HTML-Seite mit Standbildern und kurzen Clips nach `tests/out/` (nicht ins Repository). `--quelle <video>` spielt ein Video als falsche Kamera ein (ffmpeg wandelt es nach `.y4m`, Chrome `--use-file-for-fake-video-capture`). `--referenz <bild>` stellt ein Referenzbild daneben. `--aktion stoss|halten` löst einen Stoss oder Halten aus (Wert = Stärke bzw. Höhe auf dem Pad), mit `--abstand` ms zwischen den Bildern; `--setze modul.param=wert` stellt vorher weitere Werte. `--aktion accum --zeiten 2,5,15` hält das Bild wie mit zwei Fingern und macht Standbilder zu diesen Sekunden, danach loslassen. `--fps` stellt die Kurbel, `--ohne` legt eine Reihe ohne das Modul daneben, `--param blende.winkel` schaltet einen Wert eines anderen Moduls durch. `--alt` legt die alte `mekas.html` daneben, für Werte, die sie schon kannte (vorher/nachher). Der Zufall ist in beiden gleich gesät. `--werte` nimmt Zahlen oder Namen (Raststellen), der Ordner heisst nach Modul, Quelle und fps.
+1. **Rauchtest** (`.venv/bin/python tests/rauch.py`): Demo → Aufnehmen → Pause → Doppel → Doppel starten → Fertig, ohne Konsolenfehler, normal und mit `?labor`. Prüft auch, dass jeder Import `?v=<version>` trägt, das Labor Abgenommenes nicht mehr zeigt und der Bauplan jedes Modul beschreibt. Nach jeder Änderung.
+2. **Kontaktbogen** (`.venv/bin/python tests/bogen.py --modul blende --param winkel --werte 30,135,240,360`): schaltet das Modul ein, stellt die Werte nacheinander ein und schreibt eine HTML-Seite mit Standbildern und kurzen Clips nach `tests/out/` (nicht ins Repository). `--quelle <video>` spielt ein Video als falsche Kamera ein (ffmpeg wandelt es nach `.y4m`, Chrome `--use-file-for-fake-video-capture`). `--referenz <bild>` stellt ein Referenzbild daneben. `--aktion stoss|halten` löst einen Stoss oder Halten aus (Wert = Stärke bzw. Höhe auf dem Pad), mit `--abstand` ms zwischen den Bildern; `--setze modul.param=wert` stellt vorher weitere Werte. `--aktion accum --zeiten 2,5,15` hält das Bild wie mit zwei Fingern und macht Standbilder zu diesen Sekunden, danach loslassen. `--fps` stellt die Kurbel, `--ohne` legt eine Reihe ohne das Modul daneben, `--param blende.winkel` schaltet einen Wert eines anderen Moduls durch. `--alt` legt die alte `mekas.html` daneben, für Werte, die sie schon kannte (vorher/nachher). `--vergleich modul.param=wert` legt eine Reihe mit diesem Wert daneben (z. B. `sammeln.neu=false`). Jede Reihe zeigt die mittlere Helligkeit ihrer Standbilder. Der Zufall ist in beiden gleich gesät. `--werte` nimmt Zahlen oder Namen (Raststellen), der Ordner heisst nach Modul, Quelle und fps.
 3. **Selbst hinschauen:** Bevor Maris etwas sieht, die Standbilder selbst ansehen und an den Erfolgskriterien der Modulkarte messen.
 4. **iPhone:** Nur Maris. Dafür veröffentlichen und ihr sagen, was sie prüfen soll (höchstens fünf Punkte).
 
@@ -140,7 +140,7 @@ Einmal einrichten: `python3 -m venv .venv && .venv/bin/pip install -r tests/requ
 2. Bauen, Rauchtest, Kontaktbogen, selbst prüfen.
 3. Maris den Kontaktbogen zeigen. Bei „passt“: Version erhöhen, committen, pushen, warten bis die Seite online ist.
 4. Maris nennen, was sie auf dem iPhone prüfen soll.
-5. Ihr Feedback auf der Modulkarte eintragen. Entscheide mit Datum in `ENTSCHEIDE.md`, neue Ideen in `IDEEN.md`. Committen.
+5. Ihr Feedback auf der Modulkarte eintragen. Entscheide mit Datum in `ENTSCHEIDE.md`, neue Ideen in `IDEEN.md`. Den Bauplan (`src/labor/bauplan.js`) nachführen, wenn ein Teil, ein Stand oder eine Abhängigkeit sich ändert, dazu `AUS_DEM_LABOR`, wenn etwas abgenommen ist. Committen.
 
 **Höchstens ein bis zwei Module pro Runde.** Nichts nebenbei „mit verbessern“, was nicht auf der Karte steht. Fällt etwas auf, kommt es in `IDEEN.md`.
 
