@@ -22,5 +22,8 @@
 .lab-ms{font-size:.78rem}
 .lab-regler{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;font-size:.84rem;margin-top:2px}
 .lab-regler input[type=range]{grid-column:1 / -1;height:30px}
+.lab-rasten{grid-column:1 / -1;display:flex;justify-content:space-between;margin:-4px 0 4px}
+.lab-rasten button{border:0;background:none;color:var(--muted);font-size:.72rem;padding:4px 0;cursor:pointer}
+.lab-rasten button.an{color:var(--sky);font-weight:700}
 .lab-regler .switch{grid-column:1 / -1;transform:scale(.8);transform-origin:left center}
 .lab-kern{font-family:var(--type);font-size:.78rem;color:var(--muted);line-height:1.5}

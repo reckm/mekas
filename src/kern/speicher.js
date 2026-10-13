@@ -1,7 +1,7 @@
 // Speicher: Einstellungen (localStorage `kurbel.v3`, im Labor `mekas.labor`) und IndexedDB `kurbel` (Filme, Einzelbilder).
 // Die alten Namen bleiben, damit gespeicherte Filme und Einstellungen erhalten bleiben.
-import { ctx, einst, $ } from './zustand.js?v=1.2.4';
-import { module, kernteile, modul, wert } from './kette.js?v=1.2.4';
+import { ctx, einst, $ } from './zustand.js?v=1.2.5';
+import { module, kernteile, modul, wert } from './kette.js?v=1.2.5';
 
 /* ---------- remembered settings ---------- */
 // Das Labor schreibt nie in die Einstellungen der normalen Bedienung. Beim ersten Öffnen beginnt es dort, wo sie stehen.

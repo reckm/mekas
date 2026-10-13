@@ -96,6 +96,14 @@ def aufnehmen(page, ordner, name, bilder, clip_sek, abstand=500):
     return standbilder, mp4(ordner, name, page.evaluate(CLIP_JS, clip_sek))
 
 
+def zahl(w):
+    """Zahl, wenn es eine ist, sonst der Name (Raststellen wie Sandwich, Lith)."""
+    try:
+        return float(w) if '.' in w else int(w)
+    except ValueError:
+        return w
+
+
 def accum(page, ordner, name, a):
     """Halten wie mit zwei Fingern: Standbilder zu festen Zeiten, dann loslassen und das frische Bild hineinblenden sehen."""
     page.evaluate(CLIP_START)
@@ -155,7 +163,7 @@ def lauf_neu(browser, url, a, wert, ordner, kamera, an=True):
     for s in a.setze:
         ziel, w = s.split('=')
         mid, par = ziel.split('.')
-        page.evaluate(f"window.mekas.setze({json.dumps(mid)}, {json.dumps(par)}, {json.dumps(float(w))})")
+        page.evaluate(f"window.mekas.setze({json.dumps(mid)}, {json.dumps(par)}, {json.dumps(zahl(w))})")
     if a.param:   # --param name (des Moduls) oder modul.name (eines anderen, z. B. blende.winkel bei der Überblendung)
         mid, par = a.param.split('.') if '.' in a.param else (a.modul, a.param)
         page.evaluate(f"window.mekas.setze({json.dumps(mid)}, {json.dumps(par)}, {json.dumps(wert)})")
@@ -222,7 +230,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--modul', required=True)
     ap.add_argument('--param', default=None)
-    ap.add_argument('--werte', required=True, help='durch Komma getrennt, z. B. 30,135,240,360')
+    ap.add_argument('--werte', required=True, help='durch Komma getrennt, z. B. 30,135,240,360 oder Sandwich,Lith')
     ap.add_argument('--einheit', default=None, help='für die Überschriften, z. B. °')
     ap.add_argument('--quelle', default='demo')
     ap.add_argument('--alt', action='store_true')
@@ -240,13 +248,13 @@ def main():
     a = ap.parse_args()
     if not a.param and not a.aktion:
         raise SystemExit('--param oder --aktion angeben')
-    werte = [float(w) if '.' in w else int(w) for w in a.werte.split(',')]
+    werte = [zahl(w) for w in a.werte.split(',')]
     einheit = a.einheit if a.einheit is not None else ('°' if (a.param or '').endswith('winkel') else '')
     titel = a.param or {'stoss': 'Stoss', 'halten': 'Halten auf Höhe', 'accum': 'accum'}.get(a.aktion, '')
     if a.alt and (a.modul, a.param) not in ALT_FELD:
         raise SystemExit(f'--alt geht nur für {sorted(ALT_FELD)}')
 
-    ordner = OUT / f'bogen-{a.modul}-{datetime.datetime.now():%Y%m%d-%H%M%S}'
+    ordner = OUT / f'bogen-{a.modul}-{"demo" if a.quelle == "demo" else pathlib.Path(a.quelle).stem}{f"-{a.fps:g}fps" if a.fps else ""}-{datetime.datetime.now():%Y%m%d-%H%M%S}'
     ordner.mkdir(parents=True)
     kamera = None if a.quelle == 'demo' else kamera_y4m(ROOT / a.quelle if not pathlib.Path(a.quelle).is_absolute() else a.quelle)
     referenz = None

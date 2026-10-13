@@ -1,19 +1,20 @@
 // Labor (nur mit ?labor): alle Module mit Ein/Aus und rohen Reglern, Vergleich, Schnappschuss, Rechenzeit.
 // Speichert nur in `mekas.labor`, die normale Bedienung bleibt unberührt.
-import { ctx, out, $ } from '../kern/zustand.js?v=1.2.4';
-import { comma } from '../kern/mechanik.js?v=1.2.4';
-import { VERSION } from '../kern/version.js?v=1.2.4';
-import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=1.2.4';
-import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=1.2.4';
-import { persist } from '../kern/speicher.js?v=1.2.4';
-import { setMode, startCam, loadFile } from '../kern/quelle.js?v=1.2.4';
-import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=1.2.4';
+import { ctx, out, $ } from '../kern/zustand.js?v=1.2.5';
+import { comma } from '../kern/mechanik.js?v=1.2.5';
+import { VERSION } from '../kern/version.js?v=1.2.5';
+import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=1.2.5';
+import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=1.2.5';
+import { persist } from '../kern/speicher.js?v=1.2.5';
+import { setMode, startCam, loadFile } from '../kern/quelle.js?v=1.2.5';
+import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=1.2.5';
 
 const STATION_TITEL = { takt: 'Takt', quelle: 'Quelle', belichtung: 'Belichtung', entwickeln: 'Entwickeln', transport: 'Transport', projektor: 'Projektor' };
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const ms = v => comma(v.toFixed(2)) + ' ms';
 function zeigeWert(d, v){
   if (d.typ === 'schalter') return v ? 'an' : 'aus';
+  if (d.typ === 'wahl') return v;
   const s = (d.schritt || 0.01) >= 1 ? String(Math.round(v)) : comma((+v).toFixed(2));
   return s + (d.einheit || '');
 }
@@ -24,7 +25,7 @@ const regler = [];          // { id, name, d, input, val }
 function nachAenderung(){ renderExpo(); renderGrip(); renderMenuWerte(); persist(); }
 
 function baue(){
-  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=1.2.4', import.meta.url).href;
+  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=1.2.5', import.meta.url).href;
   document.head.appendChild(link);
 
   // Knopf oben in der Leiste
@@ -86,10 +87,24 @@ function baue(){
       const t = el('span', 'lab-titel', d.titel || n), val = el('span', 'val', '');
       const input = document.createElement('input');
       if (d.typ === 'schalter'){ input.type = 'checkbox'; input.className = 'switch'; }
+      else if (d.typ === 'wahl'){ input.type = 'range'; input.min = 0; input.max = d.werte.length - 1; input.step = 1; }   // Fader mit Raststellen
       else { input.type = 'range'; input.min = d.min; input.max = d.max; input.step = d.schritt || (d.max - d.min) / 100; }
-      input.addEventListener(d.typ === 'schalter' ? 'change' : 'input', () => { setze(m.id, n, d.typ === 'schalter' ? input.checked : +input.value); val.textContent = zeigeWert(d, m.p[n]); nachAenderung(); });
-      r.append(t, val, input); box.append(r);
-      regler.push({ m, n, d, input, val });
+      const lies = () => d.typ === 'schalter' ? input.checked : d.typ === 'wahl' ? d.werte[+input.value] : +input.value;
+      input.addEventListener(d.typ === 'schalter' ? 'change' : 'input', () => { setze(m.id, n, lies()); val.textContent = zeigeWert(d, m.p[n]); nachAenderung(); });
+      r.append(t, val, input);
+      // unter dem Fader die Namen der Raststellen, antippen springt hin
+      let namen = null;
+      if (d.typ === 'wahl'){
+        namen = el('span', 'lab-rasten');
+        d.werte.forEach(w => {
+          const b = el('button', '', w); b.type = 'button';
+          b.addEventListener('click', e => { e.preventDefault(); setze(m.id, n, w); nachAenderung(); });
+          namen.append(b);
+        });
+        r.append(namen);
+      }
+      box.append(r);
+      regler.push({ m, n, d, input, val, namen });
     }
     if (schaltbar) zeilen.set(m.id, { box, sw, zeit, m });
     return box;
@@ -119,8 +134,10 @@ function baue(){
     zeilen.forEach(z => { z.zeit.textContent = ms(z.m.ms); if (z.sw.checked !== z.m.an) z.sw.checked = z.m.an; });
     for (const r of regler){
       const v = r.m.p[r.n];
-      if (document.activeElement !== r.input){ if (r.d.typ === 'schalter') r.input.checked = !!v; else if (+r.input.value !== v) r.input.value = v; }
+      const iv = r.d.typ === 'wahl' ? r.d.werte.indexOf(v) : v;
+      if (document.activeElement !== r.input){ if (r.d.typ === 'schalter') r.input.checked = !!v; else if (+r.input.value !== iv) r.input.value = iv; }
       r.val.textContent = zeigeWert(r.d, v);
+      if (r.namen) [...r.namen.children].forEach((b, i) => b.classList.toggle('an', i === iv));
     }
     kern.textContent = 'Kurbel ' + comma(ctx.kurbel.fps.toFixed(1)) + ' fps · Bild ' + ctx.W + '×' + ctx.H +
       ' · Licht sammeln ' + ms(zeiten.sammeln) + ' · Projektor ' + ms(zeiten.zeichnen) +

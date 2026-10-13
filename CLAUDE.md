@@ -55,6 +55,7 @@ export default {
   params: {                     // erscheinen im Labor automatisch als Regler; aktuelle Werte in this.p
     staerke: { min: 0, max: 1, def: 0.5, schritt: 0.01, titel: 'Stärke', einheit: '' },
     blitz: { typ: 'schalter', def: true, titel: 'Blitz' },
+    material: { typ: 'wahl', werte: ['Sandwich', 'Lith'], def: 'Sandwich', titel: 'Material' },   // Fader mit Raststellen, Wert ist der Name
   },
   anstoss: ['y'],               // ab Runde 1: reagiert auf Anstossen (Achsen x/y)
   uebernimmtHalten: true,       // optional: beim Halten dreht die Kurbel weiter (Stehender Film)
@@ -114,7 +115,7 @@ Keine Build-Stufe: reine ES-Module, direkt von GitHub Pages ausgeliefert. Lokal 
 
 Erreichbar über `?labor`. Maris’ normale Bedienung bleibt davon unberührt.
 
-- Liste aller Module mit Ein/Aus und allen `params` als rohe Regler.
+- Liste aller Module mit Ein/Aus und allen `params` als rohe Regler (`typ: 'wahl'` als Fader mit Raststellen, darunter die Namen zum Antippen).
 - **Vergleich:** Modulnamen antippen wählt es, der Knopf „Ohne … (halten)“ zeigt das Bild ohne dieses Modul, solange er gedrückt ist. (Geteilte Ansicht: später, siehe `IDEEN.md`.)
 - **Quellen:** Kamera, Demo, Video laden. Die Referenzvideos lädt Maris dort selbst.
 - **Schnappschuss:** speichert das Bild als PNG und alle Werte als JSON. Maris schickt beides, wenn ihr etwas gefällt oder missfällt.
