@@ -1,6 +1,6 @@
 # Fahrplan
 
-Wohin Mekas geht, in Phasen. Stand 2026-10-13. Was gerade gebaut wird, steht als Modulkarte in `MODULE.md`, die Begründungen stehen in `ENTSCHEIDE.md`, die Einzelheiten der Ideen in `IDEEN.md`. Wird ein Schritt zur Runde, bekommt er eine Modulkarte, und hier wird der Stand nachgeführt.
+Wohin Mekas geht, in Phasen. Stand 2026-10-13, veröffentlicht ist 2.2.1. **Offen für den Strategie-Chat:** das Rezept des müden Entwicklers (siehe B). Was gerade gebaut wird, steht als Modulkarte in `MODULE.md`, die Begründungen stehen in `ENTSCHEIDE.md`, die Einzelheiten der Ideen in `IDEEN.md`. Wird ein Schritt zur Runde, bekommt er eine Modulkarte, und hier wird der Stand nachgeführt.
 
 ## Leitlinien
 
@@ -26,12 +26,12 @@ Dazu ein **Bildgedächtnis** (die letzten Bilder als Ganzes, über Sekunden) fü
 
 - [x] Halten mit drei Fingern („hält“) funktioniert auf dem iPhone (2026-10-13).
 - [x] Gyroskop: vorerst **immer gekoppelt** (2026-10-13).
-- [ ] **Knopf zum Entkoppeln des Gyroskops auf dem Hauptbildschirm** (Maris 2026-10-13), jederzeit erreichbar, der Zustand ist sichtbar. Das Gyroskop wirkt schon in der normalen Bedienung, darum gehört der Knopf auch dorthin. **Gebaut 2026-10-13:** kleiner runder Knopf über dem Greifer-Pad (im Querformat links daneben), schaltet nur den Ruck, Schwenken bleibt. iPhone-Test offen.
+- [x] **Knopf zum Entkoppeln des Gyroskops auf dem Hauptbildschirm** (Maris 2026-10-13, funktioniert auf dem iPhone, 2.2.1), jederzeit erreichbar, der Zustand ist sichtbar. Das Gyroskop wirkt schon in der normalen Bedienung, darum gehört der Knopf auch dorthin. **Gebaut 2026-10-13:** kleiner runder Knopf über dem Greifer-Pad (im Querformat links daneben), schaltet nur den Ruck, Schwenken bleibt. iPhone-Test offen.
 
 ### B. Fundament (Runde 2)
 
 - [ ] **2a Kern: Teilbelichtungen sammeln.** Gebaut 2026-10-13 (Karte in `MODULE.md`), iPhone-Test offen. Stehender Film zieht erst in 2b um (Maris). Jedes Kamerabild zählt genau einmal, gewichtet mit der offenen Blende. Gesammelt in Gleitkomma und linearem Licht. Eine Stelle in der Kette für jede Teilbelichtung (Emulsion) und Zustand über die Kurbelbilder. Derselbe Weg für Kurbelbild, accum. und Foto-Modus. Nichts Sichtbares: Der Kontaktbogen muss gleich aussehen wie vorher. Einzelheiten in `IDEEN.md` (Filmmaterial, Fahrplan).
-- [ ] **2b Gedächtnis-Schicht mit dem Rezept „müder Entwickler“.** Gebaut 2026-10-13 (Karte in `MODULE.md`), iPhone-Test offen. Anstossen = Rühren. Danach hat der Film Charakter über die ganze Zeit, nicht nur bei accum. Der Stehende Film zieht nicht um, er stapelt schon entwickelte Kurbelbilder.
+- [ ] **2b Gedächtnis-Schicht mit dem Rezept „müder Entwickler“.** Maschine gebaut (2.2.1). Das Rezept wirkt auf dem iPhone nur „weniger leuchtend“ und wird **im Strategie-Chat neu gedacht** (Maris 2026-10-13). Analyse, Möglichkeiten der Maschine und offene Fragen stehen in `MODULE.md`, Runde 2b, Abschnitt „Für den Strategie-Chat“. Anstossen = Rühren. Danach hat der Film Charakter über die ganze Zeit, nicht nur bei accum. Der Stehende Film zieht nicht um, er stapelt schon entwickelte Kurbelbilder.
 - [ ] **Bromid-Schlieren** zum müden Entwickler (unter hellen Stellen weiche Schlieren nach unten, „unten“ nach Gyroskop), wenn der Grundzustand sitzt (Maris 2026-10-13).
 
 ### C. Telefon: die Linse (Runde 3)

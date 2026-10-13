@@ -93,6 +93,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 - 2026-10-12, 1.1.2: Gyroskop geht in der normalen Bedienung, im Labor nicht. Ursache: Das Labor hatte alle Werte von 1.1.1 gespeichert (Schwelle 220). Ab 1.1.3 merkt es sich nur selbst verstellte Werte, alte Stände werden einmal verworfen, neuer Knopf „Zurücksetzen“.
 - 2026-10-12, Maris: Gyroskop zu energisch, lieber empfindlicher und weicher, Feder langsamer. Neue Grundwerte: Schwelle 30 °/s, Empfindlichkeit 0,1 mit sättigender Kennlinie (kleine Rucke wirken, ein harter Ruck reicht knapp ins nächste Bild), Rastkraft 170 statt 360 (≈ 2 Hz statt 3 Hz), Dämpfung 0,5, Stärke Pad 14 (Tippen fühlt sich gleich an wie vorher). Ein stärkerer Ruck kurz nach einem kleinen wird nicht mehr von der Sperre verschluckt.
 - 2026-10-13, Knopf zum Entkoppeln (Phase A): Maris wählt den Platz **über dem Greifer-Pad**, er schaltet **nur den Ruck** (Schwenken hat seinen Schalter im Menü). Kleiner runder Knopf (40 px) mit Telefon und Bögen, entkoppelt gedämpft und durchgestrichen, beim Antippen kurz „Gyroskop gekoppelt“ bzw. „entkoppelt“ neben dem Pad. Im Querformat ist die Spalte voll, dort sitzt er links neben dem Pad unter der oberen Leiste. Der Zustand bleibt gespeichert (`kurbel.v3`, Feld `ruck`), im Labor als Schalter „Gyroskop gekoppelt“ unter Anstossen. Koppeln fragt gleich nach dem Sensor (ein echter Tipp). Getestet mit simuliertem Ruck in Chrome (375×812 und 844×390): entkoppelt kein Stoss, gekoppelt wie vorher. Rauchtest grün.
+- 2026-10-13, iPhone 2.2.1 (Maris): Gyroskop-Knopf funktioniert.
 
 ---
 
@@ -287,12 +288,13 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 - Rechenzeit „Licht sammeln“ am Mac in Chrome: neu 0,15–0,36 ms, alt 0,09–0,11 ms pro Animationsbild. Auf dem iPhone noch messen.
 - Ohne WebGL2 (Chrome mit `--disable-webgl2`): altes Sammeln, das Labor zeigt „altes Sammeln (kein WebGL2)“, keine Fehler. Rauchtest schaltet neu und alt einmal um.
 - Kontaktbogen kann jetzt `--vergleich modul.param=wert` (eine Reihe mit diesem Wert daneben) und zeigt pro Reihe die mittlere Helligkeit.
+- 2026-10-13, iPhone 2.2.1 (Maris): „Licht sammeln“ etwa 5 ms pro Animationsbild (mit müdem Entwickler; am Mac 0,4 ms). Läuft, aber deutlich teurer als am Mac. Vermutlich das Kopieren zwischen Canvas 2D und WebGL (Kamerabild hinein, Mittel heraus). Wenn es eng wird: Video direkt als Textur, Zoom und Schwenken im Shader.
 
 ---
 
 ## Runde 2b: Gedächtnis-Schicht mit dem Rezept „müder Entwickler“
 
-**Status:** gebaut, im Labor (2026-10-13, nicht veröffentlicht). iPhone-Test offen. Teil der Maschine **Gedächtnis** (`FAHRPLAN.md`, Phase B). Hintergrund: `IDEEN.md` (Ein Film, drei Zeitfenster) und die Recherche „Filmchemie physikalisch simulieren“ (Punkt 5, Filmulator).
+**Status:** im Labor (2.2.1, 2026-10-13). iPhone: als Rezept so nicht spannend, wird neu gedacht. Die Maschine bleibt. Teil der Maschine **Gedächtnis** (`FAHRPLAN.md`, Phase B). Hintergrund: `IDEEN.md` (Ein Film, drei Zeitfenster) und die Recherche „Filmchemie physikalisch simulieren“ (Punkt 5, Filmulator).
 
 **Mechanik:** Im Entwicklertank verbraucht sich der Entwickler dort, wo viel Licht auf den Film gefallen ist. Frischer fliesst langsam aus der dunklen Umgebung und aus dem Tank nach, Rühren bringt sofort frischen. In Mekas liegt dafür eine Schicht über dem Bildfenster, die sich pro Stelle merkt, wie viel Entwickler noch da ist. Jedes Kamerabild, das Licht bringt, verbraucht davon, und mit der Zeit erholt sie sich, auch bei geschlossener Blende (die Zeit läuft). Wie stark eine Teilbelichtung auf den Film kommt, hängt davon ab, wie viel Entwickler an dieser Stelle noch da ist.
 
@@ -344,6 +346,48 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 - Laternen (Nacht): fast kein Unterschied (Ø 32,0 statt 32,4), es gibt kaum grosse helle Flächen. accum. 10 s: Das stark leuchtende Fenster verliert etwas Glanz (Ø 121 statt 127), sonst gleich. Keine Blöcke aus der kleinen Auflösung, keine harten Kanten.
 - Rechenzeit am Mac in Chrome: Licht sammeln 0,41 ms mit dem Film, 0,21 ms ohne. Der Kontaktbogen wartet jetzt auf die falsche Kamera und startet sie notfalls neu (sie sprang manchmal nicht an, dann lief die Demo).
 - Der Bauplan zeigt den müden Entwickler unter Emulsion, die Gedächtnis-Schicht unter den Maschinen. Der Rauchtest hatte das Fehlen gemeldet.
+- **2026-10-13, iPhone 2.2.1 (Maris): „macht das Bild einfach weniger leuchtend. That's it. Nicht sehr spannend so.“** Auf dem iPhone kommt nur die Dämpfung der hellen Flächen an, also eine flachere Tonkurve. Spuren, Säume und Rühren sind zu schwach oder zu kurz, um aufzufallen. Der Zustand pendelt sich nach 1–2 s ein und bleibt dann fast stehen.
+
+### Für den Strategie-Chat: das Rezept neu denken (Stand 2026-10-13)
+
+Maris: erst im Strategie-Chat neu denken, Claude Code wartet. Die Maschine bleibt, das Rezept ändert sich. Code: `src/kern/gedaechtnis.js` (Maschine), `src/module/mueder-entwickler.js` (Rezept), live im Labor (2.2.1).
+
+**Warum es nur „weniger leuchtend“ ist (Analyse):**
+- Das Rezept ist ein Gleichgewicht. Verbrauch und Erholung heben sich nach 1–2 s auf, danach steht der Zustand fast still. In Ruhe bleibt eine Tonkurve, die Helles dämpft.
+- Die Wirkung ist nur ein Faktor auf das Licht zwischen 0,35 und 1, gleich für alle Farben. Sie kann nur dunkler machen.
+- Was in der Zeit passiert (Spuren, Nachleuchten, Rühren), lebt nur 1–2 s und bewegt sich um etwa ±10 %. Live geht das unter. Dazu hält die Belichtungsautomatik des iPhones die Szene in den Mitten, und mit dem Quadrat der Helligkeit trifft der Verbrauch dann fast nur die Spitzen.
+- Die Kopplung ans Spiel fehlt fast ganz. Die Kurbel spielt keine Rolle (der Verbrauch pro Sekunde hängt nur an der Blende), das Rühren wirkt nur kurz.
+
+**Was die Maschine heute kann (Rahmen für jedes Rezept):**
+- Zustand: vier Zahlen pro Stelle (vec4, 16 Bit) in einem Achtel der Auflösung (160×90 bei 720p), am Anfang überall 1.
+- Pro Kamerabild (etwa 30 pro Sekunde, auch bei geschlossener Blende) ein Schritt, als Formel pro Stelle. Das Rezept bekommt:
+  - den eigenen Zustand,
+  - den Zustand der Nachbarn (weich verwischt um die „Reichweite“),
+  - das Licht dieses Kamerabilds (linear, über 8×8 Bildpunkte gemittelt),
+  - wie lange es bei offener Blende fiel,
+  - die vergangene Zeit,
+  - das Rühren aus den Stössen (klingt in 0,35 s ab).
+  Daraus rechnet es den neuen Zustand.
+- Wirkung: pro Teilbelichtung ein Faktor pro Farbe auf das Licht, aus dem Zustand an dieser Stelle und dem Licht selbst.
+- Kosten: winzig, die Fläche ist klein. Auf dem iPhone braucht „Licht sammeln“ insgesamt etwa 5 ms, vor allem für das Kopieren der Bilder.
+
+**Was die Maschine noch nicht kann (bräuchte eine Erweiterung):**
+- Licht dazugeben statt nur dämpfen, etwa helles Nachleuchten wie die Kometenschweife einer Röhre. Klein: Die Wirkung gibt Faktor und Zuschlag.
+- Den Zustand verschieben, etwa Schlieren, die nach unten sinken. Mittel: eine Verschiebung im Nachbarn-Schritt.
+- Die Lage des Telefons (Schwerkraft) als Richtung. Klein, der Sensor ist schon da.
+- Kurbel, Halten oder Zoom als Eingaben ins Rezept. Klein.
+- Zustand in voller Auflösung (feine Strukturen, Ansteckung bei Lith). Teurer.
+
+**Ideen, die schon auf dem Tisch lagen (Claude Code an Maris, 2026-10-13):**
+1. **Gewöhnung:** lange Erinnerung (10–30 s), Verbrauch auch in den Mitten. Was stillsteht, versinkt langsam. Was neu ins Bild kommt (Schwenk, jemand tritt ein), erscheint frisch und leuchtend und verblasst dann. Anstossen weckt alles auf einmal. Ruhig halten heisst versinken, bewegen heisst leuchten.
+2. **Kurbel und Blende koppeln:** Langsam kurbeln oder weit offen ermüdet den Entwickler stark, schnell und eng kaum. Die Kurbel entscheidet, wie viel sich der Film merkt.
+3. **Bromid-Schlieren:** Unter hellen Stellen sinken weiche dunkle Schlieren nach unten, „unten“ nach der Lage des Telefons.
+
+**Offene Fragen:**
+- Was soll man beim müden Entwickler *sehen*, das ein Helligkeitsregler nicht kann? Ein Bild oder ein Satz als Ziel hilft.
+- Womit spielt Maris ihn: mit Bewegung, mit Ruhe, mit Anstossen, mit der Kurbel?
+- Bleibt er der erste Film, oder ist ein anderes Rezept (Röhre, Netzhaut, Lith) besser, weil sein Charakter deutlicher ist?
+- Braucht es dafür eine der Erweiterungen oben?
 
 ---
 

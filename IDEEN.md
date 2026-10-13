@@ -83,7 +83,7 @@ Maris: Filme sollen einen **Charakter über die ganze Zeit** haben, nicht nur be
    - Derselbe Weg für Kurbelbild, accum. und Foto-Modus. Hilft auch der Linse (Runde 3, Teilmomente innerhalb der Belichtung).
 
    Sichtbar ändert sich nichts. Der Kontaktbogen muss gleich aussehen wie vorher, höchstens ruhiger bei kleiner Blende. Grösster Umbau im Kern seit Runde 0, Speicher auf dem iPhone beachten (eine Gleitkommafläche bei 720p etwa 15 MB).
-2. **Gedächtnis-Schicht mit dem Rezept „müder Entwickler“**, dazu Anstossen = Rühren. Der erste Film mit Charakter über die ganze Zeit.
+2. **Gedächtnis-Schicht mit dem Rezept „müder Entwickler“**, dazu Anstossen = Rühren. Der erste Film mit Charakter über die ganze Zeit. *Stand 2026-10-13: Maschine gebaut, das Rezept wirkt nur „weniger leuchtend“ und wird neu gedacht (`MODULE.md`, Runde 2b). Lehre: Ein Rezept, das nur dämpft und sich schnell einpendelt, liest sich als Tonkurve. Charakter braucht sichtbare Geschichte und eine Kopplung ans Spiel.*
 3. **Weitere Rezepte:** Lith, Röhre, eventuell Photochrom und Netzhaut. Jedes eher klein, weil die Maschine steht.
 4. **Farbsektoren in der Blende.**
 5. **Foto-Modus.**

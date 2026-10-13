@@ -4,6 +4,9 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 ## 2026-10-13
 
+- **Müder Entwickler wird im Strategie-Chat neu gedacht** (iPhone 2.2.1: „macht das Bild einfach weniger leuchtend“). Die Maschine (Gedächtnis-Schicht) bleibt, das Rezept ändert sich. Claude Code wartet darauf.
+- **Gyroskop-Knopf funktioniert** auf dem iPhone, Phase A ist abgeschlossen.
+
 - **Runde 2b: Der Stehende Film zieht nicht um.** Er stapelt Kurbelbilder, die schon durch den müden Entwickler gegangen sind, so wirkt der Film auch bei accum., und die Kurbel behält dort ihre Rolle.
 - **Ein Film ist ein Rezept der Gedächtnis-Schicht** (Modul an der Station Emulsion mit GLSL für Zustand und Wirkung), immer nur einer eingelegt.
 - **Müder Entwickler: Verbrauch wächst mit dem Quadrat der Helligkeit.** Linear verbraucht, wurde auch der mittelgraue Boden dunkler und das ganze Bild verlor etwa 6 % Helligkeit. So trifft es vor allem die hellen Flächen.
