@@ -11,12 +11,12 @@ Was später kommen könnte. Nummern in Klammern verweisen auf `docs/zwischen-den
 
 ## Belichtung und Zeit
 
-- **Stehender Film (Mehrfachbelichtung), zusammen mit der Mehrumlauf-Blende (1).** Ausgangspunkt: das Stapeln im Greifer („Film steht“), Maris 2026-10-12: das Glühen und Ausbreiten beim Aufsummieren ist spannend. Neu als eigenes Modul ohne Greiferbewegung. **Material und Auslösen sind als Runde 1d gebaut (im Labor, Karte in `MODULE.md`, dort auch wie die Materialien rechnen).** Hier bleibt der Rest, vor allem Achse B.
+- **Stehender Film (Mehrfachbelichtung), zusammen mit der Mehrumlauf-Blende (1).** Ausgangspunkt: das Stapeln im Greifer („Film steht“), Maris 2026-10-12: das Glühen und Ausbreiten beim Aufsummieren ist spannend. Neu als eigenes Modul ohne Greiferbewegung. **Auslösen und Sandwich mit Lichthof sind als Runde 1d gebaut (im Labor, Karte in `MODULE.md`). Die anderen Materialien stehen unter Filmmaterial.** Hier bleibt der Rest, vor allem Achse B.
   - *Mechanik:* Der Film steht, die Blende dreht weiter. Jedes Kurbelbild belichtet dasselbe Stück Film noch einmal. Kurbel = Durchgänge pro Sekunde, Blende = Licht pro Durchgang. Kein eigener Tempo-Regler.
   - *Auslösen:* über das bestehende **Halten** (zwei Finger). Halten bei geschlossener Blende = Standbild wie heute, Halten bei offener Blende = Mehrfachbelichtung. Loslassen: Der Greifer zieht ein frisches Bild ins Fenster, weich übergeblendet (siehe Runde 1c). Dafür muss die Kurbel beim Halten weiterdrehen (heute fps = 0), das ist eine Änderung im Kern.
   - *Achse A, Material (wie reagiert der Film auf viel Licht):* Sandwich/Bipack (dunkler, Schatten bleiben stehen, gut bei Schnee) ← Graufilter (gleich hell, Stehendes satt, Bewegtes wird Nebel) → Umkehrfilm mit Schulter (heller, Lichter glühen und breiten sich aus, ohne hart ins Weiss zu laufen) → hinter einem Strich: Solarisation (Überbelichtetes kippt ins Dunkle, höchstes Digital-Risiko). Variante: nur Veränderung belichtet (Bewegungsbelichtung, 4).
   - *Achse B, Gedächtnis (wer bleibt):* das Erste brennt sich ein (Film erschöpft) – alle gleich – das Neueste (Altes verblasst). Das Neueste ist die Mehrumlauf-Blende: Blende über 360° hinaus, Akkumulation klingt über mehrere Bilder nach, ab 360° werden die Schlieren schwächer, Strich auf dem Fader bei 360°.
-  - *Stand 2026-10-12:* Sandwich mit Lichthof 0,4 gefällt Maris am besten, auch die Solarisation. Im Strategie-Chat neu gefasst als **Accum. Material** mit vier Raststellen: Sandwich, Lith, Aufsummieren (Solarisation kommt mit der Haltezeit), Farbschichten. Graufilter fällt weg. Details auf der Karte 1d.
+  - *Stand 2026-10-13:* Der jetzige Film nimmt fest Sandwich mit Lichthof 0,4 (auch am Tag gut). Die anderen Materialien sind ins **Filmmaterial** verschoben (unten).
   - *Offen:* Ob das Stapeln im Greifer (Runde 1b) später dasselbe Material benutzt: Kopplung, Schritt 2.
   - *Technik:* gelöst mit WebGL2 und 32 Bit (laufende Mittel), keine Farbstufen nach 30 s. Solarisation kann bei schwankendem Licht pulsieren.
 - **Nachtverarbeitung (18):** Dasselbe Nachklingen wie beim Stehenden Film (Gedächtnis „das Neueste“), aber automatisch nach Licht: je dunkler, desto länger. Der „digitale Antrieb“ derselben Mechanik wie 1.
@@ -39,10 +39,19 @@ Was später kommen könnte. Nummern in Klammern verweisen auf `docs/zwischen-den
 
 - **Blitz und Strobo:** Die Taschenlampe des iPhones brennt nur, solange die Blende offen ist, getaktet auf die aktuellen fps. Jedes Kurbelbild friert die Bewegung ein, wie Edgertons Stroboskop. Der Film flackert nicht, der Raum schon. **Vorsicht:** 4–12 Hz liegt genau im Bereich, der für Kopfweh und lichtempfindliche Menschen heikel ist, deshalb weich an- und ausblenden statt hart blitzen und einen deutlichen Hinweis zeigen. **Zuerst klären:** Lässt Safari auf dem iPhone die Taschenlampe überhaupt ansteuern (`torch` als Kamera-Einstellung), und wie schnell schaltet sie?
 
+## Filmmaterial (andere Filme)
+
+Ein anderer Film in der Kamera verhält sich überall anders: bei jedem Bild, bei accum., bei Doppel. Deshalb keine Materialwahl nur fürs Halten (Maris 2026-10-13). Hintergrund: Maris’ Recherche „Filmchemie physikalisch simulieren“ (Research-Chat). Gebaut und auf dem iPhone ausprobiert in 1.2.5 (Code im Commit c2a21dd, `src/module/stehender-film.js`):
+- **Lith (harter Kopierfilm), als ganzer Filmlook:** Jedes Bild belichtet nur, was heller ist als eine Schwelle (Grund 0,75, weicher Übergang bis 1,5-mal so hell), der Rest bleibt schwarz. Schwaches Licht summiert sich auch über lange Zeit nicht (Schwarzschild-Effekt). Beim Sammeln eine Summe statt eines Mittels: Spuren bleiben so hell, wie sie gemalt wurden (`1 − e^(−2,5·Summe)`). Fast blind für Rot (Rücklichter verschwinden). Der Lichthof kommt nur aus dem Lith-Licht. Maris: als accum. allein ergibt es keinen Sinn, als ganzer Film schon.
+- **Umkehrfilm mit Farbschichten (Aufsummieren und Farbschichten zusammengelegt):** Licht addiert sich, Schulter ab 0,7, dann der Solarisationsast `y·e^(1−y)`, wenn die Belichtung (Mittel × (1 + 0,9·ln Gewicht)) über den Kippunkt steigt. Die hellsten Lichter kippen bei 12 fps und 180° nach etwa 8 s, weniger helle viel später, der Ring wandert langsam nach aussen. Nur das Licht selbst entscheidet übers Kippen, der Lichthof leuchtet weiter (dunkler Kern, heller Ring). Im Überbelichteten ist Rot um 0,1 schneller und Blau langsamer: gekippte Kerne erst cyan, dann blau, dann dunkel. Maris: kaum ein Unterschied zum Aufsummieren ohne Farben, Farbschichten wirkt etwas natürlicher.
+- **Lichthof:** 0,4 ist nachts super, am Tag bei den aufsummierenden Materialien fast zu extrem (der Hof wächst dort mit dem aufsummierten Licht). Beim Sandwich auch am Tag gut.
+- **Doppel, Kopierdurchgänge (9), Mehrumlauf-Blende (1)** würden dasselbe Material benutzen (siehe unten).
+- Offen: wie man den Film wechselt (Filmdose, Schild neben der Quelle?), und ob das zusammen mit den Gehäusen kommt.
+
 ## Gehäuse und Kopplungen (Schritt 2)
 
 - **Kameramodelle als Gehäuse:** Bolex, Telefon, Kopierwerk, Röhre. Jedes mit eigener Belegung rechts und eigenen Grundwerten. Siehe `docs/KONZEPT.md`, Teil 4.
-- **Accum. Material auch für Doppel:** Doppel legt die zweite Schicht heute additiv drauf (wie Aufsummieren). Mit Sandwich würden sich die Schatten der zweiten Schicht durchsetzen, Doppel funktioniert dann auch auf Schnee und hellem Himmel. Später ebenso für Kopierdurchgänge (9) und Mehrumlauf-Blende (1). Dann verdient die Wahl ein eigenes Schild auf dem Hauptbildschirm.
+- **Filmmaterial auch für Doppel:** Doppel legt die zweite Schicht heute additiv drauf (wie Aufsummieren). Mit Sandwich würden sich die Schatten der zweiten Schicht durchsetzen, Doppel funktioniert dann auch auf Schnee und hellem Himmel. Später ebenso für Kopierdurchgänge (9) und Mehrumlauf-Blende (1). Dann verdient die Wahl ein eigenes Schild auf dem Hauptbildschirm.
 - **Kopplungen zwischen Modulen und Doppelfunktionen:** Welche Module bedingen sich gegenseitig? Erst angehen, wenn die Module einzeln abgenommen sind.
 - **Ein Instrument mit allen Funktionen** als langfristiges Ziel.
 

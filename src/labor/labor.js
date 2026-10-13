@@ -1,13 +1,13 @@
 // Labor (nur mit ?labor): alle Module mit Ein/Aus und rohen Reglern, Vergleich, Schnappschuss, Rechenzeit.
 // Speichert nur in `mekas.labor`, die normale Bedienung bleibt unberührt.
-import { ctx, out, $ } from '../kern/zustand.js?v=1.2.5';
-import { comma } from '../kern/mechanik.js?v=1.2.5';
-import { VERSION } from '../kern/version.js?v=1.2.5';
-import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=1.2.5';
-import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=1.2.5';
-import { persist } from '../kern/speicher.js?v=1.2.5';
-import { setMode, startCam, loadFile } from '../kern/quelle.js?v=1.2.5';
-import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=1.2.5';
+import { ctx, out, $ } from '../kern/zustand.js?v=1.2.6';
+import { comma } from '../kern/mechanik.js?v=1.2.6';
+import { VERSION } from '../kern/version.js?v=1.2.6';
+import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=1.2.6';
+import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=1.2.6';
+import { persist } from '../kern/speicher.js?v=1.2.6';
+import { setMode, startCam, loadFile } from '../kern/quelle.js?v=1.2.6';
+import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=1.2.6';
 
 const STATION_TITEL = { takt: 'Takt', quelle: 'Quelle', belichtung: 'Belichtung', entwickeln: 'Entwickeln', transport: 'Transport', projektor: 'Projektor' };
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
@@ -25,7 +25,7 @@ const regler = [];          // { id, name, d, input, val }
 function nachAenderung(){ renderExpo(); renderGrip(); renderMenuWerte(); persist(); }
 
 function baue(){
-  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=1.2.5', import.meta.url).href;
+  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=1.2.6', import.meta.url).href;
   document.head.appendChild(link);
 
   // Knopf oben in der Leiste

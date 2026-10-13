@@ -1,75 +1,48 @@
 // Stehender Film (Mehrfachbelichtung): Beim Halten steht der Film im Bildfenster, die Blende dreht weiter.
 // Jedes Kurbelbild belichtet dasselbe Stück Film noch einmal. Kurbel = Durchgänge pro Sekunde, Blende = Licht pro Durchgang
-// (geschlossen = nichts kommt dazu, ein Standbild). Wie die Schichten zusammenkommen, entscheidet das Accum. Material
-// (Raststellen, von dunkel nach hell):
-//   Sandwich      Schichten übereinander wie Dias, Schatten setzen sich durch, Bewegtes verschwindet. Kippt nie.
-//   Lith          harter Kopierfilm: nur Licht über einer Schwelle belichtet, der Rest bleibt schwarz. Lichter malen Spuren.
-//   Aufsummieren  Licht addiert sich: erst glühen die Lichter, dann breiten sie sich aus, bei sehr viel Licht kippen sie
-//                 in die Solarisation. Wann, bestimmt die Haltezeit (mit Kurbel und Blende), wie bei echtem Film.
-//   Farbschichten wie Aufsummieren, aber Rot, Grün und Blau sättigen und kippen verschieden schnell.
-// Gesammelt wird in linearem Licht mit 32 Bit (WebGL), die Kennlinie des Materials kommt erst beim Zeigen.
-// Wirkt nur beim Halten (accum.), nicht auf das normale Entwickeln. Loslassen: ein frisches Bild blendet weich hinein.
+// (geschlossen = nichts kommt dazu, ein Standbild). Die Schichten kommen zusammen wie beim Sandwich (zwei Dias übereinander,
+// Bipack im Kopierwerk): Licht muss durch alle, Schatten setzen sich durch, Bewegtes verschwindet. Dazu der Lichthof.
+// Andere Materialien (Lith, Aufsummieren mit Solarisation, Farbschichten) gehören zu anderen Filmen: IDEEN.md, Filmmaterial.
+// Gesammelt wird in linearem Licht mit 32 Bit (WebGL). Loslassen: ein frisches Bild blendet weich hinein.
 
 const VS = `#version 300 es
 in vec2 p; out vec2 v;
 void main(){ v = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }`;
 
 // Sammeln: laufende Mittel (linear und logarithmisch), gewichtet. Werte bleiben um 0..1, das schont die Genauigkeit.
-// Dazu C: was der Lith-Film abbekommt, als Summe (eine Spur bleibt so hell, wie sie gemalt wurde).
 const FS_SAMMELN = `#version 300 es
 precision highp float;
-uniform sampler2D uSrc, uA, uB, uC; uniform float uAnteil, uGewicht, uLith; uniform int uStart;
-in vec2 v; layout(location = 0) out vec4 oA; layout(location = 1) out vec4 oB; layout(location = 2) out vec4 oC;
+uniform sampler2D uSrc, uA, uB; uniform float uAnteil; uniform int uStart;
+in vec2 v; layout(location = 0) out vec4 oA; layout(location = 1) out vec4 oB;
 void main(){
   vec3 L = pow(texture(uSrc, vec2(v.x, 1.0 - v.y)).rgb, vec3(2.2));
   vec3 g = log(L + 0.004);
-  // Lith: belichtet erst ab der Schwelle, steil, aber weich (sonst gäbe es harte Kanten). Darunter gar nichts:
-  // schwaches Licht summiert sich bei hartem Film nicht auf (Schwarzschild-Effekt)
-  float Y = dot(L, vec3(0.2126, 0.7152, 0.0722));
-  vec3 e = L * smoothstep(uLith, uLith * 1.5, Y);
-  if (uStart == 1){ oA = vec4(L, 1.0); oB = vec4(g, 1.0); oC = vec4(e, 1.0); return; }
-  vec3 a = texture(uA, v).rgb, b = texture(uB, v).rgb, c = texture(uC, v).rgb;
-  oA = vec4(a + uAnteil * (L - a), 1.0); oB = vec4(b + uAnteil * (g - b), 1.0); oC = vec4(c + uGewicht * e, 1.0);
+  if (uStart == 1){ oA = vec4(L, 1.0); oB = vec4(g, 1.0); return; }
+  vec3 a = texture(uA, v).rgb, b = texture(uB, v).rgb;
+  oA = vec4(a + uAnteil * (L - a), 1.0); oB = vec4(b + uAnteil * (g - b), 1.0);
 }`;
 
-// Zeigen: Kennlinie des Materials auf das gesammelte Licht
+// Zeigen: Sandwich (geometrisches Mittel, Schatten setzen sich durch) und der Lichthof darüber
 const FS_ZEIGEN = `#version 300 es
 precision highp float;
-uniform sampler2D uA, uB, uC, uH; uniform int uMat; uniform float uGewinn, uSchulter, uHof, uKipp, uKippBreite, uFarb, uEin, uHart;
+uniform sampler2D uB, uH; uniform float uHof;
 in vec2 v; out vec4 o;
-vec3 schulter(vec3 x){ float k = uSchulter; return mix(x, k + (1.0 - k) * (1.0 - exp(-(x - k) / (1.0 - k))), step(vec3(k), x)); }
-// Solarisationsast: ab uKipp fällt es weich ab, ohne Knick (y·e^(1−y), bei y = 1 flach)
-vec3 kippen(vec3 x){ vec3 y = 1.0 + max(x - uKipp, 0.0) / uKippBreite; return y * exp(1.0 - y); }
-// Farbschichten: im Überbelichteten ist Rot schneller, Blau langsamer (Dunkles und Mitten bleiben)
-vec3 schichten(vec3 x){ return uMat == 3 ? x + max(x - 1.0, 0.0) * uFarb * vec3(1.0, 0.0, -1.0) : x; }
 void main(){
-  vec3 M = texture(uA, v).rgb;                  // gesammeltes Licht (Mittel aller Durchgänge)
+  vec3 G = exp(texture(uB, v).rgb) - 0.004;
   vec3 hof = uHof > 0.0 ? uHof * texture(uH, v).rgb : vec3(0.0);   // Lichthof: gestreutes Licht um helle Stellen
-  vec3 c;
-  if (uMat == 0){                               // Sandwich: geometrisches Mittel, Schatten setzen sich durch
-    c = exp(texture(uB, v).rgb) - 0.004 + hof;
-  } else if (uMat == 1){                        // Lith: harter Film, was über der Schwelle war, bleibt (Summe), der Rest ist schwarz
-    vec3 L = 1.0 - exp(-uHart * texture(uC, v).rgb) + hof;
-    c = mix(L, M, uEin);                        // am Anfang des Haltens sinkt das Bild weich ins Schwarz
-  } else {                                      // Aufsummieren, Farbschichten: wächst mit jedem Durchgang
-    vec3 X = schichten(M * uGewinn);            // das Licht selbst: davon hängt das Kippen ab
-    vec3 XH = schichten((M + hof) * uGewinn);   // mit dem Lichthof: der Schein um einen gekippten Kern bleibt hell
-    c = schulter(XH) * kippen(X);
-  }
-  o = vec4(pow(clamp(c, 0.0, 1.0), vec3(1.0 / 2.2)), 1.0);
+  o = vec4(pow(clamp(G + hof, 0.0, 1.0), vec3(1.0 / 2.2)), 1.0);
 }`;
 
 // Lichthof, Schritt 1: das Licht über der Schwelle in einem Sechzehntel der Auflösung sammeln (4×4 Proben pro Block)
 const FS_HOF_KLEIN = `#version 300 es
 precision highp float;
-uniform sampler2D uA, uC; uniform float uGewinn, uHart; uniform vec2 uPix; uniform int uLith;
+uniform sampler2D uA; uniform float uGewinn; uniform vec2 uPix;
 in vec2 v; out vec4 o;
 void main(){
   vec3 s = vec3(0.0);
   for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++){
     vec2 d = (vec2(float(i), float(j)) - 1.5) * 4.0 * uPix;
-    vec3 x = uLith == 1 ? 1.0 - exp(-uHart * texture(uC, v + d).rgb) : texture(uA, v + d).rgb * uGewinn;   // bei Lith streut nur, was belichtet hat
-    s += max(x - 0.5, 0.0);
+    s += max(texture(uA, v + d).rgb * uGewinn - 0.5, 0.0);
   }
   o = vec4(s / 16.0, 1.0);
 }`;
@@ -79,7 +52,7 @@ precision highp float;
 uniform sampler2D uH; uniform vec2 uRichtung; uniform float uSigma;
 in vec2 v; out vec4 o;
 void main(){
-  // die Glocke läuft am Rand auf null aus (sonst zeichnet sich der Rand als Viereck ab, auf schwarzem Grund bei Lith sichtbar)
+  // die Glocke läuft am Rand auf null aus (sonst zeichnet sich der Rand als Viereck ab)
   vec3 s = vec3(0.0); float n = 0.0, rand = exp(-121.0 / (2.0 * uSigma * uSigma));
   for (int i = -10; i <= 10; i++){ float w = max(exp(-float(i * i) / (2.0 * uSigma * uSigma)) - rand, 0.0); s += w * texture(uH, v + float(i) * uRichtung).rgb; n += w; }
   o = vec4(s / n, 1.0);
@@ -96,13 +69,8 @@ function programm(gl, fs){
 }
 // fest (Maris 2026-10-12: als Regler kaum ein Unterschied)
 const ANTEIL = 0.5;      // Licht pro Durchgang bei 180°
-const SCHULTER = 0.7;    // ab wo die Lichter beim Aufsummieren weich auslaufen
-const KIPPBREITE = 0.5;  // wie allmählich die Solarisation kommt (in Belichtung; 1 mehr dauert bei 12 fps etwa 20 s)
-const EIN = 1.2;         // Lith: so lange sinkt das Bild am Anfang des Haltens ins Schwarz (s)
-const HART = 2.5;        // Lith: wie schnell der Film schwärzt (ein Durchgang mit vollem Licht bei 180° gibt etwa 70 %)
-const MATERIAL = ['Sandwich', 'Lith', 'Aufsummieren', 'Farbschichten'];
-// aufsummiertes Licht im Verhältnis zum ersten Bild: wächst mit jedem Durchgang, logarithmisch wie eine Schwärzungskurve
-const gewinnOf = W => 1 + 0.9 * Math.log(W);
+// Überblendung beim Loslassen: beginnt und endet weich (ohne Ruck, auch in der Geschwindigkeit; linear wirkte das Ende hart)
+const weich = t => t * t * t * (t * (6 * t - 15) + 10);
 const mk2d = () => { const c = document.createElement('canvas'); return [c, c.getContext('2d', { alpha: false })]; };
 
 export default {
@@ -112,14 +80,9 @@ export default {
   an: 'labor',
   uebernimmtHalten: true,            // beim Halten dreht die Kurbel weiter
   params: {
-    material: { typ: 'wahl', werte: MATERIAL, def: 'Sandwich', titel: 'Accum. Material' },
     lichthof: { typ: 'schalter', def: true, titel: 'Lichthof (Schein um helle Stellen, wächst mit der Haltezeit)' },
     hof: { min: 0, max: 4, def: 0.4, schritt: 0.05, titel: 'Stärke Lichthof' },
     loslassen: { min: 0, max: 3, def: 0.6, schritt: 0.05, titel: 'Überblendung beim Loslassen', einheit: ' s' },
-    // vorübergehend, bis die Werte stimmen (Karte 1d)
-    schwelle: { min: 0.3, max: 1, def: 0.75, schritt: 0.01, titel: 'Lith: Schwelle (Helligkeit, ab der belichtet wird)' },
-    kippen: { min: 2, max: 60, def: 8, schritt: 1, titel: 'Aufsummieren: hellste Lichter kippen nach (bei 12 fps, 180°)', einheit: ' s' },
-    farben: { min: 0, max: 0.5, def: 0.1, schritt: 0.01, titel: 'Farbschichten: Abstand' },
   },
   setup(ctx){
     this.cv = document.createElement('canvas');
@@ -157,15 +120,14 @@ export default {
     if (!this.gl) return;
     const gl = this.gl;
     this.cv.width = W; this.cv.height = H; this.W = W; this.H = H;
-    // zwei Sätze (A: linear, B: log, C: Lith) zum Hin-und-her-Rechnen
+    // zwei Paare (A: linear, B: log) zum Hin-und-her-Rechnen
     this.paar = [0, 1].map(() => {
-      const A = this.textur(W, H), B = this.textur(W, H), C = this.textur(W, H), fb = gl.createFramebuffer();
+      const A = this.textur(W, H), B = this.textur(W, H), fb = gl.createFramebuffer();
       gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, A, 0);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, B, 0);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT2, gl.TEXTURE_2D, C, 0);
-      gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1, gl.COLOR_ATTACHMENT2]);
-      return { A, B, C, fb };
+      gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+      return { A, B, fb };
     });
     // Lichthof: zwei kleine Texturen (ein Sechzehntel), 16 Bit, weich gefiltert
     this.hw = Math.max(2, Math.round(W / 16)); this.hh = Math.max(2, Math.round(H / 16));
@@ -182,7 +144,7 @@ export default {
     this.i = 0;
   },
   // ein Durchgang: das neue Licht kommt mit seinem Anteil zum gesammelten
-  sammeln(ctx, quelle, start, anteil, gewicht){
+  sammeln(ctx, quelle, start, anteil){
     const gl = this.gl, von = this.paar[this.i], nach = this.paar[1 - this.i];
     gl.bindTexture(gl.TEXTURE_2D, this.src);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, quelle);
@@ -192,9 +154,7 @@ export default {
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.src); gl.uniform1i(this.pS.u('uSrc'), 0);
     gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, von.A); gl.uniform1i(this.pS.u('uA'), 1);
     gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, von.B); gl.uniform1i(this.pS.u('uB'), 2);
-    gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, von.C); gl.uniform1i(this.pS.u('uC'), 3);
-    gl.uniform1f(this.pS.u('uAnteil'), anteil); gl.uniform1f(this.pS.u('uGewicht'), gewicht); gl.uniform1i(this.pS.u('uStart'), start ? 1 : 0);
-    gl.uniform1f(this.pS.u('uLith'), Math.pow(this.p.schwelle, 2.2));
+    gl.uniform1f(this.pS.u('uAnteil'), anteil); gl.uniform1i(this.pS.u('uStart'), start ? 1 : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     this.i = 1 - this.i;
   },
@@ -204,9 +164,7 @@ export default {
     gl.viewport(0, 0, this.hw, this.hh);
     gl.bindFramebuffer(gl.FRAMEBUFFER, h0.fb); gl.useProgram(this.pK.pr);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, akt.A); gl.uniform1i(this.pK.u('uA'), 0);
-    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, akt.C); gl.uniform1i(this.pK.u('uC'), 1);
     gl.uniform1f(this.pK.u('uGewinn'), gewinn); gl.uniform2f(this.pK.u('uPix'), 1 / this.W, 1 / this.H);
-    gl.uniform1i(this.pK.u('uLith'), this.p.material === 'Lith' ? 1 : 0); gl.uniform1f(this.pK.u('uHart'), HART);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     const sigma = Math.min(4, 0.6 * (1 + Math.log(this.gewicht)));   // Breite in kleinen Pixeln (1 klein = 16 gross), wächst mit dem Licht
     for (const [von, nach, dx, dy] of [[h0, h1, 1 / this.hw, 0], [h1, h0, 0, 1 / this.hh]]){
@@ -218,40 +176,24 @@ export default {
   },
   zeigen(ctx){
     const gl = this.gl, akt = this.paar[this.i], p = this.p;
-    const gewinn = gewinnOf(this.gewicht);
+    // aufsummiertes Licht im Verhältnis zum ersten Bild: wächst mit jedem Durchgang, logarithmisch wie eine Schwärzungskurve.
+    // Davon hängt ab, wie stark helle Stellen streuen.
+    const gewinn = 1 + 0.9 * Math.log(this.gewicht);
     if (p.lichthof) this.lichthof(ctx, akt, gewinn);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, this.W, this.H);
     gl.useProgram(this.pZ.pr);
-    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, akt.A); gl.uniform1i(this.pZ.u('uA'), 0);
     gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, akt.B); gl.uniform1i(this.pZ.u('uB'), 1);
     gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, this.hof[0].tx); gl.uniform1i(this.pZ.u('uH'), 2);
-    gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, akt.C); gl.uniform1i(this.pZ.u('uC'), 3);
-    gl.uniform1f(this.pZ.u('uHart'), HART);
-    gl.uniform1i(this.pZ.u('uMat'), Math.max(0, MATERIAL.indexOf(p.material))); gl.uniform1f(this.pZ.u('uGewinn'), gewinn);
-    gl.uniform1f(this.pZ.u('uSchulter'), SCHULTER);
-    // Kippen: so viel Belichtung, wie die hellsten Lichter (1) nach `kippen` s bei 12 fps und 180° haben (6 Durchgänge pro s)
-    gl.uniform1f(this.pZ.u('uKipp'), gewinnOf(1 + 12 * ANTEIL * p.kippen)); gl.uniform1f(this.pZ.u('uKippBreite'), KIPPBREITE);
-    gl.uniform1f(this.pZ.u('uFarb'), p.farben);
-    gl.uniform1f(this.pZ.u('uEin'), this.ein(ctx));
     gl.uniform1f(this.pZ.u('uHof'), p.lichthof ? p.hof * Math.min(1, Math.log(this.gewicht) / 1.5) : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     this.stapelG.drawImage(this.cv, 0, 0);
   },
-  // Lith: Anteil des frischen Bilds am Anfang des Haltens (1 → 0, weich)
-  ein(ctx){
-    if (this.p.material !== 'Lith') return 0;
-    const t = Math.min(1, (ctx.jetzt - this.t0) / (EIN * 1000));
-    return 1 - t * t * (3 - 2 * t);
-  },
   tick(ctx){
-    if (this.aktiv){
-      if (this.gl && this.ein(ctx) > 0){ this.zeigen(ctx); ctx.zeichne(); }   // das Absinken ins Schwarz läuft flüssig, nicht nur pro Kurbelbild
-      ctx.bildfenster.drawImage(this.stapel, 0, 0);                         // der Greifer zeichnet sonst den laufenden Film darüber
-    }
+    if (this.aktiv) ctx.bildfenster.drawImage(this.stapel, 0, 0);          // der Greifer zeichnet sonst den laufenden Film darüber
     else if (this.fade) this.mischen(ctx);
   },
   mischen(ctx){
-    const f = this.fade, a = f.dauer > 0 ? (ctx.jetzt - f.t0) / f.dauer : 1;
+    const f = this.fade, a = f.dauer > 0 ? weich(Math.min(1, (ctx.jetzt - f.t0) / f.dauer)) : 1;
     if (!f.frisch) return;                                               // noch kein frisches Bild seit dem Loslassen
     if (a >= 1){ ctx.bildfenster.drawImage(this.frisch, 0, 0); this.fade = null; ctx.zeichne(); return; }
     const g = ctx.bildfenster;
@@ -265,8 +207,8 @@ export default {
     if (steht){
       // Licht dieses Durchgangs: die Blende bestimmt den Anteil, geschlossen kommt nichts dazu
       const w = ANTEIL * Math.max(0, ctx.belichtung.winkel) / 180;
-      if (!this.aktiv){ this.aktiv = true; this.fade = null; this.gewicht = 1; this.t0 = ctx.jetzt; this.sammeln(ctx, bild.belichtet, true, 1, 1); }
-      else if (w > 0){ this.gewicht += w; this.sammeln(ctx, bild.belichtet, false, w / this.gewicht, w); }
+      if (!this.aktiv){ this.aktiv = true; this.fade = null; this.gewicht = 1; this.sammeln(ctx, bild.belichtet, true, 1); }
+      else if (w > 0){ this.gewicht += w; this.sammeln(ctx, bild.belichtet, false, w / this.gewicht); }
       this.zeigen(ctx);
       bild.g.drawImage(this.stapel, 0, 0);
       return;

@@ -2,6 +2,12 @@
 
 Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder aufmachen ohne neuen Anlass.
 
+## 2026-10-13
+
+- **Der jetzige Film: Stehender Film fest mit Sandwich und Lichthof 0,4.** Die Materialwahl (Accum. Material) gehört ins Filmmaterial: Ein anderer Film verhält sich überall anders (jedes Bild, accum., Doppel), nicht nur beim Halten. Lith passt nur als ganzer Filmlook. Aufsummieren und Farbschichten werden dort eins (Farbschichten wirkt natürlicher). Ersetzt den Entscheid „Accum. Material“ vom 2026-10-12.
+
+- **Überblendung beim Loslassen mit weicher Kurve**, Dauer 0,6 s. Linear wirkte das Ende immer hart, egal wie lang.
+
 ## 2026-10-12
 
 - **Accum. Material** (Strategie-Chat): Die Materialwahl beim Stehenden Film heisst „Accum. Material“ und wirkt nur auf accum., nicht auf das normale Entwickeln (Kippen von Bild zu Bild würde flackern). Im Labor ein Fader mit Raststellen und Namen statt Zahlen. Graufilter fällt weg (wie Sandwich, leuchtet weniger). Neu ausprobieren: Lith und Farbschichten. Umkehrfilm und Solarisation werden zu „Aufsummieren“, die Solarisation kommt mit der Haltezeit (nach dem Test bestätigen). Doppel mit demselben Material: später, Schritt 2.

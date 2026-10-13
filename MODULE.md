@@ -17,7 +17,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 | Kammblende | Belichtung | verworfen als Bedienung | Code bleibt als Modul, im Labor schaltbar, nicht in der Bedienung |
 | Entwickeln | Entwickeln | abgenommen | Belichtung → Helligkeit, Anlaufblitz |
 | Greifer | Transport | mit Feder, auf dem iPhone getestet (2026-10-12) | Tippen = Stoss, Halten = Schlupf, Loslassen = Feder rastet ein (Runde 1a/1b). Werte fest, Rastkraft 170 |
-| Stehender Film | Transport | im Labor (1.2.4) | Runde 1d: zwei Finger = accum., Material Sandwich mit Lichthof 0,4 |
+| Stehender Film | Transport | im Labor (1.2.6) | Runde 1d: zwei Finger = accum., fest Sandwich mit Lichthof 0,4, Loslassen mit weicher Überblendung (0,6 s). Andere Materialien: Filmmaterial in `IDEEN.md` |
 | Bildstand | Projektor | abgenommen | neue Lage nur bei neuem Bild |
 | Überblendender Projektor | Projektor | im Labor, abgenommen (2026-10-12) | Runde 1c: Blendzeit = 2 × so lange die Blende offen ist |
 | Doppel | Aufnahme | abgenommen | auf dem iPhone bestätigt (2026-10-12) |
@@ -143,7 +143,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 ## Runde 1d: Stehender Film (Mehrfachbelichtung)
 
-**Status:** im Labor, 1.2.5 (2026-10-13): Accum. Material neu, wartet auf Maris’ iPhone-Test.
+**Status:** im Labor, 1.2.6 (2026-10-13): fest Sandwich mit Lichthof 0,4, Loslassen mit weicher Kurve. Die anderen Materialien sind ins Filmmaterial verschoben (`IDEEN.md`).
 
 **Herkunft:** Das Stapeln im Greifer („Film steht“). Maris 2026-10-12: „das Aufsummieren zu Glühen und Ausbreiten ist spannend“. Hier ohne Greiferbewegung, als eigenes Modul. Hintergrund in `IDEEN.md` (Stehender Film, Mehrumlauf-Blende).
 
@@ -157,7 +157,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 - **Loslassen:** Der Greifer zieht ein frisches Bild ins Fenster, weich übergeblendet, nie ein harter Sprung. Benutzt die Überblendung aus 1c, deshalb nach 1c.
 - Kurbel-Label beim Halten mit offener Blende: „belichtet mehrfach“ statt „hält“ (Wortlaut mit Maris klären).
 
-**Accum. Material (neu, Strategie-Chat 2026-10-12, gebaut 2026-10-13):** Die Wahl heisst **„Accum. Material“**. Sie sagt, wie die Schichten beim Halten zusammenkommen, und wirkt **nur auf accum.**, nicht auf das normale Entwickeln jedes Bilds (dort würde Kippen von Bild zu Bild flackern). Doppel kommt eventuell später dazu (Kopplung, Schritt 2, siehe `IDEEN.md`).
+**Accum. Material (Strategie-Chat 2026-10-12, gebaut in 1.2.5, nach dem iPhone-Test 2026-10-13 wieder herausgenommen, siehe Notizen; der Code liegt im Commit c2a21dd):** Die Wahl heisst **„Accum. Material“**. Sie sagt, wie die Schichten beim Halten zusammenkommen, und wirkt **nur auf accum.**, nicht auf das normale Entwickeln jedes Bilds (dort würde Kippen von Bild zu Bild flackern). Doppel kommt eventuell später dazu (Kopplung, Schritt 2, siehe `IDEEN.md`).
 - **Im Labor: Fader mit Raststellen statt Zahlen.** Der Fader springt auf feste Stellen und zeigt den Namen („Sandwich“, „Lith“ …), keine Zahl, keine Zwischenwerte. Dafür braucht das Labor einen neuen Param-Typ (z. B. `typ: 'wahl'` mit Liste der Namen), in `CLAUDE.md` bei der Schnittstelle nachtragen.
 - **Raststellen**, von dunkel nach hell:
   1. **Sandwich** (Grundstellung, wie heute): Schichten übereinander wie Dias oder Bipack im Kopierwerk. Schatten setzen sich durch, Bewegtes verschwindet. Kippt nie.
@@ -171,7 +171,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 
 **Umsetzung:** Station Transport, nach dem Greifer. Gesammelt wird in linearem Licht, die Kennlinie des Materials kommt erst beim Zeigen. Lange Stapel brauchen höhere Genauigkeit (WebGL mit Half-Float), sonst Farbstufen und eingefrorene Geister. Der Kontaktbogen braucht eine Möglichkeit, Halten für eine bestimmte Dauer auszulösen.
 
-**Parameter (Labor):** Accum. Material (Fader mit Raststellen), Lichthof an/aus und Stärke, Dauer der Überblendung beim Loslassen. Für die neuen Raststellen vorübergehend: Schwelle Lith, Zeitpunkt des Kippens (Aufsummieren), Abstand der Farbschichten. Fliegen wieder raus, sobald die Werte stimmen.
+**Parameter (Labor):** Lichthof an/aus und Stärke (0,4), Dauer der Überblendung beim Loslassen (0,6 s). In 1.2.5 dazu Accum. Material und drei vorübergehende Regler (Schwelle Lith, Kippen, Abstand der Farbschichten), seit 1.2.6 wieder weg.
 
 **Kontaktbogen (neu):** Raststellen Sandwich, Lith, Aufsummieren, Farbschichten. Je ein Standbild nach 2 s, 5 s, 15 s und 30 s Halten (30 s zeigt das Kippen), bei 6 und 18 fps, Blende 180°. Quellen: Demo und Nachtlichter.
 
@@ -216,6 +216,13 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
   - *Farbschichten:* wie Aufsummieren, aber im Überbelichteten (über 1) ist Rot um den Abstand schneller und Blau langsamer. Rot kippt zuerst, gekippte Kerne werden erst cyan, dann blau, dann dunkel. Mit Abstand 0,15 waren die Kerne nach 15 s kräftig blau (eher Farbkorrektur), darum Grund 0,1.
   - Kontaktbögen mit neuem Testvideo `tests/out/laternen-hell.mp4` (drei voll überstrahlte Laternen, ein mittelhelles Fenster, ein fahrendes Licht; das alte Nachtvideo erreicht nur etwa halbe Helligkeit und kippt nie) und Demo, 6/12/18 fps, Blende 180°, nach 2/5/15/30 s. Lith: Fenster bleibt schwarz, Spur bleibt und wächst. Aufsummieren: Kippen allmählich ab etwa 10 s. Loslassen bei allen ohne Sprung. Eckige Höfe bei Lith auf Schwarz behoben (die Glocke des Verwischens läuft am Rand auf null aus, bei den anderen Materialien kaum ein Unterschied).
 
+- **2026-10-13, iPhone-Test 1.2.5 (Maris):**
+  - *Lith:* gehört zum ganzen Filmlook, nicht nur zu accum. („macht kein Sinn“ allein).
+  - *Aufsummieren und Farbschichten:* kaum ein Unterschied, könnten eins sein. Farbschichten wirkt etwas natürlicher.
+  - *Sandwich mit Lichthof 0,4:* auch am Tag ein guter Wert. Lichthof 0,4 war in der Nacht super, am Tag (bei den aufsummierenden Materialien) fast zu extrem.
+  - *Überblendung beim Loslassen:* fühlt sich nicht gut an, zu lang oder zu kurz, der Übergang von überblendet zu einem Bild ist immer zu hart. Etwa 0,6 s ist ein guter Mittelwert, gewünscht ist eine Easing-Kurve.
+  - *Entscheid:* Die Materialwahl gehört ins Filmmaterial (andere Filme mit eigenem Verhalten). Der jetzige Film nimmt fest Sandwich mit Lichthof 0,4.
+- **2026-10-13, umgesetzt in 1.2.6:** Accum. Material, Lith-Sammelschicht und die drei vorübergehenden Regler entfernt. Der Stehende Film zeigt nur noch Sandwich mit Lichthof (spart eine Sammelschicht, also Speicher auf dem iPhone). Die Überblendung beim Loslassen läuft mit einer weichen Kurve (6t⁵ − 15t⁴ + 10t³): Sie beginnt und endet ohne Ruck, auch in der Geschwindigkeit. Linear änderte sich das Bild bis zum letzten Moment gleich schnell und stand dann plötzlich still, das wirkte wie ein Sprung. Kontaktbogen Laternen 12 fps: Der Hof klingt über etwa 0,5 s weich aus, ohne Knick am Ende. Der Param-Typ `wahl` bleibt im Labor für später. Der Rand des Lichthofs (Glocke läuft auf null aus) bleibt auch drin.
 ---
 
 ## Runde 2: Linse (das kaputte iPhone)
