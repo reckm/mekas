@@ -3,7 +3,7 @@ import { ctx, intern, einst, $ } from './zustand.js?v=1.2.6';
 import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=1.2.6';
 import { VERSION } from './version.js?v=1.2.6';
 import { wert, setze, istAn, schalte, hinweise, setSize, modul, haltenUebernommen } from './kette.js?v=1.2.6';
-import { padStoss } from './anstoss.js?v=1.2.6';
+import { padStoss, koppeln } from './anstoss.js?v=1.2.6';
 import { fpsOf, zoomOf } from './kurbel.js?v=1.2.6';
 import { persist } from './speicher.js?v=1.2.6';
 import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=1.2.6';
@@ -77,9 +77,11 @@ function vReadText(){
 let lastGrip = '';
 export function renderGrip(){
   const e = ctx.eingabe, y = e.greiferHaelt ? e.greiferY : 0.6, x = e.greiferHaelt ? e.greiferX : 0.5;
-  const key = x.toFixed(3) + '|' + y.toFixed(3);
+  const gekoppelt = wert('anstossen', 'gekoppelt') !== false;
+  const key = x.toFixed(3) + '|' + y.toFixed(3) + '|' + gekoppelt;
   if (key === lastGrip) return;
   lastGrip = key;
+  $('#btnRuck').setAttribute('aria-pressed', String(gekoppelt));
   $('#gknob').style.left = (x * 100) + '%';
   $('#gknob').style.top = ((1 - y) * 100) + '%';
   $('#gZline').style.top = ((1 - 0.6) * 100) + '%';
@@ -232,6 +234,12 @@ export function initBedienung(){
     else if (e.key === 'ArrowDown') stossVon(0.5, 0.3);
     else return;
     e.preventDefault(); e.stopPropagation();
+  });
+  // Knopf über dem Greifer: Gyroskop koppeln oder entkoppeln (nur der Ruck, Schwenken hat seinen Schalter im Menü)
+  $('#btnRuck').addEventListener('click', () => {
+    const an = wert('anstossen', 'gekoppelt') === false;
+    koppeln(an); renderGrip(); persist();
+    lesen(an ? 'Gyroskop gekoppelt' : 'Gyroskop entkoppelt');
   });
 
   /* sheets */

@@ -110,4 +110,5 @@ Skizzen ab jetzt im Labor mit Live-Kamera und Video auf dem iPhone, nicht mehr a
 - **Labor: geteilte Ansicht** (links mit, rechts ohne Modul). Braucht die Kette zweimal pro Bild. Erst, wenn klar ist, wie viel Rechenzeit das iPhone übrig hat.
 - **Greifer-Pad und Blendenfader liegen über dem Einstellungsblatt** (auf dem Handy rechts unten). War in der alten `mekas.html` schon so.
 - **Veraltete Meldungen:** „Öffne die Datei direkt im Browser“ (Kamera gesperrt, Sichern) stammt aus der Zeit vor GitHub Pages. Die Texte im Menü sind schon angepasst.
+- **Querformat: Das Greifer-Pad deckt den Knopf Einstellungen zu** (aufgefallen 2026-10-13 beim Gyroskop-Knopf, 844×390): Die rechte Spalte reicht bis fast an den oberen Rand und liegt über dem Zahnrad. Dazu achtet die Spalte nicht auf den seitlichen sicheren Rand (Notch im Querformat).
 - **Seitliches Spiel im Filmkanal** (Runde 1b, Labor-Schalter): war kaum zu sehen und ist wieder raus. Falls es fehlt: grösserer Weg, nur bei kräftigem seitlichem Stoss.

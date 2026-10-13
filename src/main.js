@@ -17,6 +17,7 @@ if (saved.res === 1280 || saved.res === 1920) einst.resCap = saved.res;
 if (saved.timeMode === 'under' || saved.timeMode === 'hold') ctx.zeitModus = saved.timeMode;
 if (typeof saved.expo === 'number') setze('blende', 'winkel', clamp01(saved.v === KEY_VER ? saved.expo : saved.expo / 2) * 360);
 if (saved.swivel === false) modul('schwenken').an = false;
+if (typeof saved.ruck === 'boolean') setze('anstossen', 'gekoppelt', saved.ruck);
 if (typeof saved.jitter === 'number') setze('handkurbel', 'unruhe', clamp01(saved.jitter)); else if (saved.jitter === false) setze('handkurbel', 'unruhe', 0);
 if (typeof saved.startFlash === 'boolean') setze('entwickeln', 'anlaufblitz', saved.startFlash);
 if (typeof saved.weave === 'number') setze('bildstand', 'staerke', Math.max(0, Math.min(100, saved.weave)) / 100);

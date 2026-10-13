@@ -11,7 +11,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 | Modul | Station | Status | Bemerkung |
 |---|---|---|---|
 | Kurbel | Takt (Kern) | abgenommen | 4–24 fps, 4–12 auf 0–80 % des Wegs |
-| Anstossen | Kern | auf dem iPhone getestet (2026-10-12) | Tippen aufs Greifer-Pad und Ruck mit dem Telefon (Gyroskop, alle Achsen, Schwelle 30 °/s, sättigend) |
+| Anstossen | Kern | auf dem iPhone getestet (2026-10-12) | Tippen aufs Greifer-Pad und Ruck mit dem Telefon (Gyroskop, alle Achsen, Schwelle 30 °/s, sättigend). Knopf über dem Greifer koppelt das Gyroskop ab und an (2026-10-13) |
 | Handkurbel | Takt | abgenommen | eigenes Modul seit Runde 0: Unregelmässigkeit in der Mikrozeit |
 | Blende | Belichtung | abgenommen | 0–360°, unter 36° gegen Schwarz. **Seitwärts-Achse (Schlitze) entfällt** |
 | Kammblende | Belichtung | verworfen als Bedienung | Code bleibt als Modul, im Labor schaltbar, nicht in der Bedienung |
@@ -90,6 +90,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 - 2026-10-12, iPhone: Gyroskop wirkte nicht, keine Frage nach der Berechtigung (vermutlich schon beim Schwenken erteilt). Geändert: Ein Ruck zählt jetzt auf allen drei Drehachsen (vorher nur zwei, und die Querrichtung erreichte den Greifer nicht), Schwelle 220 → 150 °/s. Das Labor zeigt unter „Kern“ den Sensorstatus, ob Daten kommen, und den höchsten Ruck der letzten 3 s. Gesperrter Sensor gibt jetzt eine Meldung.
 - 2026-10-12, 1.1.2: Gyroskop geht in der normalen Bedienung, im Labor nicht. Ursache: Das Labor hatte alle Werte von 1.1.1 gespeichert (Schwelle 220). Ab 1.1.3 merkt es sich nur selbst verstellte Werte, alte Stände werden einmal verworfen, neuer Knopf „Zurücksetzen“.
 - 2026-10-12, Maris: Gyroskop zu energisch, lieber empfindlicher und weicher, Feder langsamer. Neue Grundwerte: Schwelle 30 °/s, Empfindlichkeit 0,1 mit sättigender Kennlinie (kleine Rucke wirken, ein harter Ruck reicht knapp ins nächste Bild), Rastkraft 170 statt 360 (≈ 2 Hz statt 3 Hz), Dämpfung 0,5, Stärke Pad 14 (Tippen fühlt sich gleich an wie vorher). Ein stärkerer Ruck kurz nach einem kleinen wird nicht mehr von der Sperre verschluckt.
+- 2026-10-13, Knopf zum Entkoppeln (Phase A): Maris wählt den Platz **über dem Greifer-Pad**, er schaltet **nur den Ruck** (Schwenken hat seinen Schalter im Menü). Kleiner runder Knopf (40 px) mit Telefon und Bögen, entkoppelt gedämpft und durchgestrichen, beim Antippen kurz „Gyroskop gekoppelt“ bzw. „entkoppelt“ neben dem Pad. Im Querformat ist die Spalte voll, dort sitzt er links neben dem Pad unter der oberen Leiste. Der Zustand bleibt gespeichert (`kurbel.v3`, Feld `ruck`), im Labor als Schalter „Gyroskop gekoppelt“ unter Anstossen. Koppeln fragt gleich nach dem Sensor (ein echter Tipp). Getestet mit simuliertem Ruck in Chrome (375×812 und 844×390): entkoppelt kein Stoss, gekoppelt wie vorher. Rauchtest grün.
 
 ---
 

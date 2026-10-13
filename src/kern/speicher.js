@@ -16,6 +16,7 @@ export function persist(){
     startFlash: wert('entwickeln', 'anlaufblitz') ?? true, weave: Math.round((wert('bildstand', 'staerke') ?? 0.35) * 100),
     ton: $('#ton').checked, lastMode: ctx.quelle, facing: ctx.facing, res: einst.resCap, mirrorView: einst.mirrorView, mirrorRec: einst.mirrorRec,
     avDelay: einst.avDelayMs, x: ctx.kurbel.zielX, y: ctx.kurbel.zielY, swivel: sw ? sw.an : true, timeMode: ctx.zeitModus, v: KEY_VER,
+    ruck: wert('anstossen', 'gekoppelt') !== false,
   };
   // im Labor nur, was von der Grundeinstellung abweicht: so kommen neue Grundwerte auch im Labor an
   if (ctx.labor){

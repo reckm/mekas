@@ -96,6 +96,15 @@ button{font-family:inherit;color:inherit}
 .gpad .ends{position:absolute;left:0;right:0;text-align:center;font-size:.6rem;letter-spacing:.04em;opacity:.75;pointer-events:none}
 .gpad .ends.t{top:8px}.gpad .ends.b{bottom:8px}
 .gripper .readout{bottom:auto;top:40%;left:auto;right:calc(100% + 12px);transform:translateY(-50%)}
+/* Gyroskop koppeln: klein über dem Greifer, entkoppelt gedämpft und durchgestrichen */
+.ruck{width:40px;height:40px;border-radius:50%;border:2px solid rgba(239,236,243,.5);background:rgba(13,12,16,.55);display:grid;place-items:center;cursor:pointer;padding:0;flex:none}
+.ruck svg{width:22px;height:22px;stroke:var(--paper);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ruck .aus{display:none}
+.ruck[aria-pressed="false"]{border-color:rgba(239,236,243,.22)}
+.ruck[aria-pressed="false"] svg{opacity:.5}
+.ruck[aria-pressed="false"] .aus{display:inline}
+/* im Querformat ist die Spalte voll: links neben den Greifer, unter die obere Leiste */
+@media (max-height:520px){.ruck{position:absolute;top:52px;right:calc(100% + 10px)}}
 .slotlabel small{display:block;font-size:.66rem;opacity:.8}
 #vLabel{min-height:2.3em}
 

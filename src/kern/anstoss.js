@@ -13,6 +13,7 @@ export const anstoss = {
     gyro: { min: 0, max: 0.4, def: 0.1, schritt: 0.005, titel: 'Empfindlichkeit Gyroskop (Stärke eines harten Rucks)' },
     schwelle: { min: 10, max: 800, def: 30, schritt: 10, titel: 'Schwelle Gyroskop (darunter zählt nichts)', einheit: '°/s' },
     nurMitFinger: { typ: 'schalter', def: false, titel: 'Gyroskop nur mit Finger auf dem Pad' },
+    gekoppelt: { typ: 'schalter', def: true, titel: 'Gyroskop gekoppelt (Knopf über dem Greifer)' },
   },
   anzeige: { gyro: 0, spitze: 0, spitzeT: 0, letzter: 0, daten: 0 },   // fürs Labor: Ruck jetzt und höchster der letzten 3 s (°/s), letzter Stoss, Anzahl Sensordaten
 };
@@ -43,7 +44,7 @@ function onMotion(e){
   an.gyro = Math.max(mag, an.gyro * 0.97);
   if (mag > an.spitze || jetzt - an.spitzeT > 3000){ an.spitze = mag; an.spitzeT = jetzt; }
   const p = anstoss.p;
-  if (p.gyro <= 0) return;
+  if (p.gyro <= 0 || !p.gekoppelt){ spitze = null; return; }
   // innerhalb der Sperre zählt nur, was stärker ist als der letzte Stoss (eine kleine Bewegung vor dem Ruck verschluckt ihn nicht)
   const boden = jetzt < sperre ? Math.max(p.schwelle, zuletzt) : p.schwelle;
   if (mag > boden && (!spitze || mag >= spitze.mag)){ spitze = { mag, hu, hr, ha, boden }; return; }   // steigt noch: auf die Spitze warten
@@ -61,13 +62,21 @@ function onMotion(e){
 }
 
 let gemeldet = false;
+function freigeben(){
+  frage().then(s => {
+    if (s === 'gesperrt' && !gemeldet){ gemeldet = true; ctx.sag('Der Bewegungssensor ist gesperrt, Anstossen geht nur übers Pad. Safari fragt erst wieder nach dem Löschen der Website-Daten (Einstellungen › Apps › Safari › Erweitert › Website-Daten).', true); }
+  });
+}
+// Knopf über dem Greifer: entkoppelt gibt ein Ruck keinen Stoss mehr (Schwenken bleibt). Koppeln ist ein echter Tipp, also gleich nach dem Sensor fragen.
+export function koppeln(an){
+  anstoss.p.gekoppelt = !!an; spitze = null;
+  if (an && anstoss.p.gyro > 0) freigeben();
+}
 export function initAnstoss(){
   hoere(onMotion);
   // den Sensor beim ersten Tipp ins Spiel freigeben (nicht auf der Startkarte und in Blättern, dort fragen schon Kamera und Mikrofon)
   ['touchend', 'click'].forEach(ev => document.addEventListener(ev, e => {
-    if (anstoss.p.gyro <= 0 || (e.target && e.target.closest && e.target.closest('#startcard, .sheet'))) return;
-    frage().then(s => {
-      if (s === 'gesperrt' && !gemeldet){ gemeldet = true; ctx.sag('Der Bewegungssensor ist gesperrt, Anstossen geht nur übers Pad. Safari fragt erst wieder nach dem Löschen der Website-Daten (Einstellungen › Apps › Safari › Erweitert › Website-Daten).', true); }
-    });
+    if (anstoss.p.gyro <= 0 || !anstoss.p.gekoppelt || (e.target && e.target.closest && e.target.closest('#startcard, .sheet'))) return;
+    freigeben();
   }, true));
 }
