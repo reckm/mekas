@@ -1,4 +1,4 @@
-// Labor (nur mit ?labor): Quellen, die Module, die noch eingestellt werden, mit Ein/Aus und rohen Reglern, Rechenzeit.
+// Labor (nur mit ?labor): Quellen, Zurücksetzen, die Module, die noch eingestellt werden, mit Ein/Aus und rohen Reglern, Rechenzeit.
 // Speichert nur in `mekas.labor`, die normale Bedienung bleibt unberührt.
 import { ctx, $ } from '../kern/zustand.js?v=1.2.6';
 import { comma } from '../kern/mechanik.js?v=1.2.6';
@@ -8,7 +8,7 @@ import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=1.2.6';
 import { sammeln, sammeltNeu } from '../kern/sammeln.js?v=1.2.6';
 import { persist } from '../kern/speicher.js?v=1.2.6';
 import { setMode, startCam, loadFile } from '../kern/quelle.js?v=1.2.6';
-import { renderExpo, renderGrip, renderMenuWerte } from '../kern/bedienung.js?v=1.2.6';
+import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=1.2.6';
 import { oeffne as bauplan } from './bauplan.js?v=1.2.6';
 
 const STATION_TITEL = { takt: 'Takt', quelle: 'Quelle', belichtung: 'Belichtung', emulsion: 'Emulsion', entwickeln: 'Entwickeln', transport: 'Transport', projektor: 'Projektor' };
@@ -76,7 +76,11 @@ function baue(){
   bDemo.addEventListener('click', () => setMode('demo'));
   fIn.addEventListener('change', e => { loadFile(e.target.files && e.target.files[0]); e.target.value = ''; });
   q.append(bCam, bDemo, lVid);
-  inhalt.append(q);
+  const z = el('div', 'lab-zeile lab-knoepfe');
+  const bZurueck = el('button', 'pill', 'Zurücksetzen'); bZurueck.type = 'button';
+  bZurueck.addEventListener('click', zuruecksetzen);
+  z.append(bZurueck);
+  inhalt.append(q, z);
 
   // Module nach Stationen
   const zeilen = new Map();
@@ -159,6 +163,15 @@ function baue(){
       (anstoss.anzeige.daten ? '' : ', keine Daten') +
       ' · Ruck ' + Math.round(anstoss.anzeige.gyro) + ' °/s, höchster ' + Math.round(anstoss.anzeige.spitze) + ' °/s · letzter Stoss ' + comma(anstoss.anzeige.letzter.toFixed(1));
   }, 250);
+}
+
+// alle Module und Kern-Werte auf die Grundeinstellung, Module auf ihre Grundstellung ein/aus
+function zuruecksetzen(){
+  for (const m of [...module, ...kernteile]){
+    for (const [n, d] of Object.entries(m.params || {})) setze(m.id, n, d.def);
+    if (m.station && m.an !== m.grund) schalte(m.id, m.grund);
+  }
+  nachAenderung(); say('Labor auf die Grundeinstellung zurückgesetzt.');
 }
 
 // alle Werte auf einen Blick (für die Tests)

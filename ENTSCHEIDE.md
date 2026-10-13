@@ -6,7 +6,7 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 - **Labor nur für das, was noch eingestellt wird.** Abgenommenes und was auf dem Bildschirm oder im Menü schon einen Griff hat, verschwindet aus dem Labor. Die Übersicht gibt neu der **Bauplan** (Knopf neben LABOR): Architektur, Zusammenhänge, Abhängigkeiten statt Einzelwerte.
 - **Kammblende entfernt.** Maris braucht sie nicht.
-- **Im Labor oben nur Kamera, Demo, Video laden.** Vergleich, Schnappschuss und Zurücksetzen fallen weg.
+- **Im Labor oben nur Kamera, Demo, Video laden und Zurücksetzen** (auf die Grundeinstellung). Vergleich und Schnappschuss fallen weg.
 - **Entwickeln gehört eher zum Filmmaterial** (Maris). Im Labor fest, wird mit der Gedächtnis-Schicht (2b) Teil der Filme.
 
 - **Runde 2a: Der Stehende Film (accum.) sammelt vorerst weiter aus Kurbelbildern**, nicht aus den Teilbelichtungen. Sonst zählte die Zeit statt der Durchgänge, und die Kurbel verlöre bei accum. ihre Rolle (bei 24 fps baut es sich heute schneller auf als bei 4 fps). Umstellen erst in 2b, wenn der müde Entwickler auch bei accum. wirken soll.

@@ -137,8 +137,10 @@ def labor(page, browser_url):
     page.keyboard.press('Escape')
     if page.is_visible('#bauplan'):
         fehler.append('Bauplan: Escape schliesst nicht')
-    if page.locator('.lab-knoepfe .pill').count() != 3:
-        fehler.append('Labor: oben gehören nur Kamera, Demo und Video laden hin')
+    knoepfe = [k.strip() for k in page.eval_on_selector_all('.lab-knoepfe .pill', 'els => els.map(e => e.textContent)')]
+    if knoepfe != ['Kamera', 'Demo', 'Video laden', 'Zurücksetzen']:
+        fehler.append(f'Labor: oben {knoepfe}, erwartet Kamera, Demo, Video laden, Zurücksetzen')
+    page.click('text=Zurücksetzen')
     print(f'  Labor: {len(ids)} Module, Bauplan ok')
     ablauf(page, 'Labor')
 
