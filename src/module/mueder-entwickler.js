@@ -2,7 +2,7 @@
 // Frischer fliesst langsam aus der Umgebung und aus dem Tank nach, Anstossen rührt (sofort frisch). Ruhig halten ist
 // Standentwicklung. Grosse helle Flächen dämpfen sich selbst, kleine Lichter bleiben hell, hinter Bewegtem bleibt eine
 // dunkle Spur, die sich in Sekunden erholt. Die Maschine steht in kern/gedaechtnis.js, hier nur das Rezept.
-import { sammeltNeu } from '../kern/sammeln.js?v=1.2.6';
+import { sammeltNeu } from '../kern/sammeln.js?v=2.2.1';
 
 const BODEN = 0.35;       // so viel nimmt der Film auch mit ganz erschöpftem Entwickler noch an: nichts wird schwarz
 const RUEHREN = 6;        // wie schnell ein Stoss frischen Entwickler bringt (pro s und Rührstärke)

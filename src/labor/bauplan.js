@@ -1,11 +1,11 @@
 // Bauplan (nur mit ?labor): die ganze Architektur auf einem Blatt. Hände (was Maris spielt), die Kette (wodurch jedes Bild läuft)
 // und die Maschinen im Kern, mit Stand und Griff. Antippen zeigt, was von einem Teil abhängt (blau) und woran es hängt (weiss umrandet).
 // Nachführen, wenn ein Modul dazukommt oder sich eine Abhängigkeit ändert. Ein Modul ohne Eintrag erscheint trotzdem, mit Hinweis.
-import { ctx } from '../kern/zustand.js?v=1.2.6';
-import { comma, fmtFps } from '../kern/mechanik.js?v=1.2.6';
-import { VERSION } from '../kern/version.js?v=1.2.6';
-import { module, modul, wert, STATIONEN } from '../kern/kette.js?v=1.2.6';
-import { sammeln, sammeltNeu } from '../kern/sammeln.js?v=1.2.6';
+import { ctx } from '../kern/zustand.js?v=2.2.1';
+import { comma, fmtFps } from '../kern/mechanik.js?v=2.2.1';
+import { VERSION } from '../kern/version.js?v=2.2.1';
+import { module, modul, wert, STATIONEN } from '../kern/kette.js?v=2.2.1';
+import { sammeln, sammeltNeu } from '../kern/sammeln.js?v=2.2.1';
 
 // Stand: bedienung (in Maris' normaler Bedienung), labor (nur im Labor), geplant (Fahrplan, mit Runde)
 // an: woran ein Teil hängt (was es liest oder wer es spielt). griff: wo man es einstellt. jetzt: der Wert gerade.
@@ -175,7 +175,7 @@ function nachfuehren(){
 }
 
 function baue(){
-  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./bauplan.css?v=1.2.6', import.meta.url).href;
+  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./bauplan.css?v=2.2.1', import.meta.url).href;
   document.head.appendChild(link);
   blatt = el('div', 'bauplan'); blatt.id = 'bauplan'; blatt.hidden = true;
   blatt.setAttribute('role', 'dialog'); blatt.setAttribute('aria-label', 'Bauplan');

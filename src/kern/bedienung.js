@@ -1,15 +1,15 @@
 // Bedienung: Wischen übers Bild (Kurbel und Zoom), Halten, Blendenfader, Greifer-Pad, Blätter, Einstellungen, Tastatur, MIDI.
-import { ctx, intern, einst, $ } from './zustand.js?v=1.2.6';
-import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=1.2.6';
-import { VERSION } from './version.js?v=1.2.6';
-import { wert, setze, istAn, schalte, hinweise, setSize, modul, haltenUebernommen } from './kette.js?v=1.2.6';
-import { padStoss, koppeln } from './anstoss.js?v=1.2.6';
-import { fpsOf, zoomOf } from './kurbel.js?v=1.2.6';
-import { persist } from './speicher.js?v=1.2.6';
-import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=1.2.6';
-import { setAvDelay } from './ton.js?v=1.2.6';
-import { onRec, renderControls } from './aufnahme.js?v=1.2.6';
-import { zugOf, GREIFER } from '../module/greifer.js?v=1.2.6';
+import { ctx, intern, einst, $ } from './zustand.js?v=2.2.1';
+import { clamp01, comma, fmtFps, REF_ANGLE, TRANSPORT, transportOverlap } from './mechanik.js?v=2.2.1';
+import { VERSION } from './version.js?v=2.2.1';
+import { wert, setze, istAn, schalte, hinweise, setSize, modul, haltenUebernommen } from './kette.js?v=2.2.1';
+import { padStoss, koppeln } from './anstoss.js?v=2.2.1';
+import { fpsOf, zoomOf } from './kurbel.js?v=2.2.1';
+import { persist } from './speicher.js?v=2.2.1';
+import { startCam, setMode, renderSrc, vergissGroesse } from './quelle.js?v=2.2.1';
+import { setAvDelay } from './ton.js?v=2.2.1';
+import { onRec, renderControls } from './aufnahme.js?v=2.2.1';
+import { zugOf, GREIFER } from '../module/greifer.js?v=2.2.1';
 
 let toastTimer = 0;
 export function say(text, warn){

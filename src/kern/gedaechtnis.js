@@ -9,8 +9,8 @@
 //     z: Zustand, nb: Zustand der Nachbarn (verwischt um die Reichweite), L: Licht dieses Kamerabilds (linear, gemittelt),
 //     licht: so viele s fiel es bei offener Blende auf den Film, dt: s seit dem letzten Schritt, ruehren: Anstossen (0..1,5, klingt ab)
 //   vec3 wirkung(vec4 z, vec3 L)   wie viel vom Licht einer Teilbelichtung der Film annimmt
-import { ctx } from './zustand.js?v=1.2.6';
-import { module, istAn } from './kette.js?v=1.2.6';
+import { ctx } from './zustand.js?v=2.2.1';
+import { module, istAn } from './kette.js?v=2.2.1';
 
 const TEILER = 8;
 const FS_WISCH = `#version 300 es
