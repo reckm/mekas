@@ -27,7 +27,7 @@ function zeigeWert(d, v){
 const AUS_DEM_LABOR = {
   schwenken: { ganz: true, fest: ['bildwinkel'] },                 // Ein/Aus im Menü
   blende: { ganz: true, an: true },                                // Öffnung mit dem Fader
-  entwickeln: { ganz: true, an: true, fest: ['staerke'] },         // Anlaufblitz im Menü
+  entwickeln: { ganz: true, an: true, fest: ['staerke', 'anlaufblitz'] },   // Anlaufblitz immer an (Maris 2026-10-13)
   greifer: { ganz: true, an: true },
   stehenderfilm: { schalter: false, an: true, fest: ['lichthof'] },   // zwei Finger wählen ihn
   bildstand: { ganz: true, an: true },                             // Stärke im Menü

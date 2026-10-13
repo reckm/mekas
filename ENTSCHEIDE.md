@@ -4,6 +4,12 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 ## 2026-10-13
 
+- **Runde 2b: Der Stehende Film zieht nicht um.** Er stapelt Kurbelbilder, die schon durch den müden Entwickler gegangen sind, so wirkt der Film auch bei accum., und die Kurbel behält dort ihre Rolle.
+- **Ein Film ist ein Rezept der Gedächtnis-Schicht** (Modul an der Station Emulsion mit GLSL für Zustand und Wirkung), immer nur einer eingelegt.
+- **Müder Entwickler: Verbrauch wächst mit dem Quadrat der Helligkeit.** Linear verbraucht, wurde auch der mittelgraue Boden dunkler und das ganze Bild verlor etwa 6 % Helligkeit. So trifft es vor allem die hellen Flächen.
+- **Bromid-Schlieren erst nach 2b**, wenn der Grundzustand sitzt.
+- **Anlaufblitz immer an**, der Schalter im Menü fällt weg. **Handkurbel bleibt im Labor.**
+
 - **Labor nur für das, was noch eingestellt wird.** Abgenommenes und was auf dem Bildschirm oder im Menü schon einen Griff hat, verschwindet aus dem Labor. Die Übersicht gibt neu der **Bauplan** (Knopf neben LABOR): Architektur, Zusammenhänge, Abhängigkeiten statt Einzelwerte.
 - **Kammblende entfernt.** Maris braucht sie nicht.
 - **Im Labor oben nur Kamera, Demo, Video laden und Zurücksetzen** (auf die Grundeinstellung). Vergleich und Schnappschuss fallen weg.

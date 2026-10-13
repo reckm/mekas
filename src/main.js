@@ -19,7 +19,6 @@ if (typeof saved.expo === 'number') setze('blende', 'winkel', clamp01(saved.v ==
 if (saved.swivel === false) modul('schwenken').an = false;
 if (typeof saved.ruck === 'boolean') setze('anstossen', 'gekoppelt', saved.ruck);
 if (typeof saved.jitter === 'number') setze('handkurbel', 'unruhe', clamp01(saved.jitter)); else if (saved.jitter === false) setze('handkurbel', 'unruhe', 0);
-if (typeof saved.startFlash === 'boolean') setze('entwickeln', 'anlaufblitz', saved.startFlash);
 if (typeof saved.weave === 'number') setze('bildstand', 'staerke', Math.max(0, Math.min(100, saved.weave)) / 100);
 if (typeof saved.ton === 'boolean') $('#ton').checked = saved.ton;
 if (saved.facing === 'user' || saved.facing === 'environment') ctx.facing = saved.facing;

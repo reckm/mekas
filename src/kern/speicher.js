@@ -13,7 +13,7 @@ export function persist(){
   const sw = modul('schwenken');
   const s = {
     outFps: ctx.ausgabeFps, expo: (wert('blende', 'winkel') ?? 135) / 360, jitter: wert('handkurbel', 'unruhe') ?? 0.75,
-    startFlash: wert('entwickeln', 'anlaufblitz') ?? true, weave: Math.round((wert('bildstand', 'staerke') ?? 0.35) * 100),
+    weave: Math.round((wert('bildstand', 'staerke') ?? 0.35) * 100),
     ton: $('#ton').checked, lastMode: ctx.quelle, facing: ctx.facing, res: einst.resCap, mirrorView: einst.mirrorView, mirrorRec: einst.mirrorRec,
     avDelay: einst.avDelayMs, x: ctx.kurbel.zielX, y: ctx.kurbel.zielY, swivel: sw ? sw.an : true, timeMode: ctx.zeitModus, v: KEY_VER,
     ruck: wert('anstossen', 'gekoppelt') !== false,

@@ -4,9 +4,12 @@
 // Gesammelt wird in linearem Licht und Gleitkomma (WebGL2): Licht × Zeit und die Zeit selbst. Beim Schliessen der Blende
 // wird daraus das Mittel, zurück in Pixelwerte, und das geht wie bisher als `roh` ins Entwickeln.
 // Vor jeder Teilbelichtung kommt die Station `emulsion`: Dort können Module Gewicht und Farbempfindlichkeit ändern.
+// Ist ein Film eingelegt (Rezept der Gedächtnis-Schicht, kern/gedaechtnis.js), nimmt er jede Teilbelichtung so an,
+// wie es sein Zustand an dieser Stelle erlaubt, und jedes Kamerabild rechnet den Zustand weiter.
 import { ctx, intern, actx, mk } from './zustand.js?v=1.2.6';
 import { station } from './kette.js?v=1.2.6';
 import { sampleInto, vidCam, vidFile } from './quelle.js?v=1.2.6';
+import * as gedaechtnis from './gedaechtnis.js?v=1.2.6';
 
 export const sammeln = {
   id: 'sammeln',
@@ -22,14 +25,16 @@ const DEMO_T = 1000 / 30;          // die Demo filmt wie eine Kamera mit 30 Bild
 const VS = `#version 300 es
 in vec2 p; out vec2 v;
 void main(){ v = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }`;
-// eine Teilbelichtung: Licht × Zeit (rgb) und die Zeit (a), aufaddiert
-const FS_TEIL = `#version 300 es
+// eine Teilbelichtung: Licht × Zeit (rgb) und die Zeit (a), aufaddiert. Mit Film: so viel, wie er an dieser Stelle annimmt.
+const fsTeil = m => `#version 300 es
 precision highp float;
-uniform sampler2D uSrc; uniform vec3 uFilter; uniform float uLicht;
+uniform sampler2D uSrc, uZustand; uniform vec3 uFilter; uniform float uLicht;
+${m ? gedaechtnis.uniformsVon(m) + '\n' + m.rezept.wirkung : 'vec3 wirkung(vec4 z, vec3 L){ return vec3(1.0); }'}
 in vec2 v; out vec4 o;
 void main(){
   vec3 L = pow(texture(uSrc, vec2(v.x, 1.0 - v.y)).rgb, vec3(2.2));
-  o = vec4(L * uFilter * uLicht, uLicht);
+  vec4 z = ${m ? 'texture(uZustand, v)' : 'vec4(1.0)'};
+  o = vec4(L * wirkung(z, L) * uFilter * uLicht, uLicht);
 }`;
 // entwickeln: das Mittel über die Zeit, zurück in Pixelwerte
 const FS_MITTEL = `#version 300 es
@@ -43,6 +48,7 @@ void main(){
 }`;
 
 let gl = null, pTeil = null, pMittel = null, src = null, summe = null, fb = null, W = 0, H = 0;
+const teilProgramme = new Map();     // pro Film ein Programm für die Teilbelichtung
 const cv = document.createElement('canvas');
 const [teil, teilG] = mk();        // das Kamerabild, wie die Linse es sieht (Zoom, Schwenken, Spiegeln)
 
@@ -58,12 +64,13 @@ function einrichten(){
   gl = cv.getContext('webgl2', { premultipliedAlpha: false, preserveDrawingBuffer: true, antialias: false, alpha: false });
   if (!gl) throw new Error('kein WebGL2');
   if (!gl.getExtension('EXT_color_buffer_float') && !gl.getExtension('EXT_color_buffer_half_float')) throw new Error('kein Float-Rendern');
-  pTeil = programm(FS_TEIL); pMittel = programm(FS_MITTEL);
+  pTeil = programm(fsTeil(null)); pMittel = programm(FS_MITTEL);
+  gedaechtnis.richteEin(gl, programm);
   const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-  src = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, src);
-  for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.NEAREST], [gl.TEXTURE_MAG_FILTER, gl.NEAREST], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+  src = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, src);   // weich gefiltert: 1:1 gelesen ändert das nichts, die Gedächtnis-Schicht mittelt damit Blöcke
+  for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
   summe = gl.createTexture(); fb = gl.createFramebuffer();
 }
 try { einrichten(); } catch (e) { gl = null; sammeln.anzeige.fehler = String(e.message || e); }
@@ -83,12 +90,13 @@ export function groesse(w, h){
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, summe, 0);
   if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE){ sammeln.anzeige.fehler = 'Float-Fläche geht nicht'; gl = null; return; }
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gedaechtnis.groesse(w, h);
   z = null; akt.hoch = false;
 }
 
 /* ---------- das aktuelle Kamerabild ---------- */
-let akt = { t: 0, tBild: 0, hoch: false, licht: false };   // eingetroffen um t (ms), Zeit im Bild (Demo), schon hochgeladen, hat Licht bekommen
-let z = null, teile = 0, ms = 0;                           // z: das offene Kurbelbild
+let akt = { t: 0, tBild: 0, hoch: false, licht: false, summe: 0 };   // eingetroffen um t (ms), Zeit im Bild (Demo), schon hochgeladen, hat Licht bekommen, so viele s
+let z = null, teile = 0, ms = 0, schrittT = 0, tickT = 0;   // z: das offene Kurbelbild; schrittT: letzter Schritt der Gedächtnis-Schicht
 let rvfc = { cam: false, file: false }, meldung = { cam: 0, file: 0 }, demoK = -1, quelleZuletzt = null, gezaehlt = 0, zaehlT = 0;
 
 function hochladen(){
@@ -109,15 +117,23 @@ function offen(von, bis){
 function giesse(licht, filter){
   if (!akt.hoch) hochladen();                 // ist es schon weg (sehr kurzes Fenster zwischen zwei Animationsbildern), nimmt es das neue
   const t = performance.now();
+  const m = gedaechtnis.bereit() ? gedaechtnis.film() : null;
+  if (m && !teilProgramme.has(m.id)) teilProgramme.set(m.id, programm(fsTeil(m)));
+  const pr = m ? teilProgramme.get(m.id) : pTeil;
   gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.viewport(0, 0, W, H);
   gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
-  gl.useProgram(pTeil.pr);
-  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, src); gl.uniform1i(pTeil.u('uSrc'), 0);
-  gl.uniform3f(pTeil.u('uFilter'), filter[0], filter[1], filter[2]);
-  gl.uniform1f(pTeil.u('uLicht'), licht / 1000);
+  gl.useProgram(pr.pr);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, src); gl.uniform1i(pr.u('uSrc'), 0);
+  if (m){
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, gedaechtnis.zustandTex()); gl.uniform1i(pr.u('uZustand'), 1);
+    gedaechtnis.setzeWerte(pr, m); gl.activeTexture(gl.TEXTURE0);
+  }
+  gl.uniform3f(pr.u('uFilter'), filter[0], filter[1], filter[2]);
+  gl.uniform1f(pr.u('uLicht'), licht / 1000);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
   gl.disable(gl.BLEND);
   if (!akt.licht){ akt.licht = true; teile++; }
+  akt.summe += licht / 1000;
   ms += performance.now() - t;
 }
 // das aktuelle Kamerabild bekommt sein Licht aus der Zeitspanne [von, bis]
@@ -127,11 +143,21 @@ function belichte(von, bis){
   const b = station('emulsion', { t: von, licht, filter: [1, 1, 1] });
   if (b.licht > 0) giesse(b.licht, b.filter);
 }
+// die Gedächtnis-Schicht rechnet weiter: mit dem Licht, das seit dem letzten Schritt auf den Film fiel, und der vergangenen Zeit
+function schritt(t){
+  const dt = Math.min(0.2, Math.max(0, (t - schrittT) / 1000)); schrittT = t;
+  if (!sammeltNeu() || !gedaechtnis.film()) { akt.summe = 0; return; }
+  const tm = performance.now();
+  gedaechtnis.schritt(src, akt.summe, dt);
+  akt.summe = 0;
+  ms += performance.now() - tm;
+}
 // ein neues Kamerabild ist da: das alte bekommt sein Licht bis jetzt, dann gilt das neue
 function kamerabild(t, tBild){
   t = Math.max(t, akt.t);
   if (z) belichte(akt.t, t);
-  akt = { t, tBild: tBild ?? t, hoch: false, licht: false };
+  schritt(t);
+  akt = { t, tBild: tBild ?? t, hoch: false, licht: false, summe: 0 };
   gezaehlt++;
   // gleich hochladen, wenn die Blende offen ist oder bald öffnet (später zeigt das Video schon das nächste)
   if (sammeltNeu() && (z || (ctx.kurbel.fps > 0 && ctx.aufnahme !== 'developing' && (!intern.nextAt || intern.nextAt - t < 45)))) hochladen();
@@ -148,6 +174,7 @@ for (const [v, q] of [[vidCam, 'cam'], [vidFile, 'file']]){
 /* ---------- von der Kette aufgerufen ---------- */
 // jedes Animationsbild: Takt der Demo, neue Quelle, Kamerabilder zählen
 export function tick(now){
+  gedaechtnis.fuehle(Math.min(0.1, Math.max(0, (now - tickT) / 1000))); tickT = now;
   if (ctx.quelle !== quelleZuletzt){ quelleZuletzt = ctx.quelle; demoK = -1; kamerabild(now); }
   else if (ctx.quelle === 'demo'){ const k = Math.floor(now / DEMO_T); if (k !== demoK){ demoK = k; kamerabild(k * DEMO_T, k * DEMO_T); } }
   else {
@@ -158,6 +185,8 @@ export function tick(now){
   if (now - zaehlT >= 1000){ sammeln.anzeige.kameraFps = gezaehlt * 1000 / Math.max(1, now - zaehlT); gezaehlt = 0; zaehlT = now; }
   // hat das aktuelle Bild seit dem Eintreffen Licht bekommen, gleich hochladen, solange es noch zu sehen ist
   if (z && !akt.hoch && offen(akt.t, now) > 0) hochladen();
+  // kommt kein neues Kamerabild (Video steht), rechnet die Gedächtnis-Schicht trotzdem weiter: die Zeit läuft
+  if (now - schrittT > 50) schritt(now);
 }
 // die Blende öffnet: die Fläche leeren
 export function beginne(zyklus){

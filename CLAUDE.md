@@ -39,7 +39,7 @@ Taktgeber ist die **Kurbel** (4–24 Kurbelbilder pro Sekunde). Kamerabilder kom
 
 ### Kern und Module
 
-**Kern** (`src/kern/`, immer da): Kurbel mit fps-Skala, Zoom, Halten (zwei Finger oder Leertaste: die Kurbel steht, mit Stehendem Film dreht sie weiter und es heisst „accum.“; drei Finger oder Taste H: „hält“, friert genau das sichtbare Bild ein), Quellen, Doppel, Zeit-Modi, Klappe, Aufnahme, Speicher, Bedienung, dazu **Anstossen** (Stösse vom Greifer-Pad und vom Gyroskop, `kern/anstoss.js`), der **Schwinger** (`kern/schwinger.js`, gedämpfte Feder für Module), der geteilte **Bewegungssensor** (`kern/bewegung.js`, iPhone fragt nur einmal) und **Sammeln** (`kern/sammeln.js`, Teilbelichtungen). **Module** (`src/module/`): Handkurbel, Schwenken, Blende, Entwickeln mit Anlaufblitz, Greifer (mit Feder, Werte fest in `GREIFER`), Stehender Film und Überblendender Projektor (beide Grundstellung „nur im Labor an“), Bildstand. Die Reihenfolge der Kette steht in `src/module/liste.js`.
+**Kern** (`src/kern/`, immer da): Kurbel mit fps-Skala, Zoom, Halten (zwei Finger oder Leertaste: die Kurbel steht, mit Stehendem Film dreht sie weiter und es heisst „accum.“; drei Finger oder Taste H: „hält“, friert genau das sichtbare Bild ein), Quellen, Doppel, Zeit-Modi, Klappe, Aufnahme, Speicher, Bedienung, dazu **Anstossen** (Stösse vom Greifer-Pad und vom Gyroskop, `kern/anstoss.js`), der **Schwinger** (`kern/schwinger.js`, gedämpfte Feder für Module), der geteilte **Bewegungssensor** (`kern/bewegung.js`, iPhone fragt nur einmal), **Sammeln** (`kern/sammeln.js`, Teilbelichtungen) und die **Gedächtnis-Schicht** (`kern/gedaechtnis.js`, ein Zustand pro Stelle in einem Achtel der Auflösung, den Licht verändert und der sich erholt; ein Film ist ein Rezept dafür). **Module** (`src/module/`): Handkurbel, Schwenken, Blende, Müder Entwickler (der erste Film, Grundstellung „nur im Labor an“), Entwickeln mit Anlaufblitz (immer an), Greifer (mit Feder, Werte fest in `GREIFER`), Stehender Film und Überblendender Projektor (beide Grundstellung „nur im Labor an“), Bildstand. Die Reihenfolge der Kette steht in `src/module/liste.js`.
 
 **Vorerst wird nur im Labor gebaut** (Entscheid 2026-10-12): Neues bekommt die Grundstellung `an: 'labor'`, die normale Bedienung bleibt beim abgenommenen Stand, bis die Kamera fertig ist.
 
@@ -59,6 +59,7 @@ export default {
   },
   anstoss: ['y'],               // ab Runde 1: reagiert auf Anstossen (Achsen x/y)
   uebernimmtHalten: true,       // optional: beim Halten dreht die Kurbel weiter (Stehender Film)
+  rezept: { zustand, wirkung, reichweite },   // optional, nur an der Station emulsion: ein Film für die Gedächtnis-Schicht (GLSL, siehe kern/gedaechtnis.js); Regler heissen im GLSL p_<name>
   setup(ctx) {},                // einmal beim Start
   reset(ctx) {},                // neue Bildgrösse (auch wenn das Modul aus ist)
   ein(ctx) {},                  // optional: beim Einschalten
@@ -94,7 +95,7 @@ Regeln für Module:
 ```
 index.html          Mekas für Maris (nur Markup), lädt src/stil.css und src/main.js
 src/main.js         Start: Module einrichten, Einstellungen zurückholen, Schleife starten
-src/kern/           zustand (ctx), kette, sammeln, kurbel, quelle, ton, aufnahme, rekorder, filme, speicher, bedienung, mechanik, version
+src/kern/           zustand (ctx), kette, sammeln, gedaechtnis, kurbel, quelle, ton, aufnahme, rekorder, filme, speicher, bedienung, mechanik, version
 src/module/         ein Modul pro Datei, Reihenfolge in liste.js
 src/labor/          Labor-Oberfläche und Bauplan (nur mit ?labor geladen)
 tests/              Python-Playwright: rauch.py, bogen.py

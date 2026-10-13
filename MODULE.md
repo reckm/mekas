@@ -15,7 +15,8 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 | Handkurbel | Takt | abgenommen | eigenes Modul seit Runde 0: Unregelmässigkeit in der Mikrozeit |
 | Blende | Belichtung | abgenommen | 0–360°, unter 36° gegen Schwarz. **Seitwärts-Achse (Schlitze) entfällt** |
 | Kammblende | Belichtung | entfernt (2026-10-13) | Maris braucht sie nicht. Der Code liegt in der Geschichte des Repositorys (`src/module/kammblende.js` bis Commit 14624e9) |
-| Entwickeln | Entwickeln | abgenommen | Belichtung → Helligkeit, Anlaufblitz |
+| Müder Entwickler | Emulsion (Rezept der Gedächtnis-Schicht) | gebaut, im Labor (2026-10-13) | Runde 2b: der erste Film. Helles verbraucht Entwickler, Anstossen rührt |
+| Entwickeln | Entwickeln | abgenommen | Belichtung → Helligkeit, Anlaufblitz (immer an, Schalter im Menü weg seit 2026-10-13) |
 | Greifer | Transport | mit Feder, auf dem iPhone getestet (2026-10-12) | Tippen = Stoss, Halten = Schlupf, Loslassen = Feder rastet ein (Runde 1a/1b). Werte fest, Rastkraft 170 |
 | Stehender Film | Transport | im Labor (1.2.6) | Runde 1d: zwei Finger = accum., fest Sandwich mit Lichthof 0,4, Loslassen mit weicher Überblendung (0,6 s). Andere Materialien: Filmmaterial in `IDEEN.md` |
 | Bildstand | Projektor | abgenommen | neue Lage nur bei neuem Bild |
@@ -237,6 +238,7 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 - Was das Labor nicht zeigt, steht in `AUS_DEM_LABOR` (`src/labor/labor.js`). Ausgeblendete Module laufen im Labor immer in ihrer Grundstellung, ausgeblendete Werte gelten mit der Grundeinstellung (ein alter Labor-Stand kann nichts mehr unsichtbar verstellen). Werte mit einem Griff auf dem Bildschirm oder im Menü (Blende, Gyroskop gekoppelt, Bildstand, Anlaufblitz, Schwenken ein/aus) bleiben, wie sie dort stehen.
 - Bauplan (`src/labor/bauplan.js`): Hände, Kette mit acht Stationen (mit Aufnahme), Maschinen im Kern, Fahrplan. 36 Karten, davon 7 geplant (Linse, Farbsektoren, Filme, Foto-Modus, Gedächtnis-Schicht, Bildgedächtnis). Live: Kurbel, Zoom, Quelle, Blende, Gyroskop, Zeit, Teilbelichtungen pro Kurbelbild, accum. und hält. Auf dem Telefon zeigt nur die angetippte Karte Griff und Abhängigkeiten.
 - Labor-Tafel auf dem Telefon etwas kürzer, damit sie den Gyroskop-Knopf nicht verdeckt.
+- 2026-10-13, Maris: Handkurbel bleibt im Labor. Anlaufblitz immer an, der Schalter im Menü ist weg (ein gespeichertes „aus“ gilt nicht mehr).
 
 ---
 
@@ -285,6 +287,63 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 - Rechenzeit „Licht sammeln“ am Mac in Chrome: neu 0,15–0,36 ms, alt 0,09–0,11 ms pro Animationsbild. Auf dem iPhone noch messen.
 - Ohne WebGL2 (Chrome mit `--disable-webgl2`): altes Sammeln, das Labor zeigt „altes Sammeln (kein WebGL2)“, keine Fehler. Rauchtest schaltet neu und alt einmal um.
 - Kontaktbogen kann jetzt `--vergleich modul.param=wert` (eine Reihe mit diesem Wert daneben) und zeigt pro Reihe die mittlere Helligkeit.
+
+---
+
+## Runde 2b: Gedächtnis-Schicht mit dem Rezept „müder Entwickler“
+
+**Status:** gebaut, im Labor (2026-10-13, nicht veröffentlicht). iPhone-Test offen. Teil der Maschine **Gedächtnis** (`FAHRPLAN.md`, Phase B). Hintergrund: `IDEEN.md` (Ein Film, drei Zeitfenster) und die Recherche „Filmchemie physikalisch simulieren“ (Punkt 5, Filmulator).
+
+**Mechanik:** Im Entwicklertank verbraucht sich der Entwickler dort, wo viel Licht auf den Film gefallen ist. Frischer fliesst langsam aus der dunklen Umgebung und aus dem Tank nach, Rühren bringt sofort frischen. In Mekas liegt dafür eine Schicht über dem Bildfenster, die sich pro Stelle merkt, wie viel Entwickler noch da ist. Jedes Kamerabild, das Licht bringt, verbraucht davon, und mit der Zeit erholt sie sich, auch bei geschlossener Blende (die Zeit läuft). Wie stark eine Teilbelichtung auf den Film kommt, hängt davon ab, wie viel Entwickler an dieser Stelle noch da ist.
+
+**Bild:**
+- Grosse helle Flächen (Fenster, Himmel, Bühnenlicht) werden mit der Zeit gedämpft, kleine Lichter bleiben hell und funkeln.
+- Hinter bewegtem Hellem bleibt eine dunkle Spur, die sich in ein bis drei Sekunden erholt. Zieht Dunkles vor Hellem vorbei, erholt sich dort der Entwickler, und dahinter leuchtet es kurz heller nach.
+- Grosse helle Flächen bekommen weiche Säume: Ihr Rand ist heller als die Mitte, breit und weich, nie wie HDR oder „Klarheit“.
+- **Ruhig halten = Standentwicklung:** Die Wirkung wächst. **Anstossen (Pad, Ruck) = Rühren:** frischer Entwickler, Spuren und Säume verschwinden weich.
+- Kopplung an die Blende: weit offen gibt mehr Licht und damit mehr Verbrauch.
+- Kein Zufall, kein Korn, nichts Neues pro Kurbelbild, also kein Flackern.
+
+**Maschine (Kern, für alle späteren Filme):** `kern/gedaechtnis.js`, im selben WebGL wie das Sammeln. Der Zustand liegt in einem Achtel der Auflösung (160×90 bei 720p, 16 Bit). So ist er von selbst weich und kostet wenig, und genau deshalb verbraucht ein kleines Licht nur wenig. Pro Kamerabild laufen Verbrauch durch das Licht, Erholung über die Zeit, Ausbreitung zu den Nachbarn (eine kleine Unschärfe) und Rühren aus den Stössen. Beim Sammeln jeder Teilbelichtung wirkt der Zustand auf das Licht.
+- **Ein Film ist ein Rezept:** ein Modul an der Station `emulsion` mit zwei kurzen GLSL-Stücken (wie sich der Zustand ändert, wie er auf das Licht wirkt) und seinen Reglern. Es ist immer nur ein Film eingelegt. Lith, Röhre, Photochrom und Netzhaut (Runde 4) werden weitere Rezepte für dieselbe Maschine.
+
+**Rezept „müder Entwickler“:** Modul `mueder-entwickler`, Grundstellung nur im Labor. Zustand: Entwickler 0–1, frisch ist 1.
+- Verbrauch ∝ Helligkeit × Zeit offener Blende × vorhandener Entwickler.
+- Erholung zum frischen Wert mit einer Zeitkonstante.
+- Ausbreitung als weicher Ausgleich mit den Nachbarn.
+- Rühren: Ein Stoss holt den Entwickler weich Richtung frisch.
+- Wirkung: Licht × (Boden + (1 − Boden) × Entwickler). Der Boden sorgt dafür, dass nichts ganz schwarz wird.
+
+**Stehender Film:** zieht nicht um. Er stapelt Kurbelbilder, die schon durch den müden Entwickler gegangen sind. So wirkt der Film auch bei accum., und die Kurbel behält dort ihre Rolle (Entscheid von 2a).
+
+**Entwickeln** (Helligkeit aus der Belichtungszeit) bleibt vorerst, wie es ist. Es wird Teil der Filme, wenn es mehrere gibt (Filmdosen, Phase E).
+
+**Nicht in dieser Runde:** weitere Rezepte, Filmwahl in der Bedienung, Farbe pro Schicht (das wäre die Netzhaut).
+
+**Parameter (Labor):** Verbrauch, Erholung (s), Reichweite (wie weit frischer Entwickler nachfliesst). Rühren und Boden fest, nach dem Kontaktbogen eingestellt.
+
+**Kontaktbogen:** Testvideo mit grosser heller Fläche, kleinen Lichtern, einem hellen Licht in Bewegung und einer dunklen Gestalt, die vor der hellen Fläche vorbeizieht. Dazu das Laternen-Video und die Demo. 12 fps, 180°, mit und ohne Modul (`--ohne`), Standbilder über 10 s, dazu ein Stoss nach 5 s (Rühren).
+
+**Erfolgskriterien:**
+- Wirkt wie Film, nicht wie ein Filter: kein HDR-Halo, keine Blöcke aus der kleinen Auflösung, keine harten Kanten im Zustand.
+- Die grosse helle Fläche ist nach einigen Sekunden sichtbar gedämpft, die kleinen Lichter nicht.
+- Die Spur hinter Bewegtem erholt sich in ein bis drei Sekunden, ohne Flackern oder Pulsieren.
+- Ein Stoss lässt Spuren und Dämpfung innerhalb von etwa einer halben Sekunde weich verschwinden.
+- Live-Kamera, Video und Demo verhalten sich gleich. accum. zeigt den Film auch.
+- Ohne Modul genau wie 2a. Vorschau flüssig bei 720p auf dem iPhone.
+
+**Frage an Maris vor dem Bau (beantwortet):** Die Bromid-Schlieren (unter hellen Stellen ziehen weiche Schlieren nach unten, „unten“ nach Gyroskop) gehören laut Strategie zum müden Entwickler. Gleich mit, oder erst, wenn der Grundzustand sitzt? **Maris 2026-10-13: erst danach.**
+
+**Notizen:**
+- 2026-10-13, gebaut: `kern/gedaechtnis.js` (Maschine) und `src/module/mueder-entwickler.js` (Rezept, Station Emulsion, Grundstellung nur im Labor). Die Maschine liegt im WebGL des Sammelns. Zustand in RGBA16F mit einem Achtel der Auflösung, hin und her gerechnet. Pro Kamerabild (und alle 50 ms, wenn kein neues kommt, etwa bei stehendem Video) laufen eine Unschärfe waagrecht und senkrecht (die Nachbarn) und ein Schritt des Rezepts. Gemittelt wird das Licht über 8×8 Bildpunkte (4×4 weiche Proben). Beim Sammeln jeder Teilbelichtung multipliziert `wirkung` das Licht. Rühren: Jeder Stoss hebt einen Pegel (1 − e^(−Stärke/8), höchstens 1,5), der in 0,35 s abklingt.
+- Rezept: Verbrauch ∝ Helligkeit² × Zeit offener Blende × Entwickler. Ausgleich mit den Nachbarn 4/s. Erholung mit Zeitkonstante (Grund 2 s). Rühren 6/s × Pegel. Wirkung 0,35 + 0,65 × Entwickler. Regler: Verbrauch (Grund 3), Erholung (2 s), Reichweite (0,04 der Bildbreite).
+- Erster Versuch mit linearem Verbrauch: Auch der mittelgraue Boden wurde dunkler, das Bild verlor etwa 6 % Helligkeit. Mit dem Quadrat bleiben Mitteltöne fast unberührt.
+- Testvideo `tests/out/fenster.mp4` (mit ffmpeg erzeugt): grosses helles Fenster, drei kleine Lichter, eine dunkle Gestalt, die vor dem Fenster vorbeizieht, ein Licht, das über einen grauen Boden fährt.
+- Kontaktbogen bei 12 fps/180°, gemessen nach 6–10 s (von 255): Fenster 225 → 205 (Verbrauch 2) bzw. 197 (Verbrauch 4), sein Rand bleibt 2–3 heller als die Mitte (weicher Saum). Kleine Lampen 235 → 230, sie funkeln also neben dem gedämpften Fenster. Mittelgrauer Boden fern vom Fenster unverändert, direkt darunter −3 (weicher dunkler Schein, der Entwickler fliesst zum Fenster). Hinter der Gestalt leuchtet das Fenster heller nach, wo sie eben noch stand, vor ihr liegt ein dunkler Saum.
+- Stoss nach 6 s: Das Fenster ist danach frisch (≈ 225) und dämpft sich in etwa einer Sekunde wieder auf ≈ 200. Der Greifer springt beim selben Stoss, so wie es sein soll.
+- Laternen (Nacht): fast kein Unterschied (Ø 32,0 statt 32,4), es gibt kaum grosse helle Flächen. accum. 10 s: Das stark leuchtende Fenster verliert etwas Glanz (Ø 121 statt 127), sonst gleich. Keine Blöcke aus der kleinen Auflösung, keine harten Kanten.
+- Rechenzeit am Mac in Chrome: Licht sammeln 0,41 ms mit dem Film, 0,21 ms ohne. Der Kontaktbogen wartet jetzt auf die falsche Kamera und startet sie notfalls neu (sie sprang manchmal nicht an, dann lief die Demo).
+- Der Bauplan zeigt den müden Entwickler unter Emulsion, die Gedächtnis-Schicht unter den Maschinen. Der Rauchtest hatte das Fehlen gemeldet.
 
 ---
 

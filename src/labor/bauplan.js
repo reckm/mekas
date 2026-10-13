@@ -20,7 +20,7 @@ const HAENDE = {
   zwei: { titel: 'Zwei Finger', kurz: 'accum.: der Film steht, die Kurbel dreht weiter' },
   drei: { titel: 'Drei Finger', kurz: 'hält: friert das sichtbare Bild ein' },
   ausloeser: { titel: 'Auslöser, Doppel, Fertig', kurz: 'aufnehmen, pausieren, darüber belichten, speichern' },
-  menue: { titel: 'Einstellungen', kurz: 'Quelle, Zeit, Handkurbel, Bildstand, Anlaufblitz, Aufnahme' },
+  menue: { titel: 'Einstellungen', kurz: 'Quelle, Zeit, Handkurbel, Bildstand, Aufnahme' },
 };
 
 const STATION = {
@@ -55,13 +55,15 @@ const TEILE = {
   // Emulsion
   farbsektoren: { ort: 'emulsion', titel: 'Farbsektoren', stand: 'geplant', runde: 'Runde 4', kurz: 'rote, grüne und blaue Sektoren in der Blende: Bewegtes bekommt Farbsäume',
     an: ['blende', 'sammeln'] },
-  filme: { ort: 'emulsion', titel: 'Filme', stand: 'geplant', runde: '2b, Runde 4', kurz: 'Filmmaterial als Rezepte der Gedächtnis-Schicht: müder Entwickler (2b), Lith, Röhre',
+  muederentwickler: { ort: 'emulsion', titel: 'Müder Entwickler', stand: 'labor', kurz: 'der erste Film: Helles verbraucht Entwickler. Grosse helle Flächen dämpfen sich, kleine Lichter funkeln, hinter Bewegtem eine Spur, die sich in Sekunden erholt',
+    griff: 'Anstossen rührt. Labor: Verbrauch, Erholung, Reichweite', an: ['gedaechtnis', 'sammeln', 'blende', 'anstossen'] },
+  filme: { ort: 'emulsion', titel: 'Weitere Filme', stand: 'geplant', runde: 'Runde 4', kurz: 'Lith, Röhre, vielleicht Photochrom und Netzhaut: weitere Rezepte für dieselbe Gedächtnis-Schicht',
     an: ['gedaechtnis', 'sammeln'] },
   // Entwickeln
-  entwickeln: { ort: 'entwickeln', titel: 'Entwickeln', stand: 'bedienung', kurz: 'länger belichtet wird heller: langsam kurbeln oder weit öffnen gibt mehr Licht. Wird Teil der Filme (2b)',
+  entwickeln: { ort: 'entwickeln', titel: 'Entwickeln', stand: 'bedienung', kurz: 'länger belichtet wird heller: langsam kurbeln oder weit öffnen gibt mehr Licht. Wird Teil der Filme, wenn es mehrere gibt',
     griff: 'fest', an: ['sammeln', 'kurbel', 'blende'] },
   anlaufblitz: { ort: 'entwickeln', titel: 'Anlaufblitz', stand: 'bedienung', kurz: 'die ersten Bilder nach jedem Start sind überbelichtet, wie beim Anlaufen der Kamera',
-    griff: 'Menü: ein/aus', an: ['ausloeser'] },
+    griff: 'immer an', an: ['ausloeser'] },
   // Transport
   greifer: { ort: 'transport', titel: 'Greifer', stand: 'bedienung', kurz: 'der Film rastet federnd im Bildfenster. Stoss: er rutscht, Halten: Schlupf. Über 240° Schlieren aus den Lichtern',
     griff: 'Pad, Ruck', an: ['pad', 'anstossen', 'schwinger', 'blende'] },
@@ -87,14 +89,14 @@ const TEILE = {
   schwinger: { ort: 'kern', titel: 'Schwinger', stand: 'bedienung', kurz: 'gedämpfte Feder: ein Stoss, Ausschwingen, Ruhe. Für Greifer, später Linse und Pendel', an: ['anstossen'] },
   anstossen: { ort: 'kern', titel: 'Anstossen', stand: 'bedienung', kurz: 'sammelt die Stösse vom Pad und vom Ruck', griff: 'Pad, Ruck, Knopf über dem Greifer', an: ['pad', 'ruck', 'bewegung'] },
   bewegung: { ort: 'kern', titel: 'Bewegungssensor', stand: 'bedienung', kurz: 'das Gyroskop: einmal freigegeben, geteilt von Anstossen und Schwenken', an: [] },
-  gedaechtnis: { ort: 'kern', titel: 'Gedächtnis-Schicht', stand: 'geplant', runde: '2b', kurz: 'ein Zustand pro Pixel, den Licht verändert und der sich erholt. Anstossen rührt',
+  gedaechtnis: { ort: 'kern', titel: 'Gedächtnis-Schicht', stand: 'labor', kurz: 'ein Zustand pro Stelle (ein Achtel der Auflösung), den Licht verändert und der sich mit der Zeit erholt. Ein Film ist ein Rezept dafür (2b)',
     an: ['sammeln', 'anstossen'] },
   bildgedaechtnis: { ort: 'kern', titel: 'Bildgedächtnis', stand: 'geplant', runde: 'später', kurz: 'die letzten Bilder über Sekunden: Zweiter Projektor, Pendel, Kopierwerk', an: [] },
 };
 
 const FAHRPLAN = [
   ['A', 'Runde 1 abschliessen', 'Gyroskop-Knopf gebaut, iPhone-Test offen'],
-  ['B', 'Fundament', '2a Teilbelichtungen gebaut · 2b Gedächtnis-Schicht mit müdem Entwickler'],
+  ['B', 'Fundament', '2a Teilbelichtungen und 2b Gedächtnis-Schicht mit müdem Entwickler gebaut, iPhone-Test offen · danach Bromid-Schlieren'],
   ['C', 'Linse', 'das kaputte iPhone, danach Fokus sucht, Linse auf Federn'],
   ['D', 'Filme', 'Lith, Röhre, Mehrumlauf-Blende, Farbsektoren, Foto-Modus'],
   ['E', 'Gehäuse und Übernahme', 'Bolex, Telefon, Filmdosen, Kopplungen, alles in die Bedienung'],

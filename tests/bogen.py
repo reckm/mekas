@@ -157,6 +157,16 @@ def mit_aktion(page, ordner, name, a, wert):
 
 def starte_quelle(page, kamera):
     page.click('#cardCam' if kamera else '#cardDemo')
+    if not kamera:
+        return
+    # die falsche Kamera springt manchmal nicht an: warten, sonst ein zweites Mal starten
+    for _ in range(3):
+        try:
+            page.wait_for_function("document.querySelector('#srcLabel').textContent !== 'DEMO'", timeout=4000)
+            return
+        except Exception:
+            page.evaluate("document.querySelector('#btnSrc').click()")
+    raise SystemExit('Die falsche Kamera startet nicht')
 
 
 def lauf_neu(browser, url, a, wert, ordner, kamera, an=True, vergleich=None):

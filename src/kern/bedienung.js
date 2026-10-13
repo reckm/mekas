@@ -118,12 +118,11 @@ export function renderTimeNote(){
     ? 'Wie bei der Bolex: Jedes belichtete Bild wird genau einmal vorgeführt. Langsam gedreht, läuft die Zeit im Film schneller ab. Die Kamera läuft, solange du den Auslöser hältst, kurz tippen gibt einen Stoss von vier Bildern. Der Ton läuft wie ein separates Tonband in Echtzeit mit und kommt als eigene Spur dazu.'
     : 'Die Zeit läuft echt weiter. Jedes Bild steht nach, bis das nächste kommt. Ton und Bild bleiben synchron.';
 }
-// Menüregler zeigen die Werte der Module (Handkurbel, Anlaufblitz, Bildstand)
+// Menüregler zeigen die Werte der Module (Handkurbel, Bildstand)
 export function renderMenuWerte(){
   const j = Math.round((wert('handkurbel', 'unruhe') ?? 0.75) * 100), w = Math.round((wert('bildstand', 'staerke') ?? 0.35) * 100);
   $('#jitter').value = j; $('#jitterVal').textContent = String(j);
   $('#weave').value = w; $('#weaveVal').textContent = String(w);
-  $('#startFlash').checked = wert('entwickeln', 'anlaufblitz') ?? true;
   $('#swivel').checked = istAn('schwenken');
   $('#avDelay').value = einst.avDelayMs; $('#delayVal').textContent = einst.avDelayMs + ' ms';
 }
@@ -255,7 +254,6 @@ export function initBedienung(){
   $('#mirrorRec').addEventListener('change', e => { einst.mirrorRec = e.target.checked; renderSrc(); persist(); });
   $('#jitter').addEventListener('input', e => { setze('handkurbel', 'unruhe', +e.target.value / 100); $('#jitterVal').textContent = e.target.value; });
   $('#jitter').addEventListener('change', persist);
-  $('#startFlash').addEventListener('change', e => { setze('entwickeln', 'anlaufblitz', e.target.checked); persist(); });
   $('#weave').addEventListener('input', e => { setze('bildstand', 'staerke', +e.target.value / 100); $('#weaveVal').textContent = e.target.value; });
   $('#weave').addEventListener('change', persist);
   $('#swivel').addEventListener('change', e => { schalte('schwenken', e.target.checked); persist(); });

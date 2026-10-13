@@ -80,7 +80,7 @@ def labor(page, browser_url):
     page.wait_for_function('window.mekas')
     module = page.evaluate('window.mekas.module()')
     ids = [m['id'] for m in module]
-    erwartet = ['handkurbel', 'schwenken', 'blende', 'entwickeln', 'greifer', 'stehenderfilm', 'bildstand', 'ueberblenden']
+    erwartet = ['handkurbel', 'schwenken', 'blende', 'muederentwickler', 'entwickeln', 'greifer', 'stehenderfilm', 'bildstand', 'ueberblenden']
     if ids != erwartet:
         fehler.append(f'Labor: Module {ids}, erwartet {erwartet}')
     # das Labor zeigt nur, was noch eingestellt wird; Abgenommenes steht im Bauplan
