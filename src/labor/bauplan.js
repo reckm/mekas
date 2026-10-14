@@ -53,8 +53,12 @@ const TEILE = {
   blende: { ort: 'belichtung', titel: 'Blende', stand: 'bedienung', kurz: 'Umlaufblende: 0–360° offen pro Kurbelbild, unter 36° gegen Schwarz',
     griff: 'Fader', an: ['fader', 'kurbel'], jetzt: () => Math.round(wert('blende', 'winkel')) + '°' },
   // Emulsion
-  farbsektoren: { ort: 'emulsion', titel: 'Farbsektoren', stand: 'labor', runde: 'Runde 4c', kurz: 'rote, grüne und blaue Sektoren in der Blende: Bewegtes bekommt Farbsäume',
-    griff: 'Labor', an: ['blende', 'sammeln', 'kurbel'] },
+  farbsektoren: { ort: 'emulsion', titel: 'Farbsektoren', stand: 'labor', runde: 'Runde 4c', kurz: 'rote, grüne und blaue Filter nacheinander in der Blende (Harris-Shutter): Was stillsteht, hat normale Farben, Bewegtes zieht weiche Säume in Rot, Grün und Blau. Langsam kurbeln und weit offen gibt breite Säume, bei 24 fps keine',
+    griff: 'Kurbel und Blende (Breite der Säume). Labor: Stärke, Reinheit', an: ['kurbel', 'blende', 'sammeln'],
+    jetzt: () => {   // so viele Kamerabilder fallen gerade durch jede Farbe
+      const b = ctx.belichtung, n = b && b.T ? b.T * b.winkel / 360 / 3 * (sammeln.anzeige.kameraFps || 30) / 1000 : 0;
+      return sammeltNeu() ? comma(n.toFixed(1)) + ' Kamerabilder pro Farbe' : 'nur mit neuem Sammeln';
+    } },
   muederentwickler: { ort: 'emulsion', titel: 'Müder Entwickler', stand: 'labor', kurz: 'der erste Film, als Nachbild (2c): Helles brennt in einer halben Sekunde ein, auch kleine Lampen. Schwenkt man weg, bleibt es dunkel und weich im Bildfenster stehen und verblasst über Sekunden. Bewegtes Helles zieht dunkle Spuren',
     griff: 'Anstossen rührt (hellt weich auf). Labor: Verbrauch, Erholung, Reichweite, Boden, Kurve', an: ['gedaechtnis', 'sammeln', 'blende', 'anstossen'] },
   roehre: { ort: 'emulsion', titel: 'Röhre', stand: 'labor', runde: 'Runde 4a', kurz: 'ein Film: die Schicht der Röhrenkamera wird beim Auslesen nicht ganz gelöscht, Lichter ziehen leuchtende Schweife und wachsen',

@@ -137,11 +137,12 @@ function giesse(licht, filter){
   akt.summe += licht / 1000;
   ms += performance.now() - t;
 }
-// das aktuelle Kamerabild bekommt sein Licht aus der Zeitspanne [von, bis]
+// das aktuelle Kamerabild bekommt sein Licht aus der Zeitspanne [von, bis]. Die Station sieht dazu die Fenster des
+// Kurbelbilds (ms ab t0), damit ein Modul weiss, wann in der offenen Zeit diese Teilbelichtung liegt (Farbsektoren)
 function belichte(von, bis){
   if (!z) return;
   const licht = offen(von, bis); if (licht <= 0) return;
-  const b = station('emulsion', { t: von, licht, filter: [1, 1, 1] });
+  const b = station('emulsion', { t: von, bis, licht, filter: [1, 1, 1], t0: z.t0, fenster: z.fenster });
   if (b.licht > 0) giesse(b.licht, b.filter);
 }
 // die Gedächtnis-Schicht rechnet weiter: mit dem Licht, das seit dem letzten Schritt auf den Film fiel, und der vergangenen Zeit
