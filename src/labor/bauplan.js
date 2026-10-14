@@ -61,8 +61,9 @@ const TEILE = {
     } },
   muederentwickler: { ort: 'emulsion', titel: 'Müder Entwickler', stand: 'labor', kurz: 'der erste Film, als Nachbild (2c): Helles brennt in einer halben Sekunde ein, auch kleine Lampen. Schwenkt man weg, bleibt es dunkel und weich im Bildfenster stehen und verblasst über Sekunden. Bewegtes Helles zieht dunkle Spuren',
     griff: 'Anstossen rührt (hellt weich auf). Labor: Verbrauch, Erholung, Reichweite, Boden, Kurve', an: ['gedaechtnis', 'sammeln', 'blende', 'anstossen'] },
-  roehre: { ort: 'emulsion', titel: 'Röhre', stand: 'labor', runde: 'Runde 4a', kurz: 'ein Film: die Schicht der Röhrenkamera wird beim Auslesen nicht ganz gelöscht, Lichter ziehen leuchtende Schweife und wachsen',
-    griff: 'Labor', an: ['gedaechtnis', 'sammeln'] },
+  roehre: { ort: 'emulsion', titel: 'Röhre', stand: 'labor', runde: 'Runde 4a', kurz: 'ein Film: die Schicht der Röhrenkamera wird beim Auslesen nicht ganz gelöscht. Von allem bleibt kurz ein Rest, im Dunkeln länger. Zu helles Licht überlädt sie: Lichter werden grösser und weicher (Blooming), bewegte ziehen leuchtende Schweife, lange gehaltene brennen ein und leuchten nach. Ruhig gehalten wie ohne Film',
+    griff: 'Bewegung, Blende und Kurbel (wie viel Licht überlädt, weit offen gibt durchgehende Schweife). Labor: Nachleuchten, im Dunkeln länger, Überladung ab, Schweif, Einbrennen, Blooming',
+    an: ['gedaechtnis', 'sammeln', 'blende', 'kurbel'] },
   lith: { ort: 'emulsion', titel: 'Lith', stand: 'labor', runde: 'Runde 4b', kurz: 'ein Film: harter Film, schwaches Licht geht verloren, Schatten stecken ihre Nachbarn an und wachsen, wo es dunkel bleibt',
     griff: 'Labor', an: ['gedaechtnis', 'sammeln'] },
   // Entwickeln
@@ -77,8 +78,9 @@ const TEILE = {
     griff: 'zwei Finger. Labor: Lichthof, Überblendung beim Loslassen, Nachklingen, Gedächtnis (Umläufe)', an: ['zwei', 'kurbel', 'blende', 'greifer'],
     jetzt: () => ctx.halten && !ctx.standbild ? 'sammelt' : wert('stehenderfilm', 'nachklingen') ? 'klingt nach' : '' },
   // Projektor
-  roehreatmen: { ort: 'projektor', titel: 'Röhre atmen', stand: 'labor', runde: 'Runde 4a', kurz: 'bei hellen Szenen wird das Bild grösser und zieht sich langsam zurück',
-    griff: 'Labor', an: ['sammeln'] },
+  roehreatmen: { ort: 'projektor', titel: 'Röhre atmen', stand: 'labor', runde: 'Runde 4a', kurz: 'bei hellen Szenen gibt die Hochspannung nach: das ganze Bild wird weich grösser und zieht sich langsam zurück, wenn es dunkler wird. Es zählt die Helligkeit des Bildfensters, vor allem grosse helle Flächen',
+    griff: 'Licht im Bild (Schwenk auf Helles, Blende, Kurbel). Labor: Stärke, Wachsen, Zurück', an: ['entwickeln', 'blende', 'kurbel'],
+    jetzt: () => { const m = modul('roehreatmen'); return m && m.an ? '+' + comma((m.p.staerke * m.b).toFixed(1)) + ' %' : ''; } },
   bildstand: { ort: 'projektor', titel: 'Bildstand', stand: 'bedienung', kurz: 'jedes neue Bild sitzt minimal anders im Bildfenster', griff: 'Menü: Stärke', an: ['kurbel', 'menue'] },
   ueberblenden: { ort: 'projektor', titel: 'Überblendender Projektor', stand: 'labor', kurz: 'das neue Bild blendet weich über das alte, so lange, wie die Blende offen war',
     griff: 'Labor: Länge', an: ['blende', 'kurbel', 'zeit'] },
