@@ -1,11 +1,11 @@
 // Bauplan (nur mit ?labor): die ganze Architektur auf einem Blatt. Hände (was Maris spielt), die Kette (wodurch jedes Bild läuft)
 // und die Maschinen im Kern, mit Stand und Griff. Antippen zeigt, was von einem Teil abhängt (blau) und woran es hängt (weiss umrandet).
 // Nachführen, wenn ein Modul dazukommt oder sich eine Abhängigkeit ändert. Ein Modul ohne Eintrag erscheint trotzdem, mit Hinweis.
-import { ctx } from '../kern/zustand.js?v=2.2.1';
-import { comma, fmtFps } from '../kern/mechanik.js?v=2.2.1';
-import { VERSION } from '../kern/version.js?v=2.2.1';
-import { module, modul, wert, STATIONEN } from '../kern/kette.js?v=2.2.1';
-import { sammeln, sammeltNeu } from '../kern/sammeln.js?v=2.2.1';
+import { ctx } from '../kern/zustand.js?v=2.3.0';
+import { comma, fmtFps } from '../kern/mechanik.js?v=2.3.0';
+import { VERSION } from '../kern/version.js?v=2.3.0';
+import { module, modul, wert, STATIONEN } from '../kern/kette.js?v=2.3.0';
+import { sammeln, sammeltNeu } from '../kern/sammeln.js?v=2.3.0';
 
 // Stand: bedienung (in Maris' normaler Bedienung), labor (nur im Labor), geplant (Fahrplan, mit Runde)
 // an: woran ein Teil hängt (was es liest oder wer es spielt). griff: wo man es einstellt. jetzt: der Wert gerade.
@@ -55,8 +55,8 @@ const TEILE = {
   // Emulsion
   farbsektoren: { ort: 'emulsion', titel: 'Farbsektoren', stand: 'geplant', runde: 'Runde 4', kurz: 'rote, grüne und blaue Sektoren in der Blende: Bewegtes bekommt Farbsäume',
     an: ['blende', 'sammeln'] },
-  muederentwickler: { ort: 'emulsion', titel: 'Müder Entwickler', stand: 'labor', kurz: 'der erste Film: Helles verbraucht Entwickler. Grosse helle Flächen dämpfen sich, kleine Lichter funkeln, hinter Bewegtem eine Spur, die sich in Sekunden erholt',
-    griff: 'Anstossen rührt. Labor: Verbrauch, Erholung, Reichweite', an: ['gedaechtnis', 'sammeln', 'blende', 'anstossen'] },
+  muederentwickler: { ort: 'emulsion', titel: 'Müder Entwickler', stand: 'labor', kurz: 'der erste Film, als Nachbild (2c): Helles brennt in einer halben Sekunde ein, auch kleine Lampen. Schwenkt man weg, bleibt es dunkel und weich im Bildfenster stehen und verblasst über Sekunden. Bewegtes Helles zieht dunkle Spuren',
+    griff: 'Anstossen rührt (hellt weich auf). Labor: Verbrauch, Erholung, Reichweite, Boden, Kurve', an: ['gedaechtnis', 'sammeln', 'blende', 'anstossen'] },
   filme: { ort: 'emulsion', titel: 'Weitere Filme', stand: 'geplant', runde: 'Runde 4', kurz: 'Lith, Röhre, vielleicht Photochrom und Netzhaut: weitere Rezepte für dieselbe Gedächtnis-Schicht',
     an: ['gedaechtnis', 'sammeln'] },
   // Entwickeln
@@ -67,9 +67,9 @@ const TEILE = {
   // Transport
   greifer: { ort: 'transport', titel: 'Greifer', stand: 'bedienung', kurz: 'der Film rastet federnd im Bildfenster. Stoss: er rutscht, Halten: Schlupf. Über 240° Schlieren aus den Lichtern',
     griff: 'Pad, Ruck', an: ['pad', 'anstossen', 'schwinger', 'blende'] },
-  stehenderfilm: { ort: 'transport', titel: 'Stehender Film', stand: 'labor', kurz: 'accum.: dasselbe Stück Film wird immer wieder belichtet, Sandwich mit Lichthof',
-    griff: 'zwei Finger. Labor: Lichthof, Überblendung beim Loslassen', an: ['zwei', 'kurbel', 'blende'],
-    jetzt: () => ctx.halten && !ctx.standbild ? 'sammelt' : '' },
+  stehenderfilm: { ort: 'transport', titel: 'Stehender Film', stand: 'labor', kurz: 'accum.: dasselbe Stück Film wird immer wieder belichtet, Sandwich mit Lichthof. Nachklingen (2c): der Film steht immer, Altes verblasst mit jedem Umlauf, zwei Finger halten es fest',
+    griff: 'zwei Finger. Labor: Lichthof, Überblendung beim Loslassen, Nachklingen, Gedächtnis (Umläufe)', an: ['zwei', 'kurbel', 'blende', 'greifer'],
+    jetzt: () => ctx.halten && !ctx.standbild ? 'sammelt' : wert('stehenderfilm', 'nachklingen') ? 'klingt nach' : '' },
   // Projektor
   bildstand: { ort: 'projektor', titel: 'Bildstand', stand: 'bedienung', kurz: 'jedes neue Bild sitzt minimal anders im Bildfenster', griff: 'Menü: Stärke', an: ['kurbel', 'menue'] },
   ueberblenden: { ort: 'projektor', titel: 'Überblendender Projektor', stand: 'labor', kurz: 'das neue Bild blendet weich über das alte, so lange, wie die Blende offen war',
@@ -96,7 +96,7 @@ const TEILE = {
 
 const FAHRPLAN = [
   ['A', 'Runde 1 abschliessen', 'Gyroskop-Knopf gebaut, iPhone-Test offen'],
-  ['B', 'Fundament', '2a Teilbelichtungen und 2b Gedächtnis-Schicht mit müdem Entwickler gebaut, iPhone-Test offen · danach Bromid-Schlieren'],
+  ['B', 'Fundament', '2a Teilbelichtungen und 2b Gedächtnis-Schicht gebaut · 2c Nachbild (müder Entwickler) und Nachklingen im Labor · danach Bromid-Schlieren'],
   ['C', 'Linse', 'das kaputte iPhone, danach Fokus sucht, Linse auf Federn'],
   ['D', 'Filme', 'Lith, Röhre, Mehrumlauf-Blende, Farbsektoren, Foto-Modus'],
   ['E', 'Gehäuse und Übernahme', 'Bolex, Telefon, Filmdosen, Kopplungen, alles in die Bedienung'],
@@ -175,7 +175,7 @@ function nachfuehren(){
 }
 
 function baue(){
-  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./bauplan.css?v=2.2.1', import.meta.url).href;
+  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./bauplan.css?v=2.3.0', import.meta.url).href;
   document.head.appendChild(link);
   blatt = el('div', 'bauplan'); blatt.id = 'bauplan'; blatt.hidden = true;
   blatt.setAttribute('role', 'dialog'); blatt.setAttribute('aria-label', 'Bauplan');

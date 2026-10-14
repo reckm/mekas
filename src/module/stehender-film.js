@@ -4,6 +4,10 @@
 // Bipack im Kopierwerk): Licht muss durch alle, Schatten setzen sich durch, Bewegtes verschwindet. Dazu der Lichthof.
 // Andere Materialien (Lith, Aufsummieren mit Solarisation, Farbschichten) gehören zu anderen Filmen: IDEEN.md, Filmmaterial.
 // Gesammelt wird in linearem Licht mit 32 Bit (WebGL). Loslassen: ein frisches Bild blendet weich hinein.
+// Nachklingen (Runde 2c, im Labor): Der Film steht immer, aber er vergisst. Jeder Umlauf belichtet ihn mit dem neuen Bild,
+// was früher draufkam, verblasst mit jedem Umlauf ein Stück (Gedächtnis in Umläufen: bei 4 fps lang, bei 24 fps kurz).
+// Stehendes bleibt satt, Bewegtes wird durchsichtig und zieht nach, um helle Stellen liegt der Lichthof. Zwei Finger: Das
+// Vergessen hört auf, das Bild baut sich auf wie bei accum. Loslassen: Das Gesammelte verklingt von selbst, ohne Überblenden.
 
 const VS = `#version 300 es
 in vec2 p; out vec2 v;
@@ -82,7 +86,9 @@ export default {
   params: {
     lichthof: { typ: 'schalter', def: true, titel: 'Lichthof (Schein um helle Stellen, wächst mit der Haltezeit)' },
     hof: { min: 0, max: 4, def: 0.4, schritt: 0.05, titel: 'Stärke Lichthof' },
-    loslassen: { min: 0, max: 3, def: 0.6, schritt: 0.05, titel: 'Überblendung beim Loslassen', einheit: ' s' },
+    loslassen: { min: 0, max: 3, def: 0.6, schritt: 0.05, titel: 'Überblendung beim Loslassen (ohne Nachklingen)', einheit: ' s' },
+    nachklingen: { typ: 'schalter', def: false, titel: 'Nachklingen (der Film steht immer, Altes verblasst; zwei Finger: nichts verblasst)' },
+    gedaechtnis: { min: 2, max: 60, def: 8, schritt: 1, titel: 'Gedächtnis beim Nachklingen', einheit: ' Umläufe' },
   },
   setup(ctx){
     this.cv = document.createElement('canvas');
@@ -166,7 +172,7 @@ export default {
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, akt.A); gl.uniform1i(this.pK.u('uA'), 0);
     gl.uniform1f(this.pK.u('uGewinn'), gewinn); gl.uniform2f(this.pK.u('uPix'), 1 / this.W, 1 / this.H);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-    const sigma = Math.min(4, 0.6 * (1 + Math.log(this.gewicht)));   // Breite in kleinen Pixeln (1 klein = 16 gross), wächst mit dem Licht
+    const sigma = Math.min(4, 0.6 * (1 + Math.log(Math.max(1, this.gewicht))));   // Breite in kleinen Pixeln (1 klein = 16 gross), wächst mit dem Licht
     for (const [von, nach, dx, dy] of [[h0, h1, 1 / this.hw, 0], [h1, h0, 0, 1 / this.hh]]){
       gl.bindFramebuffer(gl.FRAMEBUFFER, nach.fb); gl.useProgram(this.pW.pr);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, von.tx); gl.uniform1i(this.pW.u('uH'), 0);
@@ -178,13 +184,13 @@ export default {
     const gl = this.gl, akt = this.paar[this.i], p = this.p;
     // aufsummiertes Licht im Verhältnis zum ersten Bild: wächst mit jedem Durchgang, logarithmisch wie eine Schwärzungskurve.
     // Davon hängt ab, wie stark helle Stellen streuen.
-    const gewinn = 1 + 0.9 * Math.log(this.gewicht);
+    const lnG = Math.log(Math.max(1, this.gewicht)), gewinn = 1 + 0.9 * lnG;
     if (p.lichthof) this.lichthof(ctx, akt, gewinn);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, this.W, this.H);
     gl.useProgram(this.pZ.pr);
     gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, akt.B); gl.uniform1i(this.pZ.u('uB'), 1);
     gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, this.hof[0].tx); gl.uniform1i(this.pZ.u('uH'), 2);
-    gl.uniform1f(this.pZ.u('uHof'), p.lichthof ? p.hof * Math.min(1, Math.log(this.gewicht) / 1.5) : 0);
+    gl.uniform1f(this.pZ.u('uHof'), p.lichthof ? p.hof * Math.min(1, lnG / 1.5) : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     this.stapelG.drawImage(this.cv, 0, 0);
   },
@@ -204,6 +210,7 @@ export default {
   apply(ctx, bild){
     if (!this.gl) return;
     const steht = ctx.halten && !ctx.standbild;            // drei Finger: Standbild, nichts wird gesammelt
+    if (this.p.nachklingen){ this.nachklingen(ctx, bild, steht); return; }
     if (steht){
       // Licht dieses Durchgangs: die Blende bestimmt den Anteil, geschlossen kommt nichts dazu
       const w = ANTEIL * Math.max(0, ctx.belichtung.winkel) / 180;
@@ -221,6 +228,30 @@ export default {
       if (!this.fade.frisch){ this.fade.frisch = true; this.fade.t0 = ctx.jetzt; }
       this.mischen(ctx);
     }
+  },
+  // Nachklingen: jeder Umlauf belichtet den stehenden Film, das Gewicht des Alten verfällt pro Umlauf um q = e^(−1/Gedächtnis).
+  // Im Gleichgewicht ist das Gewicht w / (1 − q): weit offene Blende gibt mehr gesammeltes Licht und mehr Lichthof.
+  // Zwei Finger: q = 1, nichts verfällt, das Gewicht wächst wie bei accum. Loslassen: es verfällt wieder, das Gesammelte
+  // verklingt mit dem Gedächtnis zurück, der Lichthof schrumpft mit dem Gewicht, ohne Sprung.
+  nachklingen(ctx, bild, steht){
+    const w = ANTEIL * Math.max(0, ctx.belichtung.winkel) / 180;
+    const q = steht ? 1 : Math.exp(-1 / this.p.gedaechtnis);
+    // was belichtet: beim Halten das frische Bild (der Film steht, wie bei accum.), sonst was der Transport ins Fenster legt
+    // (so bleiben Stoss und Schlupf des Greifers sichtbar und klingen mit nach)
+    const quelle = steht ? bild.belichtet : bild.g.canvas;
+    this.fade = null;
+    if (!this.aktiv){
+      // Einsetzen: das Bild, das gerade kommt, gleich mit dem Gewicht des Gleichgewichts (kein Anlaufen des Lichthofs)
+      this.aktiv = true; this.gewicht = q < 1 ? Math.max(w, 1e-3) / (1 - q) : 1;
+      this.sammeln(ctx, quelle, true, 1);
+    } else {
+      this.gewicht = q * this.gewicht + w;
+      // Blende ganz zu: Es kommt kein Licht, das Alte verblasst trotzdem (gegen Schwarz, wie ohne den Film); beim Halten steht es
+      const anteil = w > 0 ? w / this.gewicht : steht ? 0 : 1 - q;
+      if (anteil > 0) this.sammeln(ctx, quelle, false, anteil);
+    }
+    this.zeigen(ctx);
+    bild.g.drawImage(this.stapel, 0, 0);
   },
   hinweis(ctx){ return this.fehler ? 'Stehender Film braucht WebGL2' : null; },
 };

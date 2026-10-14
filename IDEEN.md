@@ -90,6 +90,12 @@ Maris: Filme sollen einen **Charakter über die ganze Zeit** haben, nicht nur be
 
 Skizzen ab jetzt im Labor mit Live-Kamera und Video auf dem iPhone, nicht mehr als Standbild.
 
+### Nach Runde 2c (Strategie-Chat 2026-10-14)
+
+- **Stillstand neutral (zum Zurückfahren des Nachbilds):** Die Wirkung wird durch das Gleichgewicht geteilt, das zur heutigen Helligkeit gehört. Eine ruhige Szene sieht dann aus wie ohne Film, sichtbar ist nur, was sich ändert: Wo Helles war, bleibt das dunkle Nachbild, und was neu hell ins Bild kommt, leuchtet kurz über normal und sinkt dann ein. Risiko: Pumpen beim Schwenken. Erst, wenn das Nachbild steht und eine ruhige Szene zu dunkel wird.
+- **Wo ein Gedächtnis physikalisch sitzt:** In einer laufenden Bolex ist jedes Kurbelbild frischer Film, ein Gedächtnis fest im Bildfenster gibt es dort eigentlich nur bei accum. Wirklich fest im Fenster sitzt es bei der Röhre (Ladung auf der Schicht), beim Telefon (Nachtverarbeitung rechnet Bilder zusammen) und in der Netzhaut. Für Mekas eine bewusste Freiheit, für die Gehäuse (Phase E) im Kopf behalten.
+- **Röhre: Nachleuchten** (Kandidat für Runde 4, auch als Nachtverarbeitung des Telefons): Die Schicht wird beim Auslesen nicht ganz gelöscht, Überladenes braucht mehrere Durchgänge, bei wenig Licht bleibt mehr Rest. Gleichgewicht von selbst neutral, Lichter ziehen leuchtende Schweife, beim Zoomen Strahlen. Braucht die Erweiterung „Zuschlag“. Startwerte: Rest für alles etwa 0,1 s (im Dunkeln bis 0,3 s), lange Schweife nur aus der Überladung über etwa 80 % Weiss, 1–2 s, nachts bis 3 s. Risiko: Video-Echo, wenn alles nachzieht.
+
 ## Gehäuse und Kopplungen (Schritt 2)
 
 - **Kameramodelle als Gehäuse:** Bolex, Telefon, Kopierwerk, Röhre. Jedes mit eigener Belegung rechts und eigenen Grundwerten. Siehe `docs/KONZEPT.md`, Teil 4.

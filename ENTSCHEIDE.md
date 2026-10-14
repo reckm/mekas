@@ -2,6 +2,14 @@
 
 Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder aufmachen ohne neuen Anlass.
 
+## 2026-10-14
+
+- **Zweiter Versuch mit dem Film, nicht die Röhre vorziehen** (Strategie-Chat). Der müde Entwickler wird zum **Nachbild**: schneller und extremer, erst klar sichtbar, zurückfahren später. Grundlage ist Maris’ Test (Verbrauch 0,5, Erholung 10 s, Reichweite 0): Das dunkle Nachbild eines Fensters „sieht toll aus“. Karte Runde 2c.
+- **Lehre aus 2b:** Ein Rezept, dessen Gleichgewicht nur von der Helligkeit abhängt, ist eine Tonkurve. Erfolgskriterien werden künftig als Satz aus Maris’ Sicht geschrieben („man sieht sofort …“), nicht als Messwert. Vorsichtsmassnahmen (gegen HDR, gegen Flackern) erst zurücknehmen, wenn der Effekt sichtbar ist, nicht vorher.
+- **Nachklingen: accum. immer an, das Alte verblasst** (Maris: „dieses Leuchten, als wäre Fett auf der Linse“). Als Teil des Stehenden Films im Labor, das Gedächtnis zählt in Umläufen (Kurbel spürbar). Ob Nachbild und Nachklingen ein Film oder zwei sind, entscheidet Maris nach dem Test.
+- **Kontaktbogen nur noch zur eigenen Prüfung** (Maris: „ich teste schlussendlich eh in der App“). Was nur das Labor betrifft, wird nach der Prüfung durch Claude direkt veröffentlicht, ohne Maris’ „passt“. Was die normale Bedienung ändert, braucht es weiterhin. Den Kontaktbogen zeigt Claude nur, wenn etwas unklar ist oder Maris einen Vergleich will.
+- **Arbeitsweise:** Geplant wird im Strategie-Chat in Claude Code, die Modulkarte in `MODULE.md` ist die Übergabe. Gebaut und getestet wird von einem Code-Agenten, den der Strategie-Chat startet und dessen Ergebnis er prüft, bevor Maris es sieht.
+
 ## 2026-10-13
 
 - **Müder Entwickler wird im Strategie-Chat neu gedacht** (iPhone 2.2.1: „macht das Bild einfach weniger leuchtend“). Die Maschine (Gedächtnis-Schicht) bleibt, das Rezept ändert sich. Claude Code wartet darauf.

@@ -6,13 +6,21 @@
 --alt      dieselben Werte mit der alten mekas.html daneben (vorher/nachher), nur für Werte, die sie kannte
 --referenz ein Referenzbild, das neben jeder Zeile steht
 --aktion   stoss (Wert = Stärke, nach oben) oder halten (Wert = Höhe auf dem Greifer-Pad, --dauer s lang, dann loslassen)
-           oder accum (Bild halten wie mit zwei Fingern; Standbilder zu den --zeiten in s, dann loslassen).
+           oder accum (Bild halten wie mit zwei Fingern; ein Standbild vorher, dann zu den --zeiten in s, nach dem
+           Loslassen zu den --los in s) oder film (das Video aus --quelle wird als Datei geladen und läuft wie im Projektor,
+           solange aufgenommen wird, vom Anfang an; Standbilder zu den --zeiten in s Videozeit, --stoss-bei s gibt dort einen
+           Stoss wie vom Pad; das geprüfte Modul wird beim Start frisch eingeschaltet, sein Gedächtnis ist leer).
            Der Clip läuft während der Aktion, Standbilder im Abstand --abstand ms.
 --setze    weitere Werte vorher, z. B. --setze blende.winkel=300 (mehrfach möglich)
+--aus      diese Module ausschalten (durch Komma getrennt), z. B. --aus muederentwickler
 --fps      Kurbel auf dieses Tempo stellen (4–24)
 --ohne     dazu eine Reihe mit ausgeschaltetem Modul, zum Vergleich
 --vergleich modul.param=wert: dazu eine Reihe mit diesem Wert, z. B. --vergleich sammeln.neu=false (altes Sammeln)
+--notiz    ein Satz für den Kopf der Seite (z. B. was im Video wann passiert)
 Jede Reihe zeigt die mittlere Helligkeit ihrer Standbilder (Ø, 0–255).
+
+    .venv/bin/python tests/bogen.py --modul muederentwickler --aktion film --quelle tests/out/schwenk.mp4 --param kurve --werte 1,2,3,4 \
+        --zeiten 0.5,1,3,5,7,10,14 --stoss-bei 8 --fps 12 --setze blende.winkel=180 --ohne
 
     .venv/bin/python tests/bogen.py --modul greifer --aktion stoss --werte 0.3,0.6,1 --setze blende.winkel=300 --bilder 8 --abstand 120
 Ausgabe nach tests/out/bogen-<modul>-<zeit>/index.html (nicht im Repository).
@@ -82,6 +90,11 @@ def mp4(ordner, name, daten):
 
 
 HELLIGKEIT = {}      # Standbild → mittlere Helligkeit (0–255)
+BESCHRIFTUNG = {}    # Standbild → kurzer Text darunter (Zeit)
+# merkt sich jedes Video, das abgespielt wird (das geladene Video hängt nicht im Dokument)
+VIDEO_HAKEN = """(() => { const p = HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play = function(){ (window.__videos = window.__videos || new Set()).add(this); return p.apply(this, arguments); }; })();"""
+VIDEO_ZEIT = "(() => { const v = [...(window.__videos || [])].find(v => (v.src || '').startsWith('blob:')); return v ? v.currentTime : -1; })()"
 STANDBILD_JS = """() => {
   const o = document.querySelector('#out'), c = document.createElement('canvas'); c.width = 160; c.height = 90;
   const g = c.getContext('2d'); g.drawImage(o, 0, 0, 160, 90);
@@ -91,12 +104,18 @@ STANDBILD_JS = """() => {
 }"""
 
 
-def standbild(page, ordner, name):
+def standbild(page, ordner, name, text=None):
     url, hell = page.evaluate(STANDBILD_JS)
     datei = ordner / f'{name}.png'
     datei.write_bytes(base64.b64decode(url.split(',')[1]))
     HELLIGKEIT[datei.name] = hell
+    if text:
+        BESCHRIFTUNG[datei.name] = text
     return datei.name
+
+
+def sek(z):
+    return f'{z:.1f}'.replace('.', ',').replace(',0', '') + ' s'
 
 
 def aufnehmen(page, ordner, name, bilder, clip_sek, abstand=500):
@@ -109,7 +128,10 @@ def aufnehmen(page, ordner, name, bilder, clip_sek, abstand=500):
 
 
 def zahl(w):
-    """Zahl, wenn es eine ist, sonst der Name (Raststellen wie Sandwich, Lith)."""
+    """Zahl, wenn es eine ist, true/false als Schalter, sonst der Name (Raststellen wie Sandwich, Lith).
+    (Bis 2026-10-14 kam „false“ als Text an, und das Labor machte daraus „an“.)"""
+    if w in ('true', 'false'):
+        return w == 'true'
     try:
         return float(w) if '.' in w else int(w)
     except ValueError:
@@ -117,21 +139,50 @@ def zahl(w):
 
 
 def accum(page, ordner, name, a):
-    """Halten wie mit zwei Fingern: Standbilder zu festen Zeiten, dann loslassen und das frische Bild hineinblenden sehen."""
+    """Halten wie mit zwei Fingern: ein Standbild vorher, dann zu festen Zeiten, dann loslassen und das Verklingen sehen."""
     page.evaluate(CLIP_START)
     page.wait_for_timeout(400)
-    standbilder = []
+    standbilder = [standbild(page, ordner, f'{name}-vor', 'vorher')]
     page.evaluate('window.mekas.halteBild(true)')
     start = page.evaluate('performance.now()')
     for z in [float(x) for x in a.zeiten.split(',')]:
         rest = start + z * 1000 - page.evaluate('performance.now()')
         if rest > 0:
             page.wait_for_timeout(rest)
-        standbilder.append(standbild(page, ordner, f'{name}-{z:g}s'))
+        standbilder.append(standbild(page, ordner, f'{name}-{z:g}s', 'accum. ' + sek(z)))
     page.evaluate('window.mekas.halteBild(false)')
-    for z in (0.3, 1.5):
-        page.wait_for_timeout(300 if z == 0.3 else 1200)
-        standbilder.append(standbild(page, ordner, f'{name}-los{z:g}s'))
+    los = page.evaluate('performance.now()')
+    for z in [float(x) for x in a.los.split(',')]:
+        rest = los + z * 1000 - page.evaluate('performance.now()')
+        if rest > 0:
+            page.wait_for_timeout(rest)
+        standbilder.append(standbild(page, ordner, f'{name}-los{z:g}s', 'los + ' + sek(z)))
+    return standbilder, mp4(ordner, name, page.evaluate(CLIP_STOP))
+
+
+def film(page, ordner, name, a, an):
+    """Das geladene Video läuft vom Anfang (es läuft nur, solange aufgenommen wird). Standbilder zu Videozeiten, dazu ein Stoss."""
+    page.wait_for_function(f'{VIDEO_ZEIT} >= 0')
+    if an:
+        page.evaluate(f"window.mekas.schalte({json.dumps(a.modul)}, false)")
+    page.click('#btnRec')
+    if an:
+        page.evaluate(f"window.mekas.schalte({json.dumps(a.modul)}, true)")     # frisch eingelegt: das Gedächtnis ist leer
+    page.wait_for_function("document.querySelector('#recLabel').textContent === 'Pause'", timeout=10000)
+    page.evaluate(CLIP_START)
+    ereignisse = [(float(z), 'bild') for z in a.zeiten.split(',')]
+    if a.stoss_bei is not None:
+        ereignisse.append((a.stoss_bei, 'stoss'))
+    standbilder = []
+    for z, was in sorted(ereignisse):
+        page.wait_for_function(f'{VIDEO_ZEIT} >= {z}', polling=5, timeout=60000)
+        if was == 'stoss':
+            page.evaluate(f'window.mekas.stoss(0, {a.stoss_staerke})')
+            continue
+        t = page.evaluate(VIDEO_ZEIT)
+        standbilder.append(standbild(page, ordner, f'{name}-t{z:g}s', sek(z) + (' (Stoss ' + sek(a.stoss_bei) + ')' if a.stoss_bei is not None and abs(z - a.stoss_bei) < 1e-6 else '')))
+        if abs(t - z) > 0.12:
+            print(f'    Achtung: Standbild {z} s erst bei {t:.2f} s')
     return standbilder, mp4(ordner, name, page.evaluate(CLIP_STOP))
 
 
@@ -172,12 +223,16 @@ def starte_quelle(page, kamera):
 def lauf_neu(browser, url, a, wert, ordner, kamera, an=True, vergleich=None):
     context = browser.new_context(viewport={'width': 1280, 'height': 800})
     context.add_init_script(SAAT)
+    if a.aktion == 'film':
+        context.add_init_script(VIDEO_HAKEN)
     page = context.new_page()
     page.goto(url + '?labor')
     page.wait_for_function('window.mekas')
     page.evaluate('document.querySelector("#labor").classList.add("weg")')
     starte_quelle(page, kamera)
     page.evaluate(f"window.mekas.schalte({json.dumps(a.modul)}, {'true' if an else 'false'})")      # das geprüfte Modul ist an (bzw. für --ohne aus)
+    for mid in filter(None, (a.aus or '').split(',')):
+        page.evaluate(f"window.mekas.schalte({json.dumps(mid)}, false)")
     if a.fps:   # Kurbelstellung für dieses Tempo (Umkehrung der Skala: 4–12 fps auf 0–80 %)
         import math
         x = 0.8 * math.log(a.fps / 4) / math.log(3) if a.fps <= 12 else 0.8 + 0.2 * math.log(a.fps / 12) / math.log(24 / 12)
@@ -189,10 +244,15 @@ def lauf_neu(browser, url, a, wert, ordner, kamera, an=True, vergleich=None):
     if a.param:   # --param name (des Moduls) oder modul.name (eines anderen, z. B. blende.winkel bei der Überblendung)
         mid, par = a.param.split('.') if '.' in a.param else (a.modul, a.param)
         page.evaluate(f"window.mekas.setze({json.dumps(mid)}, {json.dumps(par)}, {json.dumps(wert)})")
+    if a.aktion == 'film':     # das Video als Datei laden (wie „Video laden“), es steht auf dem ersten Bild
+        page.set_input_files('#fileIn', str(ROOT / a.quelle if not pathlib.Path(a.quelle).is_absolute() else a.quelle))
+        page.wait_for_function("document.querySelector('#srcLabel').textContent === 'VIDEO'")
     page.wait_for_timeout(a.warten * 1000)
     fps = page.evaluate('window.mekas.ctx.kurbel.fps')
     name = f'{"vgl" if vergleich else "neu" if an else "ohne"}-{wert}'
-    if a.aktion == 'accum':
+    if a.aktion == 'film':
+        ergebnis = film(page, ordner, name, a, an)
+    elif a.aktion == 'accum':
         ergebnis = accum(page, ordner, name, a)
     elif a.aktion:
         ergebnis = mit_aktion(page, ordner, name, a, wert)
@@ -219,7 +279,7 @@ def lauf_alt(browser, url, a, wert, ordner, kamera):
 
 def seite(a, ordner, zeilen, referenz, fps):
     def zelle(standbilder, clip, label):
-        bilder = ''.join(f'<a href="{b}"><img src="{b}" loading="lazy"></a>' for b in standbilder)
+        bilder = ''.join(f'<figure><a href="{b}"><img src="{b}" loading="lazy"></a><figcaption>{html.escape(BESCHRIFTUNG.get(b, ""))}</figcaption></figure>' for b in standbilder)
         hell = [HELLIGKEIT[b] for b in standbilder if b in HELLIGKEIT]
         if hell:
             label += f'<br>Ø {sum(hell) / len(hell):.1f}'
@@ -247,9 +307,11 @@ section{{border-top:1px solid #2e2c37;padding:12px 0}} h2{{font:700 1.1rem "Cour
 .reihe{{display:flex;gap:6px;align-items:center;overflow-x:auto;margin-bottom:6px}}
 .was{{flex:none;width:86px;font-size:.8rem;color:#9a96a8}}
 img,video{{height:150px;border-radius:6px;background:#000;flex:none}}
+figure{{margin:0;flex:none}} figcaption{{font-size:.75rem;color:#9a96a8;text-align:center}}
 </style></head><body>
 <h1>Kontaktbogen: {html.escape(a.modul)} · {html.escape(a.param or a.aktion)}</h1>
-<p>Mekas {VERSION} · Quelle {html.escape(quelle)} · Kurbel {fps:.1f} fps · {a.bilder} Standbilder im Abstand von {a.abstand} ms{(' · ' + ', '.join(a.setze)) if a.setze else ''} · {jetzt}</p>
+<p>Mekas {VERSION} · Quelle {html.escape(quelle)} · Kurbel {fps:.1f} fps · {'Standbilder zu den angeschriebenen Zeiten' if a.aktion in ('film', 'accum') else f'{a.bilder} Standbilder im Abstand von {a.abstand} ms'}{(' · ' + ', '.join(a.setze)) if a.setze else ''}{(' · aus: ' + a.aus) if a.aus else ''} · {jetzt}</p>
+{f'<p>{html.escape(a.notiz)}</p>' if a.notiz else ''}
 {''.join(teile)}
 </body></html>"""
 
@@ -265,8 +327,13 @@ def main():
     ap.add_argument('--referenz', default=None)
     ap.add_argument('--bilder', type=int, default=4)
     ap.add_argument('--clip', type=float, default=3)
-    ap.add_argument('--aktion', choices=['stoss', 'halten', 'accum'], default=None)
-    ap.add_argument('--zeiten', default='2,5,15', help='accum: Standbilder nach so vielen Sekunden Halten')
+    ap.add_argument('--aktion', choices=['stoss', 'halten', 'accum', 'film'], default=None)
+    ap.add_argument('--zeiten', default='2,5,15', help='accum: Standbilder nach so vielen Sekunden Halten; film: zu diesen Videozeiten')
+    ap.add_argument('--los', default='0.3,1.5', help='accum: Standbilder so viele Sekunden nach dem Loslassen')
+    ap.add_argument('--stoss-bei', type=float, default=None, help='film: ein Stoss zu dieser Videozeit (s)')
+    ap.add_argument('--stoss-staerke', type=float, default=1, help='film: Stärke des Stosses wie vom Pad (-1..1, nach oben)')
+    ap.add_argument('--notiz', default=None)
+    ap.add_argument('--aus', default=None, help='diese Module ausschalten, durch Komma getrennt')
     ap.add_argument('--dauer', type=float, default=1.5, help='halten: Sekunden bis zum Loslassen')
     ap.add_argument('--abstand', type=int, default=500, help='ms zwischen den Standbildern')
     ap.add_argument('--fps', type=float, default=None)
@@ -277,15 +344,17 @@ def main():
     a = ap.parse_args()
     if not a.param and not a.aktion:
         raise SystemExit('--param oder --aktion angeben')
+    if a.aktion == 'film' and a.quelle == 'demo':
+        raise SystemExit('--aktion film braucht ein Video als --quelle')
     werte = [zahl(w) for w in a.werte.split(',')]
     einheit = a.einheit if a.einheit is not None else ('°' if (a.param or '').endswith('winkel') else '')
-    titel = a.param or {'stoss': 'Stoss', 'halten': 'Halten auf Höhe', 'accum': 'accum'}.get(a.aktion, '')
+    titel = a.param or {'stoss': 'Stoss', 'halten': 'Halten auf Höhe', 'accum': 'accum', 'film': 'Video'}.get(a.aktion, '')
     if a.alt and (a.modul, a.param) not in ALT_FELD:
         raise SystemExit(f'--alt geht nur für {sorted(ALT_FELD)}')
 
     ordner = OUT / f'bogen-{a.modul}-{"demo" if a.quelle == "demo" else pathlib.Path(a.quelle).stem}{f"-{a.fps:g}fps" if a.fps else ""}-{datetime.datetime.now():%Y%m%d-%H%M%S}'
     ordner.mkdir(parents=True)
-    kamera = None if a.quelle == 'demo' else kamera_y4m(ROOT / a.quelle if not pathlib.Path(a.quelle).is_absolute() else a.quelle)
+    kamera = None if a.quelle == 'demo' or a.aktion == 'film' else kamera_y4m(ROOT / a.quelle if not pathlib.Path(a.quelle).is_absolute() else a.quelle)
     referenz = None
     if a.referenz:
         referenz = 'referenz' + pathlib.Path(a.referenz).suffix

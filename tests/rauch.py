@@ -120,6 +120,15 @@ def labor(page, browser_url):
     page.evaluate('window.mekas.standBild(false)')
     page.evaluate('window.mekas.halteBild(false)')
     page.wait_for_timeout(1200)
+    # Nachklingen: der Film steht immer und vergisst, zwei Finger halten fest, Loslassen verklingt von selbst
+    page.evaluate("window.mekas.setze('stehenderfilm', 'nachklingen', true)")
+    page.wait_for_timeout(800)
+    page.evaluate('window.mekas.halteBild(true)')
+    page.wait_for_timeout(800)
+    page.evaluate('window.mekas.halteBild(false)')
+    page.wait_for_timeout(800)
+    page.evaluate("window.mekas.setze('stehenderfilm', 'nachklingen', false)")
+    page.wait_for_timeout(800)
     page.evaluate("window.mekas.vergleiche('greifer')")
     page.wait_for_timeout(300)
     page.evaluate('window.mekas.vergleiche(null)')
@@ -138,8 +147,15 @@ def labor(page, browser_url):
     if page.is_visible('#bauplan'):
         fehler.append('Bauplan: Escape schliesst nicht')
     knoepfe = [k.strip() for k in page.eval_on_selector_all('.lab-knoepfe .pill', 'els => els.map(e => e.textContent)')]
-    if knoepfe != ['Kamera', 'Demo', 'Video laden', 'Zurücksetzen']:
-        fehler.append(f'Labor: oben {knoepfe}, erwartet Kamera, Demo, Video laden, Zurücksetzen')
+    if knoepfe != ['Kamera', 'Demo', 'Video laden', 'Zurücksetzen', 'Werte kopieren']:
+        fehler.append(f'Labor: oben {knoepfe}, erwartet Kamera, Demo, Video laden, Zurücksetzen, Werte kopieren')
+    # Werte kopieren: verstellte Werte erscheinen als Text
+    page.evaluate("window.mekas.setze('muederentwickler', 'verbrauch', 9)")
+    wt = page.evaluate("window.mekas.werteText()")
+    if 'muederentwickler.verbrauch = 9' not in wt:
+        fehler.append(f'Labor: Werte kopieren zeigt den verstellten Wert nicht: {wt!r}')
+    else:
+        print('  Labor: Werte kopieren ok')
     page.click('text=Zurücksetzen')
     print(f'  Labor: {len(ids)} Module, Bauplan ok')
     ablauf(page, 'Labor')

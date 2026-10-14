@@ -15,10 +15,10 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 | Handkurbel | Takt | abgenommen | eigenes Modul seit Runde 0: Unregelmässigkeit in der Mikrozeit |
 | Blende | Belichtung | abgenommen | 0–360°, unter 36° gegen Schwarz. **Seitwärts-Achse (Schlitze) entfällt** |
 | Kammblende | Belichtung | entfernt (2026-10-13) | Maris braucht sie nicht. Der Code liegt in der Geschichte des Repositorys (`src/module/kammblende.js` bis Commit 14624e9) |
-| Müder Entwickler | Emulsion (Rezept der Gedächtnis-Schicht) | gebaut, im Labor (2026-10-13) | Runde 2b: der erste Film. Helles verbraucht Entwickler, Anstossen rührt |
+| Müder Entwickler | Emulsion (Rezept der Gedächtnis-Schicht) | im Labor, zweiter Versuch in Arbeit (2026-10-14) | Runde 2b: der erste Film, auf dem iPhone nur „weniger leuchtend“. Runde 2c: als Nachbild, schneller und extremer |
 | Entwickeln | Entwickeln | abgenommen | Belichtung → Helligkeit, Anlaufblitz (immer an, Schalter im Menü weg seit 2026-10-13) |
 | Greifer | Transport | mit Feder, auf dem iPhone getestet (2026-10-12) | Tippen = Stoss, Halten = Schlupf, Loslassen = Feder rastet ein (Runde 1a/1b). Werte fest, Rastkraft 170 |
-| Stehender Film | Transport | im Labor (1.2.6) | Runde 1d: zwei Finger = accum., fest Sandwich mit Lichthof 0,4, Loslassen mit weicher Überblendung (0,6 s). Andere Materialien: Filmmaterial in `IDEEN.md` |
+| Stehender Film | Transport | im Labor (1.2.6), Nachklingen in Arbeit (2026-10-14) | Runde 1d: zwei Finger = accum., fest Sandwich mit Lichthof 0,4, Loslassen mit weicher Überblendung (0,6 s). Runde 2c: Nachklingen (accum. immer an, das Alte verblasst). Andere Materialien: Filmmaterial in `IDEEN.md` |
 | Bildstand | Projektor | abgenommen | neue Lage nur bei neuem Bild |
 | Überblendender Projektor | Projektor | im Labor, abgenommen (2026-10-12) | Runde 1c: Blendzeit = 2 × so lange die Blende offen ist |
 | Sammeln | Kern (Belichtung, Emulsion) | gebaut, im Labor (2026-10-13) | Runde 2a: jedes Kamerabild eine Teilbelichtung, lineares Licht. Im Labor neu/alt zum Vergleichen |
@@ -388,6 +388,105 @@ Maris: erst im Strategie-Chat neu denken, Claude Code wartet. Die Maschine bleib
 - Womit spielt Maris ihn: mit Bewegung, mit Ruhe, mit Anstossen, mit der Kurbel?
 - Bleibt er der erste Film, oder ist ein anderes Rezept (Röhre, Netzhaut, Lith) besser, weil sein Charakter deutlicher ist?
 - Braucht es dafür eine der Erweiterungen oben?
+
+**Beantwortet im Strategie-Chat (2026-10-14):** Zweiter Versuch mit dem Film, als Nachbild. Karte Runde 2c.
+
+---
+
+## Runde 2c: Nachbild und Nachklingen (zweiter Versuch mit dem Film)
+
+**Status:** im Labor, veröffentlicht als 2.3.0 (2026-10-14), iPhone-Test offen. Zwei Teile, beide nur im Labor: **A** Müder Entwickler als Nachbild, **B** Stehender Film mit Nachklingen (accum. immer an).
+
+**Warum (Analyse im Strategie-Chat, 2026-10-14):** Der erste müde Entwickler war eine Tonkurve mit Verzögerung. In einer ruhigen Szene pendelt sich der Entwickler nach 1–2 s ein auf `1 / (1 + Verbrauch · y² · Blendenanteil · Erholung)`, danach hängt die Wirkung nur noch an der Helligkeit, und der Faktor ist immer ≤ 1. Mit den Grundwerten wurde ein ausgefressener Himmel von 255 auf etwa 190 gedrückt, Mitteltöne um etwa 4 %. Alles, was man in der Zeit hätte sehen sollen, war abgesichert weg:
+- das Quadrat der Helligkeit nahm die Mitten heraus,
+- Achtel-Auflösung und 8×8-Mittel nahmen die kleinen Lichter heraus (eine Laterne von 3 Pixeln zählt etwa 2 %),
+- der Ausgleich mit den Nachbarn (4/s) war schneller als der Verbrauch (Weiss bei 180°: 1,5/s), Spuren waren in etwa 0,25 s wieder aufgefüllt,
+- Boden 0,35 und Erholung 2 s taten den Rest.
+Übrig blieb: grosse helle Flächen etwas dunkler. Die Erfolgskriterien von 2b verlangten genau das („sichtbar gedämpft“).
+
+**Test von Maris (iPhone 2.2.1, 2026-10-14):** Verbrauch 0,5, Erholung 10 s, Reichweite 0, Blende 180°, 5 s auf ein helles Fenster, dann wegschwenken. **Ein dunkles Nachbild entsteht, ein Fenster ist zu erkennen, „sieht toll aus“.** Es soll aber **deutlich schneller und extremer** möglich sein. Erst muss der Effekt klar sichtbar sein, zurückfahren lässt sich später.
+
+**Dazu Maris:** Der reine accum.-Look (Sandwich mit Lichthof 0,4) ist schon toll, auch als eigener Film: **accum. immer an, das Alte verblasst fortlaufend.** „Ich mag dieses Leuchten, als wäre Fett auf der Linse.“
+
+### A. Müder Entwickler als Nachbild
+
+**Mechanik:** wie 2b. Helles Licht verbraucht den Entwickler an seiner Stelle im Bildfenster, frischer kommt langsam nach. Neu: Der Entwickler kann sich **schnell und fast ganz** erschöpfen. Was danach an diese Stelle fällt, wird kaum noch entwickelt.
+
+**Bild:**
+- Hält man auf ein helles Fenster, brennt es in etwa einer halben Sekunde ein.
+- Schwenkt man weg, bleibt es als **dunkles, weiches Nachbild fest im Bildfenster** stehen, über allem, was danach kommt, fast schwarz, und verblasst über mehrere Sekunden.
+- Helles, das sich bewegt, zieht dunkle Spuren.
+- Anstossen rührt: Die Nachbilder hellen weich auf, in etwa einer halben bis einer Sekunde, ohne Sprung.
+
+**Umsetzung:**
+- **Grundwerte so, dass das Nachbild auf Anhieb klar ist.** Richtwerte, am Kontaktbogen einstellen: Verbrauch 5, Erholung 8 s, Reichweite 0, Boden 0,05, Kurve 3. Gerechnet bei 180° und vollem Weiss: eingebrannt in etwa 0,4 s, Entwickler bleibt bei etwa 5 %, das Nachbild ist nach 3 s noch etwa ein Drittel, nach 10 s drei Viertel erholt. Mitteltöne einer ruhigen Szene etwa 15 % dunkler.
+- **Weitere Bereiche:** Verbrauch bis mindestens 20, Erholung 0,3–30 s.
+- **Boden wird ein Regler** (0–0,5), bisher fest 0,35.
+- **Neuer Regler „Kurve“: welches Licht einbrennt.** Exponent der Helligkeit im Verbrauch: 1 = auch die Mitten, 2 = wie bisher, 4 = nur die Lichter.
+- **Kleine Lichter sollen auch einbrennen** (Laternen, Bühnenlicht). Heute mittelt die Maschine das Licht über 8×8 Bildpunkte. Für den Zustand sollen helle Punkte mehr zählen, zum Beispiel ein Potenzmittel statt des Mittels. Wenn das in der Maschine (`kern/gedaechtnis.js`) geschieht: als Angabe im Rezept, damit spätere Rezepte frei bleiben.
+- **Rühren weich:** keine grossflächige Aufhellung in weniger als etwa einer halben Sekunde (Regel 3). Heute bringt ein Stoss den Entwickler in etwa 0,3 s zurück, mit dem tiefen Nachbild wäre das ein Helligkeitssprung.
+
+**Parameter (Labor):** Verbrauch, Erholung, Reichweite, Boden, Kurve.
+
+### B. Stehender Film mit Nachklingen
+
+**Mechanik:** Der Film steht wie bei accum., aber er vergisst. Jeder Umlauf der Blende belichtet ihn mit dem neuen Bild, und was früher draufkam, verblasst mit jedem Umlauf ein Stück. Das ist Achse B aus `IDEEN.md` (Gedächtnis „das Neueste“, verwandt mit der Mehrumlauf-Blende 1 und der Nachtverarbeitung 18), mit dem jetzigen Material: Sandwich mit Lichthof 0,4.
+- **Kurbel** = Umläufe pro Sekunde. Das Gedächtnis zählt in Umläufen: Bei 4 fps klingt es lange nach, bei 24 fps kurz.
+- **Blende** = Licht pro Umlauf wie bei accum. Weit offen gibt mehr gesammeltes Licht und mehr Lichthof („Fett auf der Linse“).
+
+**Bild:** Immer, nicht nur beim Halten: Stehendes ist satt da, Bewegtes wird durchsichtig und zieht weich nach, Schatten setzen sich durch, um helle Stellen liegt der Schein. Ruhig gehalten sieht es aus wie accum., nur wächst es nicht endlos.
+
+**Bedienung:**
+- Im Labor beim Stehenden Film ein Schalter **Nachklingen** (Grundstellung aus, damit man das Nachbild aus A zuerst allein sieht) und ein Regler **Gedächtnis** in Umläufen (etwa 2–60, Richtwert 8, am Kontaktbogen einstellen).
+- **Zwei Finger (accum.):** Das Vergessen hört auf, das Bild baut sich auf wie heute.
+- **Loslassen:** Kein Überblenden auf ein frisches Bild. Das Gesammelte verklingt von selbst mit dem Gedächtnis zurück ins Nachklingen, ohne Sprung in Helligkeit oder in der Grösse des Lichthofs.
+- **Drei Finger (hält):** wie heute.
+- **Nachklingen aus:** alles wie 1.2.6.
+
+**Umsetzung (Hinweis):** Heute ist der Anteil eines Durchgangs `w / Gewicht`, alle Durchgänge zählen gleich. Fürs Nachklingen verfällt das Gewicht pro Umlauf: `Gewicht = q · Gewicht + w`, `q = e^(−1/Gedächtnis)`. Der Lichthof hängt schon am Gewicht und wird so von selbst ruhig. Das läuft jetzt bei jedem Kurbelbild statt nur beim Halten: Rechenzeit im Labor ansehen, auf dem iPhone misst Maris.
+
+### Kontaktbogen
+
+- **A:** neues Testvideo mit Schwenk (ffmpeg): grosses helles Fenster und eine kleine Lampe, 3 s ruhig, dann ein Schwenk auf eine mittelgraue Wand, die dort stehen bleibt. Dazu `fenster.mp4`, Laternen und Demo. 12 fps, 180°. Standbilder nach 0,5, 1 und 3 s auf dem Fenster, dann 1, 3, 6 und 10 s nach dem Schwenk. Dazu ein Stoss. Eine Reihe ohne Modul daneben. Werte: Verbrauch und Boden durchschalten, Kurve 1/2/3/4.
+- **B:** Demo und Laternen, Gedächtnis 4/8/16/32 bei 6 und 18 fps, Blende 90/180/300. Halten 5 s und Loslassen, Standbilder während des Verklingens.
+- **A und B zusammen:** eine Reihe.
+- Zu jeder Reihe ein kurzer Clip: Es geht um Zeit, Standbilder reichen nicht.
+
+### Erfolgskriterien
+
+- **A:** Ein helles Fenster brennt in unter einer Sekunde ein und steht nach dem Schwenk als klar erkennbares, fast schwarzes Nachbild mehrere Sekunden im Bildfenster. Man sieht es sofort, ohne Zahlen.
+- **A:** Kleine Lampen hinterlassen ein Nachbild.
+- **A:** Weich: keine Blöcke aus der kleinen Auflösung, keine harten Kanten.
+- **A:** Anstossen hellt die Nachbilder weich auf, kein Sprung.
+- **A:** Kein Pumpen: Was neu hell ins Bild kommt, sinkt gleichmässig ein. Bei zitternder Hand flimmern die Ränder heller Flächen nicht (das Nachbild sitzt fest, das Bild bewegt sich darüber). Mit Schwenk und Stössen prüfen.
+- **B:** Bewegtes zieht weich nach und wird durchsichtig, Stehendes bleibt satt, der Schein liegt um helle Stellen. Die Kurbel ist spürbar: bei 4 fps lang, bei 24 fps kurz.
+- **B:** Zwei Finger und Loslassen ohne Sprung.
+- **Beide:** kein Flackern, auch bei schwankendem Licht. Live, Video und Demo gleich. Ohne die Module genau wie vorher. Rauchtest grün. Vorschau flüssig, Rechenzeit im Labor.
+
+### Fragen an Maris nach dem Test
+
+1. Nachbild: stark genug? Brennt es zu schnell oder zu langsam ein, verblasst es zu kurz oder zu lang?
+2. Kurve: Sollen auch die Mitten einbrennen (1) oder nur die Lichter (4)?
+3. Nachklingen: Welches Gedächtnis passt? Stört es, dass es immer an ist?
+4. Beide zusammen: ein Film oder zwei?
+5. Wird eine ruhige Szene zu dunkel? Dann als Nächstes „Stillstand neutral“ (`IDEEN.md`).
+
+**Notizen:**
+- **2026-10-14, gebaut (Code-Agent), nur im Labor, nicht veröffentlicht.**
+  - *A, Rezept* (`src/module/mueder-entwickler.js`): Gespeichert wird jetzt die Erschöpfung (0 = frisch), nicht der Entwickler. 16 Bit sind nahe 1 zu grob: Gemessen blieb ein Entwickler, der sich gegen 1 erholt, bei Erholung 8 s bei 88 % stehen, bei 30 s bei 56 % (Geister, die nie verschwinden; betraf vermutlich schon 2.2.1 mit Erholung 10 s). Die Erschöpfung erholt sich ganz.
+  - Wirkung = Boden + (1 − Boden) × Entwickler² (fest): Erschöpfter Entwickler arbeitet überproportional schwach. Linear (wie 2b) war das Nachbild 1 s nach dem Schwenk nur mittelgrau (90 auf 146), quadratisch ist es dunkel (59 auf 141). Eine S-Kurve schonte die Mitten, verblasste aber schneller.
+  - Maschine (`kern/gedaechtnis.js`): Das Rezept kann die Auflösung wählen (`teiler`, Grund bleibt ein Achtel), der müde Entwickler nimmt ein Viertel. Mit einem Achtel hatte das eingebrannte Fenster innen einen hellen Rand wie ein Klarheits-Filter. Der Zustand wird weich gelesen (kubischer B-Spline statt bilinear): keine Treppen, keine Blöcke. Kleine Lichter: Potenzmittel (Exponent 4) über die 4×4 Bildpunkte (`potenz`). Startzustand pro Rezept (`start`).
+  - Weich: langsamer Ausgleich mit den Nachbarn (0,3/s statt 4/s) mit Reichweite 0,01. Das Nachbild steht nach dem Schwenk zuerst klar mit Fensterkreuz und wird beim Verblassen weich, kleine Nachbilder verlaufen schneller als grosse. Mit 4/s löschte jede Reichweite die Lampen-Nachbilder.
+  - Rühren: zweimal um 0,3 s verzögert, Stärke 7. Ohne Greifer gemessen: Nachbild 64 → 89 (0,5 s) → 123 (0,9 s) → 138 (1,5 s), als S-Kurve, höchstens 6 Graustufen pro Bild. Mit Greifer springt der Film beim selben Stoss, wie bisher.
+  - Grundwerte: Verbrauch 5, Erholung 8 s, Reichweite 0,01, Boden 0,05, Kurve 3. Bereiche: Verbrauch 0–25, Erholung 0,3–30 s, Boden 0–0,5, Kurve 1–4.
+  - *Kontaktbogen A* (12 fps, 180°), Testvideo `tests/out/schwenk.mp4` (ffmpeg: Fenster mit Kreuz, Lampen 13 und 7 Bildpunkte, 3 s ruhig, Schwenk 3–4 s auf mittelgraue Wand), dazu `schwenk-zittern.mp4` (±7 Bildpunkte, 1–4 Hz). Das Video läuft im Bogen als geladene Datei vom Anfang (neue Aktion `film`), live als falsche Kamera gleich. Werte von 255: Fenster 251 → 88 nach 0,5 s. Nachbild 1/3/6/10 s nach dem Schwenk 59/81/102/118 auf Wand 141–136 (ohne Modul 150). Lampe 13 px: dunkler Punkt 94 auf 141 nach 1 s, nach 3 s fast weg. Boden 0 gibt 46 (fast schwarz), Kurve 1 versenkt die ganze Szene (Wand 57), Kurve 4 lässt die Wand bei 147. Mitteltöne einer ruhigen Szene sinken über 14 s um etwa 10 % (150 → 136).
+  - Zitternde Hand: Das Innere des eingebrannten Fensters steht ruhig (87,0–87,6). An den Rändern zeigen sich schmale helle Säume, wo die Scheibe auf frischeren Entwickler rückt. Die Ränder schwanken trotzdem weniger als ohne Modul (Ø 0,9 statt 2,8 Graustufen pro Bild).
+  - Beobachtet: Laternen brennen in Ruhe zu grauen Scheiben mit hellem Ring ein (wie Solarisation), das fahrende Licht zieht eine gestrichelte Spur (Blende: nur bei offenem Sektor brennt es ein). Die Spur des Schwenks ist gestreift, weil das Testvideo keine Bewegungsunschärfe hat.
+  - *B, Nachklingen* (`src/module/stehender-film.js`): Schalter „Nachklingen“ (Grund aus) und „Gedächtnis“ (2–60 Umläufe, Grund 8). Gewicht = q · Gewicht + w, q = e^(−1/Gedächtnis), zwei Finger q = 1. Beim Einsetzen gleich mit dem Gewicht des Gleichgewichts (kein Anlaufen des Lichthofs). Blende ganz zu: das Alte verblasst gegen Schwarz wie ohne den Film. Ohne Halten wird gesammelt, was der Greifer ins Fenster legt (Stoss und Schlupf bleiben sichtbar und klingen nach), beim Halten das frische Bild wie bisher.
+  - *Kontaktbogen B*: Demo und Laternen, Gedächtnis 4/8/16/32 bei 6 und 18 fps, Blende 90/180/300 bei 12 fps, 5 s accum., Standbilder beim Verklingen bis 4 s. Längeres Gedächtnis gibt mehr Schein (Laternen Ø 43 → 47 bei 6 fps). Halten und Loslassen ohne Sprung: grösste Änderung des ganzen Bilds von Bild zu Bild 1,4 Graustufen. In der Demo werden die bewegten hellen Teile fast unsichtbar (Sandwich), die Schrift leuchtet.
+  - Rechenzeit am Mac (Chrome, 12 fps, 720p, nur CPU wie im Labor): Licht sammeln 0,2–0,4 ms, müder Entwickler 0,04 ms, Stehender Film mit Nachklingen 0,05–0,1 ms pro Animationsbild, gesamt 0,2–0,6 ms, mit und ohne die Module im Rauschen. Auf dem iPhone misst Maris (vor allem das Zurücklesen des Stapels in jedem Kurbelbild).
+  - Tests: Rauchtest schaltet Nachklingen einmal ein. `tests/bogen.py`: Aktion `film`, `--los`, `--stoss-bei`, `--aus`, `--notiz`, Beschriftung der Standbilder. Fehler behoben: `--vergleich x=false` kam als Text an und schaltete nichts aus (betraf wohl auch den Vergleich neu/alt in 2a).
+- 2026-10-14, Strategie-Chat: Bilder geprüft (Nachbild mit Fensterkreuz klar, Nachklingen mit Schein und durchsichtigem Bewegtem). Dazu im Labor der Knopf **Werte kopieren** (verstellte Werte als Text für den Chat, Rauchtest prüft ihn). Veröffentlicht als 2.3.0 ohne Kontaktbogen an Maris (neuer Ablauf). Hinweis des Code-Agenten: `bogen.py --vergleich x=false` kam bis heute als Text an, der Vergleich neu gegen alt in 2a hat darum vermutlich nicht umgeschaltet.
 
 ---
 

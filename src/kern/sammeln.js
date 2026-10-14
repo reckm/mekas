@@ -6,10 +6,10 @@
 // Vor jeder Teilbelichtung kommt die Station `emulsion`: Dort können Module Gewicht und Farbempfindlichkeit ändern.
 // Ist ein Film eingelegt (Rezept der Gedächtnis-Schicht, kern/gedaechtnis.js), nimmt er jede Teilbelichtung so an,
 // wie es sein Zustand an dieser Stelle erlaubt, und jedes Kamerabild rechnet den Zustand weiter.
-import { ctx, intern, actx, mk } from './zustand.js?v=2.2.1';
-import { station } from './kette.js?v=2.2.1';
-import { sampleInto, vidCam, vidFile } from './quelle.js?v=2.2.1';
-import * as gedaechtnis from './gedaechtnis.js?v=2.2.1';
+import { ctx, intern, actx, mk } from './zustand.js?v=2.3.0';
+import { station } from './kette.js?v=2.3.0';
+import { sampleInto, vidCam, vidFile } from './quelle.js?v=2.3.0';
+import * as gedaechtnis from './gedaechtnis.js?v=2.3.0';
 
 export const sammeln = {
   id: 'sammeln',
@@ -29,11 +29,11 @@ void main(){ v = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }`;
 const fsTeil = m => `#version 300 es
 precision highp float;
 uniform sampler2D uSrc, uZustand; uniform vec3 uFilter; uniform float uLicht;
-${m ? gedaechtnis.uniformsVon(m) + '\n' + m.rezept.wirkung : 'vec3 wirkung(vec4 z, vec3 L){ return vec3(1.0); }'}
+${m ? gedaechtnis.uniformsVon(m) + '\n' + gedaechtnis.LESEN + '\n' + m.rezept.wirkung : 'vec3 wirkung(vec4 z, vec3 L){ return vec3(1.0); }'}
 in vec2 v; out vec4 o;
 void main(){
   vec3 L = pow(texture(uSrc, vec2(v.x, 1.0 - v.y)).rgb, vec3(2.2));
-  vec4 z = ${m ? 'texture(uZustand, v)' : 'vec4(1.0)'};
+  vec4 z = ${m ? 'zustandBei(uZustand, v)' : 'vec4(1.0)'};
   o = vec4(L * wirkung(z, L) * uFilter * uLicht, uLicht);
 }`;
 // entwickeln: das Mittel über die Zeit, zurück in Pixelwerte

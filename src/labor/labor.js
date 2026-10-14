@@ -1,15 +1,15 @@
 // Labor (nur mit ?labor): Quellen, Zurücksetzen, die Module, die noch eingestellt werden, mit Ein/Aus und rohen Reglern, Rechenzeit.
 // Speichert nur in `mekas.labor`, die normale Bedienung bleibt unberührt.
-import { ctx, $ } from '../kern/zustand.js?v=2.2.1';
-import { comma } from '../kern/mechanik.js?v=2.2.1';
-import { VERSION } from '../kern/version.js?v=2.2.1';
-import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=2.2.1';
-import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=2.2.1';
-import { sammeln, sammeltNeu } from '../kern/sammeln.js?v=2.2.1';
-import { persist } from '../kern/speicher.js?v=2.2.1';
-import { setMode, startCam, loadFile } from '../kern/quelle.js?v=2.2.1';
-import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=2.2.1';
-import { oeffne as bauplan } from './bauplan.js?v=2.2.1';
+import { ctx, $ } from '../kern/zustand.js?v=2.3.0';
+import { comma } from '../kern/mechanik.js?v=2.3.0';
+import { VERSION } from '../kern/version.js?v=2.3.0';
+import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=2.3.0';
+import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=2.3.0';
+import { sammeln, sammeltNeu } from '../kern/sammeln.js?v=2.3.0';
+import { persist } from '../kern/speicher.js?v=2.3.0';
+import { setMode, startCam, loadFile } from '../kern/quelle.js?v=2.3.0';
+import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=2.3.0';
+import { oeffne as bauplan } from './bauplan.js?v=2.3.0';
 
 const STATION_TITEL = { takt: 'Takt', quelle: 'Quelle', belichtung: 'Belichtung', emulsion: 'Emulsion', entwickeln: 'Entwickeln', transport: 'Transport', projektor: 'Projektor' };
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
@@ -47,7 +47,7 @@ const regler = [];          // { id, name, d, input, val }
 function nachAenderung(){ renderExpo(); renderGrip(); renderMenuWerte(); persist(); }
 
 function baue(){
-  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=2.2.1', import.meta.url).href;
+  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=2.3.0', import.meta.url).href;
   document.head.appendChild(link);
 
   // Knopf oben in der Leiste
@@ -79,7 +79,9 @@ function baue(){
   const z = el('div', 'lab-zeile lab-knoepfe');
   const bZurueck = el('button', 'pill', 'Zurücksetzen'); bZurueck.type = 'button';
   bZurueck.addEventListener('click', zuruecksetzen);
-  z.append(bZurueck);
+  const bKopie = el('button', 'pill', 'Werte kopieren'); bKopie.type = 'button';
+  bKopie.addEventListener('click', () => kopiereWerte());
+  z.append(bZurueck, bKopie);
   inhalt.append(q, z);
 
   // Module nach Stationen
@@ -174,6 +176,30 @@ function zuruecksetzen(){
   nachAenderung(); say('Labor auf die Grundeinstellung zurückgesetzt.');
 }
 
+// was Maris verstellt hat, als Text zum Einfügen in den Chat: daraus werden Grundwerte (Maris 2026-10-14)
+function werteText(){
+  const kurz = d => (d.titel || '').replace(/\s*\(.*\)\s*$/, '');
+  const z = ['Mekas ' + VERSION + ' · Labor-Werte ' + new Date().toLocaleString('de-CH'),
+    'Kurbel ' + comma(ctx.kurbel.fps.toFixed(1)) + ' fps · Quelle ' + ctx.quelle];
+  for (const m of [...module, ...kernteile]){
+    const a = AUS_DEM_LABOR[m.id] || {};
+    const zeilen = [];
+    if (m.station && m.an !== m.grund) zeilen.push(m.an ? 'an' : 'aus');
+    for (const [n, d] of Object.entries(m.params || {})){
+      if (m.p[n] === d.def || (a.fest || []).includes(n)) continue;
+      zeilen.push(m.id + '.' + n + ' = ' + zeigeWert(d, m.p[n]) + ' (' + kurz(d) + ', Grund ' + zeigeWert(d, d.def) + ')');
+    }
+    if (zeilen.length) z.push(m.titel + ': ' + zeilen.join(' · '));
+  }
+  if (z.length === 2) z.push('alles in der Grundeinstellung');
+  return z.join('\n');
+}
+async function kopiereWerte(){
+  const t = werteText();
+  try { await navigator.clipboard.writeText(t); say('Werte kopiert. Im Chat einfügen.'); }
+  catch (e){ window.prompt('Werte zum Kopieren:', t); }
+}
+
 // alle Werte auf einen Blick (für die Tests)
 function werte(){
   return {
@@ -192,7 +218,7 @@ export function starteLabor(){
     module: () => module.map(m => ({ id: m.id, titel: m.titel, station: m.station, an: m.an, werte: { ...m.p } })),
     setze: (id, n, v) => { setze(id, n, v); nachAenderung(); },
     schalte: (id, an) => { schalte(id, an); nachAenderung(); },
-    vergleiche, quelle: q => q === 'cam' ? startCam(true) : setMode('demo'),
+    werteText, vergleiche, quelle: q => q === 'cam' ? startCam(true) : setMode('demo'),
     stoss: (x, y) => padStoss(x, y),                       // wie Tippen aufs Greifer-Pad, Achsen -1..1
     halte: (y, x = 0.5) => { Object.assign(ctx.eingabe, { padFinger: true, greiferHaelt: true, greiferX: x, greiferY: y }); },
     standBild: an => document.dispatchEvent(new KeyboardEvent(an ? 'keydown' : 'keyup', { key: 'h', bubbles: true })),   // wie drei Finger
