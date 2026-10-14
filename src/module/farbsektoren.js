@@ -32,7 +32,9 @@ export default {
   an: false,
   params: {
     staerke: { min: 0, max: 1, def: 1, schritt: 0.01, titel: 'Stärke (0 = keine Filter in der Blende)' },
-    reinheit: { min: 0, max: 1, def: 0.5, schritt: 0.01, titel: 'Reinheit (1 = reine Filter mit harten Kanten, 0 = sie überlappen weit: weiche, blasse Säume)' },
+    // Grundwert 0,25: bei 4 fps und 135° fallen nur etwa drei Kamerabilder ins Fenster, jedes ein eigenes scharfes Bild.
+    // Mit reinen Filtern werden sie zu drei bunten Kopien (wie ein RGB-Split), hier zu blasseren Säumen in Orange, Hellgrün und Blau
+    reinheit: { min: 0, max: 1, def: 0.25, schritt: 0.01, titel: 'Reinheit (1 = reine Filter mit harten Kanten, 0 = sie überlappen weit: weiche, blasse Säume)' },
   },
   setup(){ this.a = [0, 0, 0]; this.w0 = [0, 0, 0]; this.w1 = [0, 0, 0]; this.matrix = null; this.fuer = -1; },
   // Durchlass der drei Filter: Zeile = Sektor, Spalte = Farbe. Jede Spalte ergibt zusammen 1, so sieht jede Farbe über
