@@ -15,8 +15,8 @@
 //   vec3 wirkung(vec4 z, vec3 L)   wie viel vom Licht einer Teilbelichtung der Film annimmt
 // Genauigkeit: Der Zustand hat 16 Bit Gleitkomma. Nahe bei 1 sind die Stufen grob (etwa 0,0005), kleine Schritte gehen dort
 // verloren. Ein Wert, der sich langsam erholen soll, liegt darum besser bei 0 (dort ist die Auflösung fein).
-import { ctx } from './zustand.js?v=2.3.0';
-import { module, istAn } from './kette.js?v=2.3.0';
+import { ctx } from './zustand.js?v=2.3.1';
+import { module, istAn } from './kette.js?v=2.3.1';
 
 let teiler = 8;           // ein Zustand pro teiler × teiler Bildpunkte, vom eingelegten Film (Grund 8)
 // die Nachbarn: Gauss mit höchstens 49 Proben, bei grosser Reichweite weiter auseinander (weich gefiltert dazwischen)

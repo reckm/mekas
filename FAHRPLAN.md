@@ -1,6 +1,6 @@
 # Fahrplan
 
-Wohin Mekas geht, in Phasen. Stand 2026-10-14, veröffentlicht ist 2.2.1. **In Arbeit:** Runde 2c, Nachbild und Nachklingen (siehe B). Was gerade gebaut wird, steht als Modulkarte in `MODULE.md`, die Begründungen stehen in `ENTSCHEIDE.md`, die Einzelheiten der Ideen in `IDEEN.md`. Wird ein Schritt zur Runde, bekommt er eine Modulkarte, und hier wird der Stand nachgeführt.
+Wohin Mekas geht, in Phasen. Stand 2026-10-14, veröffentlicht ist 2.2.1. Runde 2c (Nachbild und Nachklingen) ist eingestellt und bleibt im Labor. **Offen:** welche Idee als Nächstes. Was gerade gebaut wird, steht als Modulkarte in `MODULE.md`, die Begründungen stehen in `ENTSCHEIDE.md`, die Einzelheiten der Ideen in `IDEEN.md`. Wird ein Schritt zur Runde, bekommt er eine Modulkarte, und hier wird der Stand nachgeführt.
 
 ## Leitlinien
 
@@ -32,7 +32,7 @@ Dazu ein **Bildgedächtnis** (die letzten Bilder als Ganzes, über Sekunden) fü
 
 - [ ] **2a Kern: Teilbelichtungen sammeln.** Gebaut 2026-10-13 (Karte in `MODULE.md`), iPhone-Test offen. Stehender Film zieht erst in 2b um (Maris). Jedes Kamerabild zählt genau einmal, gewichtet mit der offenen Blende. Gesammelt in Gleitkomma und linearem Licht. Eine Stelle in der Kette für jede Teilbelichtung (Emulsion) und Zustand über die Kurbelbilder. Derselbe Weg für Kurbelbild, accum. und Foto-Modus. Nichts Sichtbares: Der Kontaktbogen muss gleich aussehen wie vorher. Einzelheiten in `IDEEN.md` (Filmmaterial, Fahrplan).
 - [ ] **2b Gedächtnis-Schicht mit dem Rezept „müder Entwickler“.** Maschine gebaut (2.2.1). Das Rezept wirkte auf dem iPhone nur „weniger leuchtend“ (eine Tonkurve). Analyse in `MODULE.md`, Runde 2c. Anstossen = Rühren. Der Stehende Film zieht nicht um, er stapelt schon entwickelte Kurbelbilder.
-- [ ] **2c Zweiter Versuch: Nachbild und Nachklingen** (Strategie-Chat 2026-10-14, Karte in `MODULE.md`). A: der müde Entwickler als schnelles, tiefes Nachbild im Bildfenster. B: Stehender Film mit Nachklingen, accum. immer an, das Alte verblasst (Sandwich mit Lichthof, „Fett auf der Linse“).
+- [x] **2c Zweiter Versuch: Nachbild und Nachklingen** (eingestellt 2026-10-14, 2.3.1) (Strategie-Chat 2026-10-14, Karte in `MODULE.md`). A: der müde Entwickler als schnelles, tiefes Nachbild im Bildfenster. B: Stehender Film mit Nachklingen, accum. immer an, das Alte verblasst (Sandwich mit Lichthof, „Fett auf der Linse“).
 - [ ] **Bromid-Schlieren** zum müden Entwickler (unter hellen Stellen weiche Schlieren nach unten, „unten“ nach Gyroskop), wenn der Grundzustand sitzt (Maris 2026-10-13).
 
 ### C. Telefon: die Linse (Runde 3)

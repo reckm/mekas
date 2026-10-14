@@ -395,7 +395,7 @@ Maris: erst im Strategie-Chat neu denken, Claude Code wartet. Die Maschine bleib
 
 ## Runde 2c: Nachbild und Nachklingen (zweiter Versuch mit dem Film)
 
-**Status:** im Labor, veröffentlicht als 2.3.0 (2026-10-14), iPhone-Test offen. Zwei Teile, beide nur im Labor: **A** Müder Entwickler als Nachbild, **B** Stehender Film mit Nachklingen (accum. immer an).
+**Status:** im Labor, auf dem iPhone eingestellt (2.3.1, 2026-10-14). Zwei Teile, beide nur im Labor: **A** Müder Entwickler als Nachbild, **B** Stehender Film mit Nachklingen (accum. immer an).
 
 **Warum (Analyse im Strategie-Chat, 2026-10-14):** Der erste müde Entwickler war eine Tonkurve mit Verzögerung. In einer ruhigen Szene pendelt sich der Entwickler nach 1–2 s ein auf `1 / (1 + Verbrauch · y² · Blendenanteil · Erholung)`, danach hängt die Wirkung nur noch an der Helligkeit, und der Faktor ist immer ≤ 1. Mit den Grundwerten wurde ein ausgefressener Himmel von 255 auf etwa 190 gedrückt, Mitteltöne um etwa 4 %. Alles, was man in der Zeit hätte sehen sollen, war abgesichert weg:
 - das Quadrat der Helligkeit nahm die Mitten heraus,
@@ -487,7 +487,9 @@ Maris: erst im Strategie-Chat neu denken, Claude Code wartet. Die Maschine bleib
   - Rechenzeit am Mac (Chrome, 12 fps, 720p, nur CPU wie im Labor): Licht sammeln 0,2–0,4 ms, müder Entwickler 0,04 ms, Stehender Film mit Nachklingen 0,05–0,1 ms pro Animationsbild, gesamt 0,2–0,6 ms, mit und ohne die Module im Rauschen. Auf dem iPhone misst Maris (vor allem das Zurücklesen des Stapels in jedem Kurbelbild).
   - Tests: Rauchtest schaltet Nachklingen einmal ein. `tests/bogen.py`: Aktion `film`, `--los`, `--stoss-bei`, `--aus`, `--notiz`, Beschriftung der Standbilder. Fehler behoben: `--vergleich x=false` kam als Text an und schaltete nichts aus (betraf wohl auch den Vergleich neu/alt in 2a).
 - 2026-10-14, Strategie-Chat: Bilder geprüft (Nachbild mit Fensterkreuz klar, Nachklingen mit Schein und durchsichtigem Bewegtem). Dazu im Labor der Knopf **Werte kopieren** (verstellte Werte als Text für den Chat, Rauchtest prüft ihn). Veröffentlicht als 2.3.0 ohne Kontaktbogen an Maris (neuer Ablauf). Hinweis des Code-Agenten: `bogen.py --vergleich x=false` kam bis heute als Text an, der Vergleich neu gegen alt in 2a hat darum vermutlich nicht umgeschaltet.
-
+- **2026-10-14, iPhone 2.3.0 (Maris):** Werte für den müden Entwickler, „präsent, aber nicht zu FX-mässig“: Verbrauch 9, Erholung 9,6 s, Reichweite 0,15, Boden 0,09 (Kurve 3 blieb). Schnell bewegt gibt es einen eher dunklen Look, das ist in Ordnung. **Nachklingen: 4 Umläufe ist der Sweet Spot.** Neue Grundwerte in 2.3.1, Reichweite reicht jetzt bis 0,25 (vorher lag Maris am Anschlag 0,15; die Maschine begrenzt auf ein Viertel der Breite).
+- Maris: Bei hoher Kurbel ist das ganze Bild dunkler. Gemessen (Demo, 4/12/24 fps, mit und ohne Modul): Das kommt vom Entwickeln (seit Runde 0: langsamer kurbeln belichtet länger und wird heller, 4 → 24 fps etwa 0,8 Blendenstufen). Mit Stärke 0 ist die Helligkeit bei allen fps gleich. Der müde Entwickler hängt nicht an der Kurbel (Verbrauch pro Sekunde nur über den Blendenanteil). Mit seinem dunkleren Grundbild fällt es eher auf.
+- **Stand:** Beide Teile bleiben so im Labor. Maris schaut zuerst, ob andere Ideen noch spannender sind.
 ---
 
 ## Runde 3: Linse (das kaputte iPhone)

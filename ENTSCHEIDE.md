@@ -4,6 +4,7 @@ Neueste oben. Jeder Eintrag: Datum, Entscheid, kurze Begründung. Nicht wieder a
 
 ## 2026-10-14
 
+- **Runde 2c eingestellt** (iPhone 2.3.0): müder Entwickler mit Verbrauch 9, Erholung 9,6 s, Reichweite 0,15, Boden 0,09, Kurve 3 („präsent, aber nicht zu FX-mässig“), Nachklingen mit 4 Umläufen. Bleibt so im Labor, als Nächstes schauen, ob andere Ideen noch spannender sind. Dass das Bild bei hoher Kurbel dunkler ist, kommt vom Entwickeln (Bolex: kürzere Belichtung) und bleibt.
 - **Zweiter Versuch mit dem Film, nicht die Röhre vorziehen** (Strategie-Chat). Der müde Entwickler wird zum **Nachbild**: schneller und extremer, erst klar sichtbar, zurückfahren später. Grundlage ist Maris’ Test (Verbrauch 0,5, Erholung 10 s, Reichweite 0): Das dunkle Nachbild eines Fensters „sieht toll aus“. Karte Runde 2c.
 - **Lehre aus 2b:** Ein Rezept, dessen Gleichgewicht nur von der Helligkeit abhängt, ist eine Tonkurve. Erfolgskriterien werden künftig als Satz aus Maris’ Sicht geschrieben („man sieht sofort …“), nicht als Messwert. Vorsichtsmassnahmen (gegen HDR, gegen Flackern) erst zurücknehmen, wenn der Effekt sichtbar ist, nicht vorher.
 - **Nachklingen: accum. immer an, das Alte verblasst** (Maris: „dieses Leuchten, als wäre Fett auf der Linse“). Als Teil des Stehenden Films im Labor, das Gedächtnis zählt in Umläufen (Kurbel spürbar). Ob Nachbild und Nachklingen ein Film oder zwei sind, entscheidet Maris nach dem Test.

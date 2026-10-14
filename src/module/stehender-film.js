@@ -88,7 +88,7 @@ export default {
     hof: { min: 0, max: 4, def: 0.4, schritt: 0.05, titel: 'Stärke Lichthof' },
     loslassen: { min: 0, max: 3, def: 0.6, schritt: 0.05, titel: 'Überblendung beim Loslassen (ohne Nachklingen)', einheit: ' s' },
     nachklingen: { typ: 'schalter', def: false, titel: 'Nachklingen (der Film steht immer, Altes verblasst; zwei Finger: nichts verblasst)' },
-    gedaechtnis: { min: 2, max: 60, def: 8, schritt: 1, titel: 'Gedächtnis beim Nachklingen', einheit: ' Umläufe' },
+    gedaechtnis: { min: 2, max: 60, def: 4, schritt: 1, titel: 'Gedächtnis beim Nachklingen', einheit: ' Umläufe' },
   },
   setup(ctx){
     this.cv = document.createElement('canvas');

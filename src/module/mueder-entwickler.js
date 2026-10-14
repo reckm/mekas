@@ -4,7 +4,7 @@
 // im Bildfenster stehen, über allem, was danach kommt, und verblasst über Sekunden, weil frischer Entwickler aus dem Tank
 // nachkommt. Helles, das sich bewegt, zieht dunkle Spuren. Anstossen rührt: die Nachbilder hellen weich auf.
 // Die Maschine steht in kern/gedaechtnis.js, hier nur das Rezept.
-import { sammeltNeu } from '../kern/sammeln.js?v=2.3.0';
+import { sammeltNeu } from '../kern/sammeln.js?v=2.3.1';
 
 const AUSGLEICH = 0.3;      // wie schnell sich eine Stelle mit ihren Nachbarn (Reichweite) ausgleicht, pro s. Langsam: Das Nachbild steht
                             // zuerst klar und wird beim Verblassen weich, kleine Nachbilder verlaufen schneller als grosse
@@ -21,10 +21,10 @@ export default {
   station: 'emulsion',
   an: 'labor',
   params: {
-    verbrauch: { min: 0, max: 25, def: 5, schritt: 0.1, titel: 'Verbrauch (wie schnell helles Licht den Entwickler aufbraucht)' },
-    erholung: { min: 0.3, max: 30, def: 8, schritt: 0.1, titel: 'Erholung (frischer aus dem Tank: so lange verblasst das Nachbild)', einheit: ' s' },
-    reichweite: { min: 0, max: 0.15, def: 0.01, schritt: 0.002, titel: 'Reichweite (wie weit frischer Entwickler nachfliesst, Anteil der Bildbreite: das Nachbild wird weich)' },
-    boden: { min: 0, max: 0.5, def: 0.05, schritt: 0.01, titel: 'Boden (so viel nimmt ganz erschöpfter Film noch an)' },
+    verbrauch: { min: 0, max: 25, def: 9, schritt: 0.1, titel: 'Verbrauch (wie schnell helles Licht den Entwickler aufbraucht)' },
+    erholung: { min: 0.3, max: 30, def: 9.6, schritt: 0.1, titel: 'Erholung (frischer aus dem Tank: so lange verblasst das Nachbild)', einheit: ' s' },
+    reichweite: { min: 0, max: 0.25, def: 0.15, schritt: 0.002, titel: 'Reichweite (wie weit frischer Entwickler nachfliesst, Anteil der Bildbreite: das Nachbild wird weich)' },
+    boden: { min: 0, max: 0.5, def: 0.09, schritt: 0.01, titel: 'Boden (so viel nimmt ganz erschöpfter Film noch an)' },
     kurve: { min: 1, max: 4, def: 3, schritt: 0.1, titel: 'Kurve (welches Licht einbrennt: 1 auch die Mitten, 4 nur die Lichter)' },
   },
   rezept: {

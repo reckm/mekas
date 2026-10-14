@@ -150,9 +150,9 @@ def labor(page, browser_url):
     if knoepfe != ['Kamera', 'Demo', 'Video laden', 'Zurücksetzen', 'Werte kopieren']:
         fehler.append(f'Labor: oben {knoepfe}, erwartet Kamera, Demo, Video laden, Zurücksetzen, Werte kopieren')
     # Werte kopieren: verstellte Werte erscheinen als Text
-    page.evaluate("window.mekas.setze('muederentwickler', 'verbrauch', 9)")
+    page.evaluate("window.mekas.setze('muederentwickler', 'verbrauch', 12)")
     wt = page.evaluate("window.mekas.werteText()")
-    if 'muederentwickler.verbrauch = 9' not in wt:
+    if 'muederentwickler.verbrauch = 12' not in wt:
         fehler.append(f'Labor: Werte kopieren zeigt den verstellten Wert nicht: {wt!r}')
     else:
         print('  Labor: Werte kopieren ok')
