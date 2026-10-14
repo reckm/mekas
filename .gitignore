@@ -9,3 +9,6 @@ tests/out/
 .venv/
 __pycache__/
 .claude/settings.local.json
+
+# Arbeitskopien der Code-Agenten
+.claude/worktrees/
