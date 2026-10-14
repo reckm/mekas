@@ -53,12 +53,14 @@ const TEILE = {
   blende: { ort: 'belichtung', titel: 'Blende', stand: 'bedienung', kurz: 'Umlaufblende: 0–360° offen pro Kurbelbild, unter 36° gegen Schwarz',
     griff: 'Fader', an: ['fader', 'kurbel'], jetzt: () => Math.round(wert('blende', 'winkel')) + '°' },
   // Emulsion
-  farbsektoren: { ort: 'emulsion', titel: 'Farbsektoren', stand: 'geplant', runde: 'Runde 4', kurz: 'rote, grüne und blaue Sektoren in der Blende: Bewegtes bekommt Farbsäume',
-    an: ['blende', 'sammeln'] },
+  farbsektoren: { ort: 'emulsion', titel: 'Farbsektoren', stand: 'labor', runde: 'Runde 4c', kurz: 'rote, grüne und blaue Sektoren in der Blende: Bewegtes bekommt Farbsäume',
+    griff: 'Labor', an: ['blende', 'sammeln', 'kurbel'] },
   muederentwickler: { ort: 'emulsion', titel: 'Müder Entwickler', stand: 'labor', kurz: 'der erste Film, als Nachbild (2c): Helles brennt in einer halben Sekunde ein, auch kleine Lampen. Schwenkt man weg, bleibt es dunkel und weich im Bildfenster stehen und verblasst über Sekunden. Bewegtes Helles zieht dunkle Spuren',
     griff: 'Anstossen rührt (hellt weich auf). Labor: Verbrauch, Erholung, Reichweite, Boden, Kurve', an: ['gedaechtnis', 'sammeln', 'blende', 'anstossen'] },
-  filme: { ort: 'emulsion', titel: 'Weitere Filme', stand: 'geplant', runde: 'Runde 4', kurz: 'Lith, Röhre, vielleicht Photochrom und Netzhaut: weitere Rezepte für dieselbe Gedächtnis-Schicht',
-    an: ['gedaechtnis', 'sammeln'] },
+  roehre: { ort: 'emulsion', titel: 'Röhre', stand: 'labor', runde: 'Runde 4a', kurz: 'ein Film: die Schicht der Röhrenkamera wird beim Auslesen nicht ganz gelöscht, Lichter ziehen leuchtende Schweife und wachsen',
+    griff: 'Labor', an: ['gedaechtnis', 'sammeln'] },
+  lith: { ort: 'emulsion', titel: 'Lith', stand: 'labor', runde: 'Runde 4b', kurz: 'ein Film: harter Film, schwaches Licht geht verloren, Schatten stecken ihre Nachbarn an und wachsen, wo es dunkel bleibt',
+    griff: 'Labor', an: ['gedaechtnis', 'sammeln'] },
   // Entwickeln
   entwickeln: { ort: 'entwickeln', titel: 'Entwickeln', stand: 'bedienung', kurz: 'länger belichtet wird heller: langsam kurbeln oder weit öffnen gibt mehr Licht. Wird Teil der Filme, wenn es mehrere gibt',
     griff: 'fest', an: ['sammeln', 'kurbel', 'blende'] },
@@ -71,6 +73,8 @@ const TEILE = {
     griff: 'zwei Finger. Labor: Lichthof, Überblendung beim Loslassen, Nachklingen, Gedächtnis (Umläufe)', an: ['zwei', 'kurbel', 'blende', 'greifer'],
     jetzt: () => ctx.halten && !ctx.standbild ? 'sammelt' : wert('stehenderfilm', 'nachklingen') ? 'klingt nach' : '' },
   // Projektor
+  roehreatmen: { ort: 'projektor', titel: 'Röhre atmen', stand: 'labor', runde: 'Runde 4a', kurz: 'bei hellen Szenen wird das Bild grösser und zieht sich langsam zurück',
+    griff: 'Labor', an: ['sammeln'] },
   bildstand: { ort: 'projektor', titel: 'Bildstand', stand: 'bedienung', kurz: 'jedes neue Bild sitzt minimal anders im Bildfenster', griff: 'Menü: Stärke', an: ['kurbel', 'menue'] },
   ueberblenden: { ort: 'projektor', titel: 'Überblendender Projektor', stand: 'labor', kurz: 'das neue Bild blendet weich über das alte, so lange, wie die Blende offen war',
     griff: 'Labor: Länge', an: ['blende', 'kurbel', 'zeit'] },
@@ -89,7 +93,7 @@ const TEILE = {
   schwinger: { ort: 'kern', titel: 'Schwinger', stand: 'bedienung', kurz: 'gedämpfte Feder: ein Stoss, Ausschwingen, Ruhe. Für Greifer, später Linse und Pendel', an: ['anstossen'] },
   anstossen: { ort: 'kern', titel: 'Anstossen', stand: 'bedienung', kurz: 'sammelt die Stösse vom Pad und vom Ruck', griff: 'Pad, Ruck, Knopf über dem Greifer', an: ['pad', 'ruck', 'bewegung'] },
   bewegung: { ort: 'kern', titel: 'Bewegungssensor', stand: 'bedienung', kurz: 'das Gyroskop: einmal freigegeben, geteilt von Anstossen und Schwenken', an: [] },
-  gedaechtnis: { ort: 'kern', titel: 'Gedächtnis-Schicht', stand: 'labor', kurz: 'ein Zustand pro Stelle (ein Achtel der Auflösung), den Licht verändert und der sich mit der Zeit erholt. Ein Film ist ein Rezept dafür (2b)',
+  gedaechtnis: { ort: 'kern', titel: 'Gedächtnis-Schicht', stand: 'labor', kurz: 'ein Zustand pro Stelle (kleinere Auflösung, je nach Film), den Licht verändert und der sich mit der Zeit erholt. Ein Film ist ein Rezept dafür (2b)',
     an: ['sammeln', 'anstossen'] },
   bildgedaechtnis: { ort: 'kern', titel: 'Bildgedächtnis', stand: 'geplant', runde: 'später', kurz: 'die letzten Bilder über Sekunden: Zweiter Projektor, Pendel, Kopierwerk', an: [] },
 };
@@ -98,7 +102,7 @@ const FAHRPLAN = [
   ['A', 'Runde 1 abschliessen', 'Gyroskop-Knopf gebaut, iPhone-Test offen'],
   ['B', 'Fundament', '2a Teilbelichtungen und 2b Gedächtnis-Schicht gebaut · 2c Nachbild (müder Entwickler) und Nachklingen im Labor · danach Bromid-Schlieren'],
   ['C', 'Linse', 'das kaputte iPhone, danach Fokus sucht, Linse auf Federn'],
-  ['D', 'Filme', 'Lith, Röhre, Mehrumlauf-Blende, Farbsektoren, Foto-Modus'],
+  ['D', 'Filme', '4a Röhre, 4b Lith, 4c Farbsektoren im Bau · danach Mehrumlauf-Blende, Foto-Modus'],
   ['E', 'Gehäuse und Übernahme', 'Bolex, Telefon, Filmdosen, Kopplungen, alles in die Bedienung'],
   ['F', 'Kopierwerk', 'ganz am Schluss'],
 ];

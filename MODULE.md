@@ -16,10 +16,14 @@ Jede Karte hat: Mechanik, Bild, Parameter, Erfolgskriterien, Fragen an Maris, No
 | Blende | Belichtung | abgenommen | 0–360°, unter 36° gegen Schwarz. **Seitwärts-Achse (Schlitze) entfällt** |
 | Kammblende | Belichtung | entfernt (2026-10-13) | Maris braucht sie nicht. Der Code liegt in der Geschichte des Repositorys (`src/module/kammblende.js` bis Commit 14624e9) |
 | Müder Entwickler | Emulsion (Rezept der Gedächtnis-Schicht) | im Labor, zweiter Versuch in Arbeit (2026-10-14) | Runde 2b: der erste Film, auf dem iPhone nur „weniger leuchtend“. Runde 2c: als Nachbild, schneller und extremer |
+| Farbsektoren | Emulsion | in Arbeit (2026-10-14) | Runde 4c: Rot, Grün, Blau in der Blende, Bewegtes bekommt Farbsäume |
+| Röhre | Emulsion (Rezept der Gedächtnis-Schicht) | in Arbeit (2026-10-14) | Runde 4a: Nachleuchten, Kometenschweife, Blooming |
+| Lith | Emulsion (Rezept der Gedächtnis-Schicht) | in Arbeit (2026-10-14) | Runde 4b: harter Film, Schatten stecken an |
 | Entwickeln | Entwickeln | abgenommen | Belichtung → Helligkeit, Anlaufblitz (immer an, Schalter im Menü weg seit 2026-10-13) |
 | Greifer | Transport | mit Feder, auf dem iPhone getestet (2026-10-12) | Tippen = Stoss, Halten = Schlupf, Loslassen = Feder rastet ein (Runde 1a/1b). Werte fest, Rastkraft 170 |
 | Stehender Film | Transport | im Labor (1.2.6), Nachklingen in Arbeit (2026-10-14) | Runde 1d: zwei Finger = accum., fest Sandwich mit Lichthof 0,4, Loslassen mit weicher Überblendung (0,6 s). Runde 2c: Nachklingen (accum. immer an, das Alte verblasst). Andere Materialien: Filmmaterial in `IDEEN.md` |
 | Bildstand | Projektor | abgenommen | neue Lage nur bei neuem Bild |
+| Röhre atmen | Projektor | in Arbeit (2026-10-14) | Runde 4a: bei hellen Szenen wird das Bild grösser |
 | Überblendender Projektor | Projektor | im Labor, abgenommen (2026-10-12) | Runde 1c: Blendzeit = 2 × so lange die Blende offen ist |
 | Sammeln | Kern (Belichtung, Emulsion) | gebaut, im Labor (2026-10-13) | Runde 2a: jedes Kamerabild eine Teilbelichtung, lineares Licht. Im Labor neu/alt zum Vergleichen |
 | Doppel | Aufnahme | abgenommen | auf dem iPhone bestätigt (2026-10-12) |
@@ -513,5 +517,87 @@ Maris: erst im Strategie-Chat neu denken, Claude Code wartet. Die Maschine bleib
 - Kurze Belichtung: **filigran**, feine Striche nur senkrecht, dazu grosse Fokuswellen durchs Bild, wie `referenz/linse-foto-schnee.jpg`. **Nicht** grobe Zacken wie in `referenz/linse-vergleich.png` (Panel 2). Das war zu stark gerechnet.
 - Lange Belichtung: wie Bild 98 in `referenz/linse-video-normal-dann-defekt.mov` (Panel 3 und 4 in `linse-vergleich.png` passen).
 - Kontaktbogen mit Referenzbild daneben. Als Quelle die normale erste Hälfte des Videos.
+
+**Notizen:**
+
+---
+
+## Runde 4: Röhre, Lith, Farbsektoren (parallel gebaut)
+
+**Status:** Karten geschrieben (2026-10-14), in Arbeit. Maris: drei Ideen gleichzeitig, je ein Code-Agent, sie bedingen sich nicht. Teil von Phase D (`FAHRPLAN.md`).
+
+**Für alle drei:**
+- **Erst klar sichtbar, dann zurückfahren** (Lehre aus 2b/2c): Grundwerte so, dass man den Effekt in 10 s Spielen sofort sieht, eher zu stark. Regler mit weiten Bereichen. Maris stellt auf dem iPhone selbst ein und schickt die Werte mit „Werte kopieren“.
+- **Prüfung schlank:** Rauchtest, dazu wenige Standbilder und kurze Clips zur eigenen Prüfung. Keine grossen Kontaktbögen, Maris beurteilt in der App.
+- **Prüfsteine:** Sichtbar wird vor allem, was sich ändert (Bewegung, Ruhe, Licht). Ein Griff spielt es (Kurbel, Blende, Bewegung, Haltezeit, Anstossen). Kein Flackern im Bereich 3–30 Hz, keine harten grossflächigen Sprünge. Nichts, was nach Plug-in aussieht. Keine Texturen und kein fester Zufall im Bildfenster (sähe aus wie Schmutz).
+- **Filme:** Röhre und Lith sind Rezepte der Gedächtnis-Schicht. Es ist immer nur ein Film eingelegt: Wer einen Film einschaltet, nimmt den anderen heraus (Kern seit 2026-10-14). Grundstellung aus (`an: false`), der müde Entwickler bleibt der Film, der im Labor eingelegt ist.
+- **Kern seit 2026-10-14:** Ein Rezept kann mit `zuschlag` Licht dazugeben (`kern/gedaechtnis.js`, Kopf). Platzhalter-Dateien und Bauplan-Karten der vier neuen Module sind angelegt, jeder Agent füllt nur seine.
+- **Emulsion:** Module an der Station Emulsion multiplizieren `bild.filter`, sie überschreiben es nie (Farbsektoren und ein rotblinder Film kommen so zusammen).
+
+### Runde 4a: Röhre (Nachleuchten, Blooming, Atmen)
+
+**Mechanik:** In einer Röhrenkamera (Vidicon, Plumbicon, um 1970) fällt das Bild auf eine lichtempfindliche Schicht, die Ladung speichert. Der Elektronenstrahl liest sie Zeile für Zeile aus und löscht sie dabei nicht ganz: Ein Rest bleibt und erscheint im nächsten Bild noch einmal, bei wenig Licht mehr. Zu helles Licht überlädt die Schicht. Der Strahl schafft es nicht in einem Durchgang, die Ladung läuft in die Nachbarschaft (Blooming), bewegte Lichter ziehen Kometenschweife. Dazu gibt die Hochspannung bei hellen Szenen nach: Das Bild wird grösser und zieht sich langsam zurück (Röhre atmen, Idee 12; Maris: „genau so Bildeffekte suchen wir“, 2026-10-14: „wichtig, dass Helles grösser wird, dieser Zoom-Aspekt“).
+
+**Bild:**
+- Ruhig gehalten: ein normales Bild, helle Lichter etwas grösser und weicher (Blooming). Das Gleichgewicht ist von selbst neutral, keine Tonkurve.
+- Schwenk, Zoom, Bewegung: Lichter ziehen leuchtende, weiche Schweife, die in 1–2 s verklingen, nachts länger. Beim Zoomen Strahlen.
+- Lange auf ein helles Licht gehalten: Es brennt ein und leuchtet nach dem Wegschwenken hell nach.
+- Helle Szene (Fenster, Bühne): Das ganze Bild wächst weich um einige Prozent und zieht sich langsam zurück, wenn es dunkler wird.
+
+**Umsetzung:**
+- `src/module/roehre.js`, Rezept an der Station Emulsion. Zustand etwa: gespeicherte Ladung pro Farbe. `zuschlag` gibt die Ladung, die beim Auslesen übrig bleibt, als Licht zurück. Ein ruhendes Bild muss gleich hell bleiben wie ohne Film. Lange Schweife nur aus der Überladung (über etwa 80 % Weiss), der Rest für alles kurz (etwa 0,1 s, im Dunkeln bis 0,3 s), sonst wirkt es wie ein Video-Echo. Blooming über die Nachbarn (Reichweite). `potenz` hoch, damit kleine Lichter ankommen, Teiler fein genug für Schweife.
+- `src/module/roehre-atmen.js` an der Station Projektor: mittlere Helligkeit des Bilds (klein und billig gemessen) → Massstab `lage.s`. Es zählt die Gesamthelligkeit (die Hochspannung hängt am Strahlstrom), vor allem grosse helle Flächen. Wachsen in etwa 0,2–0,5 s, zurück in 1–3 s, Stärke bis etwa 3–8 %. Weich, ohne Nachschwingen im Flackerbereich.
+- Beide Grundstellung aus. Maris schaltet beide ein.
+
+**Parameter (Labor):** Röhre: Nachleuchten (s), Überladung ab (Helligkeit), Schweif (s), im Dunkeln länger, Blooming (Reichweite). Atmen: Stärke (%), Wachsen (s), Zurück (s).
+
+**Erfolgskriterien:**
+- Mit der Kamera an einer Laterne vorbei: Die Laterne zieht einen leuchtenden, weichen Schweif, der in 1–2 s verklingt.
+- Ruhig gehalten sieht es aus wie ohne Film, abgesehen vom Blooming um helle Lichter.
+- Schwenk auf ein helles Fenster: Das ganze Bild wächst spürbar und ruhig und zieht sich danach langsam zurück.
+- Kein Video-Echo: Mitteltöne ziehen kaum nach. Kein Flackern, keine Blöcke.
+
+### Runde 4b: Lith
+
+**Mechanik:** Lith-Film ist ein harter Film mit steiler Kennlinie. Schwaches Licht geht verloren: Kurze, schwache Teilbelichtungen summieren sich nicht (Schwarzschild). Er ist fast blind für Rot. Im Lith-Entwickler kommt die Entwicklung erst nach einer Anlaufzeit in Gang und steckt dann die Nachbarn an (Semichinon sammelt sich neben schon entwickeltem Silber): Wo es schon schwarz ist, wird die Umgebung mitgerissen. Die Schatten „explodieren“ spät und klumpig, mit harten, aber gewachsenen Kanten. Die Lichter bleiben weich (Recherche „Filmchemie“, Punkt 4; Guy J. Brown, Digital Lith). Maris 2026-10-13: Lith gehört zum ganzen Filmlook, nicht nur zu accum.
+
+**Bild:**
+- Grundlook: hart, tiefes Schwarz, die Mitten fallen weg, Lichter weich, nie flächig weiss. Rote Lichter (Rücklichter) verschwinden fast.
+- Ruhig gehalten: Die Schatten wachsen langsam in die Mitten hinein, klumpig, mit gewachsenen Kanten, über Sekunden. Haltezeit = Entwicklungszeit. Nie schnell oder spektakulär.
+- Bewegung: Was neu hell ins Bild kommt, ist sofort hell. Die Ansteckung bleibt nicht als Fleck im Bildfenster stehen, sie verblasst, wenn sich das Bild bewegt.
+
+**Umsetzung:**
+- `src/module/lith.js`, Rezept an der Station Emulsion. Zustand etwa: Schwärzung (und wenn nötig ein Aktivator, der sich über die Nachbarn ausbreitet). `wirkung`: steile, aber weiche Schwelle auf das Licht (kein Kippen von Bild zu Bild bei schwankendem Licht), gedämpft durch die Schwärzung, Rot stark gedämpft. Neues Licht bildet die Schwärzung an seiner Stelle zurück.
+- Die Klumpen kommen aus der Struktur des Bildes und dem Wachsen, nicht aus Rauschen. Feiner Teiler (2 oder 4).
+- Altes Lith im accum. (1.2.5, Commit c2a21dd, `src/module/stehender-film.js`) als Anhaltspunkt für Schwelle und Rotblindheit: Schwelle 0,75, weich bis 1,5-mal so hell.
+- Ton der Lichter (warm, wie Lith-Abzüge) höchstens als Regler mit Grund 0: Farbfilter sind verworfen.
+
+**Parameter (Labor):** Schwelle, Härte, Ansteckung (wie schnell), Anlauf (s), Reichweite, Rotempfindlichkeit, eventuell Ton.
+
+**Erfolgskriterien:**
+- Am Tag harte, grafische Bilder: Schwarz satt, Lichter weich, Rücklichter fast weg.
+- Ruhig gehalten wachsen die Schatten in 3–10 s sichtbar, klumpig, ohne Raster oder Blöcke.
+- Bewegt bleibt kein Fleck im Bildfenster stehen.
+- Kein Flackern, auch nicht an der Schwelle bei schwankendem Licht.
+
+### Runde 4c: Farbsektoren
+
+**Mechanik:** In der Umlaufblende sitzen drei Farbfilter nacheinander, Rot, Grün und Blau, wie beim Harris-Shutter von Kodak: Dieselbe Belichtung in drei Zeitabschnitten durch drei Filter. (Kinemacolor, 1908, drehte ein Rot-Grün-Rad vor dem Film.) Jede Teilbelichtung fällt durch den Sektor, der gerade vor dem Fenster steht.
+- Das offene Fenster jedes Kurbelbilds ist in drei gleiche Teile geteilt. Bei 4 fps und 360° (250 ms) fallen pro Farbe etwa 2,5 Kamerabilder: Bewegtes bekommt deutliche Säume. Bei 24 fps und 135° (16 ms) liegt das ganze Fenster in einem einzigen Kamerabild, alle drei Farben sehen dasselbe Bild: keine Säume. **Kurbel und Blende bestimmen die Breite der Säume**, ohne eigenen Regler.
+
+**Bild:** Was stillsteht, hat normale Farben. Was sich bewegt, zieht weiche Säume in Rot, Grün und Blau, in der Reihenfolge der Sektoren. Langsam kurbeln und weit offen gibt breite Säume, schnell kurbeln keine.
+
+**Umsetzung:**
+- `src/module/farbsektoren.js` an der Station Emulsion. Pro Teilbelichtung `filter` = 3 × Anteil ihres Lichts in jedem Sektor (multipliziert): So bleibt ein stehendes Bild genau gleich hell und farbtreu.
+- Dafür braucht die Station die Zeitspanne der Teilbelichtung und die Fenster des Kurbelbilds. In `src/kern/sammeln.js` (`belichte`) mitgeben, zum Beispiel `bis`, `t0`, `fenster`. Die Tabelle der Stationen in `CLAUDE.md` nennt dann neue Felder: im Bericht aufführen, Claude trägt sie nach.
+- Echte Filter sind nicht rein: Regler „Reinheit“ (wie stark die Filter überlappen), damit die Säume weich und filmisch werden statt wie ein RGB-Split-Plug-in.
+
+**Parameter (Labor):** Stärke (0 = keine Filter), Reinheit.
+
+**Erfolgskriterien:**
+- Ruhig: Farben und Helligkeit wie ohne Modul, kein Farbstich.
+- Bewegung bei 4–8 fps: deutliche, weiche Farbsäume. Bei 24 fps fast keine.
+- Weich: keine harten, verschobenen Farbkopien.
+- Kein Flackern: Helligkeit und Farbe ruhig von Kurbelbild zu Kurbelbild, auch bei kleiner Blende.
 
 **Notizen:**

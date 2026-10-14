@@ -35,6 +35,8 @@ export const istAn = id => { const m = modul(id); return !!m && aktiv(m); };
 export function schalte(id, an){
   const m = modul(id); if (!m || m.an === !!an) return;
   m.an = !!an;
+  // es ist immer nur ein Film eingelegt: wer einen Film (Rezept der Gedächtnis-Schicht) einschaltet, nimmt den anderen heraus
+  if (m.an && m.rezept) for (const n of module) if (n !== m && n.rezept && n.an) n.an = false;
   if (m.an && m.ein) m.ein(ctx);
   intern.dirty = true;
 }

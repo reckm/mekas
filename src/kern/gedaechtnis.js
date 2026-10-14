@@ -13,6 +13,8 @@
 //     gemittelt; mit `potenz` > 1 als Potenzmittel, dann zählen helle Punkte mehr und auch kleine Lichter kommen an),
 //     licht: so viele s fiel es bei offener Blende auf den Film, dt: s seit dem letzten Schritt, ruehren: Anstossen (0..1,5, klingt ab)
 //   vec3 wirkung(vec4 z, vec3 L)   wie viel vom Licht einer Teilbelichtung der Film annimmt
+//   vec3 zuschlag(vec4 z, vec3 L)   optional (rezept.zuschlag): Licht, das der Film an dieser Stelle selbst dazugibt (linear, wie L,
+//     zählt so lange wie die Teilbelichtung), etwa das Nachleuchten einer Röhre. Ohne: nichts.
 // Genauigkeit: Der Zustand hat 16 Bit Gleitkomma. Nahe bei 1 sind die Stufen grob (etwa 0,0005), kleine Schritte gehen dort
 // verloren. Ein Wert, der sich langsam erholen soll, liegt darum besser bei 0 (dort ist die Auflösung fein).
 import { ctx } from './zustand.js?v=2.3.1';

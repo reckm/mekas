@@ -1,6 +1,6 @@
 # Fahrplan
 
-Wohin Mekas geht, in Phasen. Stand 2026-10-14, veröffentlicht ist 2.2.1. Runde 2c (Nachbild und Nachklingen) ist eingestellt und bleibt im Labor. **Offen:** welche Idee als Nächstes. Was gerade gebaut wird, steht als Modulkarte in `MODULE.md`, die Begründungen stehen in `ENTSCHEIDE.md`, die Einzelheiten der Ideen in `IDEEN.md`. Wird ein Schritt zur Runde, bekommt er eine Modulkarte, und hier wird der Stand nachgeführt.
+Wohin Mekas geht, in Phasen. Stand 2026-10-14, veröffentlicht ist 2.3.1. Runde 2c (Nachbild und Nachklingen) ist eingestellt und bleibt im Labor. **In Arbeit:** Runde 4a Röhre, 4b Lith, 4c Farbsektoren, parallel (siehe D). Was gerade gebaut wird, steht als Modulkarte in `MODULE.md`, die Begründungen stehen in `ENTSCHEIDE.md`, die Einzelheiten der Ideen in `IDEEN.md`. Wird ein Schritt zur Runde, bekommt er eine Modulkarte, und hier wird der Stand nachgeführt.
 
 ## Leitlinien
 
@@ -42,9 +42,8 @@ Dazu ein **Bildgedächtnis** (die letzten Bilder als Ganzes, über Sekunden) fü
 
 ### D. Filme (Runde 4)
 
-- [ ] Rezepte **Lith** und **Röhre**, eventuell Photochrom und Netzhaut.
+- [ ] **4a Röhre** (Nachleuchten, Blooming, Atmen), **4b Lith**, **4c Farbsektoren**: parallel gebaut ab 2026-10-14, Karten in `MODULE.md`. Eventuell später Photochrom und Netzhaut.
 - [ ] **Mehrumlauf-Blende** (1) als Rezept „Altes verblasst“, dazu Nachtverarbeitung (18).
-- [ ] **Farbsektoren in der Blende** (Kinemacolor, Harris-Shutter).
 - [ ] **Foto-Modus:** freie Anzahl Teilbelichtungen in freiem Tempo, summiert zu einem Foto.
 
 ### E. Gehäuse und Übernahme (Runde 5, Schritt 2)
@@ -65,7 +64,7 @@ Kommt, wenn es passt, ohne festen Platz. Einzelheiten in `IDEEN.md`.
 - Blitz und Strobo (Taschenlampe)
 - Unterdreht überarbeiten
 - Pendel beim Halten (7)
-- Röhre atmen (12)
+- Röhre atmen (12): jetzt Teil von Runde 4a
 - Alter-Fader (der Film altert über eine Rolle)
 - Korn aus dem Modell (vorerst nicht)
 - Objektiv-Charakter, Linsenwechsel (16), Gangart des Greifers (6)
