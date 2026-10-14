@@ -64,8 +64,9 @@ const TEILE = {
   roehre: { ort: 'emulsion', titel: 'Röhre', stand: 'labor', runde: 'Runde 4a', kurz: 'ein Film: die Schicht der Röhrenkamera wird beim Auslesen nicht ganz gelöscht. Von allem bleibt kurz ein Rest, im Dunkeln länger. Zu helles Licht überlädt sie: Lichter werden grösser und weicher (Blooming), bewegte ziehen leuchtende Schweife, lange gehaltene brennen ein und leuchten nach. Ruhig gehalten wie ohne Film',
     griff: 'Bewegung, Blende und Kurbel (wie viel Licht überlädt, weit offen gibt durchgehende Schweife). Labor: Nachleuchten, im Dunkeln länger, Überladung ab, Schweif, Einbrennen, Blooming',
     an: ['gedaechtnis', 'sammeln', 'blende', 'kurbel'] },
-  lith: { ort: 'emulsion', titel: 'Lith', stand: 'labor', runde: 'Runde 4b', kurz: 'ein Film: harter Film, schwaches Licht geht verloren, Schatten stecken ihre Nachbarn an und wachsen, wo es dunkel bleibt',
-    griff: 'Labor', an: ['gedaechtnis', 'sammeln'] },
+  lith: { ort: 'emulsion', titel: 'Lith', stand: 'labor', runde: 'Runde 4b', kurz: 'ein Film: harter Film mit steiler Kennlinie. Schwaches Licht geht verloren, die Mitten fallen ins Schwarz, die Lichter bleiben weich, Rot sieht er kaum (Rücklichter verschwinden). Ruhig gehalten kommt nach dem Anlauf die Entwicklung in Gang: Die Schatten stecken ihre Nachbarn an und wachsen über Sekunden klumpig in die Mitten. Was sich bewegt, bildet die Schwärzung weich zurück',
+    griff: 'Ruhig halten (Haltezeit = Entwicklungszeit), Bewegung (das Wachsen beginnt von vorn). Labor: Schwelle, Härte, Ansteckung, Anlauf, Tiefe, Reichweite, Rot, Ton',
+    an: ['gedaechtnis', 'sammeln'] },
   // Entwickeln
   entwickeln: { ort: 'entwickeln', titel: 'Entwickeln', stand: 'bedienung', kurz: 'länger belichtet wird heller: langsam kurbeln oder weit öffnen gibt mehr Licht. Wird Teil der Filme, wenn es mehrere gibt',
     griff: 'fest', an: ['sammeln', 'kurbel', 'blende'] },
