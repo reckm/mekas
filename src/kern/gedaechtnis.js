@@ -17,21 +17,22 @@
 //     zählt so lange wie die Teilbelichtung), etwa das Nachleuchten einer Röhre. Ohne: nichts.
 // Genauigkeit: Der Zustand hat 16 Bit Gleitkomma. Nahe bei 1 sind die Stufen grob (etwa 0,0005), kleine Schritte gehen dort
 // verloren. Ein Wert, der sich langsam erholen soll, liegt darum besser bei 0 (dort ist die Auflösung fein).
-import { ctx } from './zustand.js?v=2.3.1';
-import { module, istAn } from './kette.js?v=2.3.1';
+import { ctx } from './zustand.js?v=2.4.0';
+import { module, istAn } from './kette.js?v=2.4.0';
 
+let mip = true;          // Mipmaps für das weite Verwischen (siehe flaeche)
 let teiler = 8;           // ein Zustand pro teiler × teiler Bildpunkte, vom eingelegten Film (Grund 8)
 // die Nachbarn: Gauss mit höchstens 49 Proben, bei grosser Reichweite weiter auseinander (weich gefiltert dazwischen)
 const FS_WISCH = `#version 300 es
 precision highp float;
-uniform sampler2D uH; uniform vec2 uRichtung; uniform float uSigma, uSchritt;
+uniform sampler2D uH; uniform vec2 uRichtung; uniform float uSigma, uSchritt, uLod;
 in vec2 v; out vec4 o;
 void main(){
   vec4 s = vec4(0.0); float n = 0.0;
   for (int i = -24; i <= 24; i++){
     float x = float(i) * uSchritt; if (abs(x) > 3.0 * uSigma) continue;
     float g = exp(-x * x / (2.0 * uSigma * uSigma));
-    s += g * texture(uH, v + x * uRichtung); n += g;
+    s += g * textureLod(uH, v + x * uRichtung, uLod); n += g;
   }
   o = s / n;
 }`;
@@ -81,7 +82,14 @@ export const film = () => module.find(m => m.rezept && istAn(m.id)) || null;
 function flaeche(){
   const tx = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tx);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.HALF_FLOAT, null);
-  for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+  for (const [k, v] of [[gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+  // mit Mipmaps: Bei grosser Reichweite liest das Verwischen nur jeden n-ten Punkt, ohne vorher zu mitteln gäbe das ein Gitter
+  // im Bildfenster (gesehen bei Reichweite 0,15). Geht das auf einem Gerät nicht, ohne.
+  if (mip){
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.generateMipmap(gl.TEXTURE_2D);
+    if (gl.getError() !== gl.NO_ERROR) mip = false;
+  }
+  if (!mip) gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tx, 0);
   return { tx, fb };
@@ -126,10 +134,13 @@ export function schritt(src, licht, dt){
   const t = performance.now();
   // die Nachbarn: der Zustand weich verwischt, waagrecht und senkrecht
   const sigma = Math.max(0.3, Math.min(w / 4, (m.rezept.reichweite ? m.rezept.reichweite(m.p) : 0.02) * w));
-  gl.viewport(0, 0, w, h); gl.useProgram(pWisch.pr); gl.uniform1f(pWisch.u('uSigma'), sigma); gl.uniform1f(pWisch.u('uSchritt'), Math.max(1, sigma / 8));
+  const schrittweite = Math.max(1, sigma / 8), lod = mip ? Math.log2(schrittweite) : 0;   // so weit vorher gemittelt, wie die Proben auseinanderliegen
+  gl.viewport(0, 0, w, h); gl.useProgram(pWisch.pr); gl.uniform1f(pWisch.u('uSigma'), sigma); gl.uniform1f(pWisch.u('uSchritt'), schrittweite);
+  gl.uniform1f(pWisch.u('uLod'), lod);
   for (const [von, nach, dx, dy] of [[zust[i], wisch[0], 1 / w, 0], [wisch[0], wisch[1], 0, 1 / h]]){
-    gl.bindFramebuffer(gl.FRAMEBUFFER, nach.fb);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, von.tx); gl.uniform1i(pWisch.u('uH'), 0);
+    if (lod > 0) gl.generateMipmap(gl.TEXTURE_2D);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, nach.fb);
     gl.uniform2f(pWisch.u('uRichtung'), dx, dy);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }

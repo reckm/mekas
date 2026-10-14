@@ -4,7 +4,7 @@
 // im Bildfenster stehen, über allem, was danach kommt, und verblasst über Sekunden, weil frischer Entwickler aus dem Tank
 // nachkommt. Helles, das sich bewegt, zieht dunkle Spuren. Anstossen rührt: die Nachbilder hellen weich auf.
 // Die Maschine steht in kern/gedaechtnis.js, hier nur das Rezept.
-import { sammeltNeu } from '../kern/sammeln.js?v=2.3.1';
+import { sammeltNeu } from '../kern/sammeln.js?v=2.4.0';
 
 const AUSGLEICH = 0.3;      // wie schnell sich eine Stelle mit ihren Nachbarn (Reichweite) ausgleicht, pro s. Langsam: Das Nachbild steht
                             // zuerst klar und wird beim Verblassen weich, kleine Nachbilder verlaufen schneller als grosse

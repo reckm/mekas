@@ -1,15 +1,15 @@
 // Labor (nur mit ?labor): Quellen, Zurücksetzen, die Module, die noch eingestellt werden, mit Ein/Aus und rohen Reglern, Rechenzeit.
 // Speichert nur in `mekas.labor`, die normale Bedienung bleibt unberührt.
-import { ctx, $ } from '../kern/zustand.js?v=2.3.1';
-import { comma } from '../kern/mechanik.js?v=2.3.1';
-import { VERSION } from '../kern/version.js?v=2.3.1';
-import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=2.3.1';
-import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=2.3.1';
-import { sammeln, sammeltNeu } from '../kern/sammeln.js?v=2.3.1';
-import { persist } from '../kern/speicher.js?v=2.3.1';
-import { setMode, startCam, loadFile } from '../kern/quelle.js?v=2.3.1';
-import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=2.3.1';
-import { oeffne as bauplan } from './bauplan.js?v=2.3.1';
+import { ctx, $ } from '../kern/zustand.js?v=2.4.0';
+import { comma } from '../kern/mechanik.js?v=2.4.0';
+import { VERSION } from '../kern/version.js?v=2.4.0';
+import { module, kernteile, modul, setze, schalte, vergleiche, zeiten, STATIONEN } from '../kern/kette.js?v=2.4.0';
+import { anstoss, padStoss, bewegungStatus } from '../kern/anstoss.js?v=2.4.0';
+import { sammeln, sammeltNeu } from '../kern/sammeln.js?v=2.4.0';
+import { persist } from '../kern/speicher.js?v=2.4.0';
+import { setMode, startCam, loadFile } from '../kern/quelle.js?v=2.4.0';
+import { renderExpo, renderGrip, renderMenuWerte, say } from '../kern/bedienung.js?v=2.4.0';
+import { oeffne as bauplan } from './bauplan.js?v=2.4.0';
 
 const STATION_TITEL = { takt: 'Takt', quelle: 'Quelle', belichtung: 'Belichtung', emulsion: 'Emulsion', entwickeln: 'Entwickeln', transport: 'Transport', projektor: 'Projektor' };
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
@@ -47,7 +47,7 @@ const regler = [];          // { id, name, d, input, val }
 function nachAenderung(){ renderExpo(); renderGrip(); renderMenuWerte(); persist(); }
 
 function baue(){
-  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=2.3.1', import.meta.url).href;
+  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./labor.css?v=2.4.0', import.meta.url).href;
   document.head.appendChild(link);
 
   // Knopf oben in der Leiste

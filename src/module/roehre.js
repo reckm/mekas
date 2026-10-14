@@ -8,7 +8,7 @@
 // (Blooming): helle Lichter werden grösser und weicher.
 // Die Maschine steht in kern/gedaechtnis.js, hier nur das Rezept. Der Film nimmt jedes Licht ganz an (Wirkung 1) und gibt mit dem
 // Zuschlag das Nachleuchten dazu. Ein ruhendes Bild bleibt so hell wie ohne Film, nur um die Lichter herum leuchtet die Überladung.
-import { sammeltNeu } from '../kern/sammeln.js?v=2.3.1';
+import { sammeltNeu } from '../kern/sammeln.js?v=2.4.0';
 
 const POTENZ = 4;           // helle Punkte zählen mehr (Potenzmittel über den Block): auch kleine Lichter überladen
 const TEILER = 4;           // ein Zustand pro 4×4 Bildpunkte

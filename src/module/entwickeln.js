@@ -1,6 +1,6 @@
 // Entwickeln: Wie lange Licht kam, wird zur Helligkeit, gemessen an der Bolex (135° bei Ausgabetempo).
 // Langsamer kurbeln belichtet länger und wird heller. Nach jedem Start überbelichtet der Anlaufblitz die ersten Bilder.
-import { REF_ANGLE } from '../kern/mechanik.js?v=2.3.1';
+import { REF_ANGLE } from '../kern/mechanik.js?v=2.4.0';
 
 export default {
   id: 'entwickeln',

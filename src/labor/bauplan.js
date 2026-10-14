@@ -1,11 +1,11 @@
 // Bauplan (nur mit ?labor): die ganze Architektur auf einem Blatt. Hände (was Maris spielt), die Kette (wodurch jedes Bild läuft)
 // und die Maschinen im Kern, mit Stand und Griff. Antippen zeigt, was von einem Teil abhängt (blau) und woran es hängt (weiss umrandet).
 // Nachführen, wenn ein Modul dazukommt oder sich eine Abhängigkeit ändert. Ein Modul ohne Eintrag erscheint trotzdem, mit Hinweis.
-import { ctx } from '../kern/zustand.js?v=2.3.1';
-import { comma, fmtFps } from '../kern/mechanik.js?v=2.3.1';
-import { VERSION } from '../kern/version.js?v=2.3.1';
-import { module, modul, wert, STATIONEN } from '../kern/kette.js?v=2.3.1';
-import { sammeln, sammeltNeu } from '../kern/sammeln.js?v=2.3.1';
+import { ctx } from '../kern/zustand.js?v=2.4.0';
+import { comma, fmtFps } from '../kern/mechanik.js?v=2.4.0';
+import { VERSION } from '../kern/version.js?v=2.4.0';
+import { module, modul, wert, STATIONEN } from '../kern/kette.js?v=2.4.0';
+import { sammeln, sammeltNeu } from '../kern/sammeln.js?v=2.4.0';
 
 // Stand: bedienung (in Maris' normaler Bedienung), labor (nur im Labor), geplant (Fahrplan, mit Runde)
 // an: woran ein Teil hängt (was es liest oder wer es spielt). griff: wo man es einstellt. jetzt: der Wert gerade.
@@ -109,7 +109,7 @@ const FAHRPLAN = [
   ['A', 'Runde 1 abschliessen', 'Gyroskop-Knopf gebaut, iPhone-Test offen'],
   ['B', 'Fundament', '2a Teilbelichtungen und 2b Gedächtnis-Schicht gebaut · 2c Nachbild (müder Entwickler) und Nachklingen im Labor · danach Bromid-Schlieren'],
   ['C', 'Linse', 'das kaputte iPhone, danach Fokus sucht, Linse auf Federn'],
-  ['D', 'Filme', '4a Röhre, 4b Lith, 4c Farbsektoren im Bau · danach Mehrumlauf-Blende, Foto-Modus'],
+  ['D', 'Filme', '4a Röhre, 4b Lith, 4c Farbsektoren im Labor · danach Mehrumlauf-Blende, Foto-Modus'],
   ['E', 'Gehäuse und Übernahme', 'Bolex, Telefon, Filmdosen, Kopplungen, alles in die Bedienung'],
   ['F', 'Kopierwerk', 'ganz am Schluss'],
 ];
@@ -186,7 +186,7 @@ function nachfuehren(){
 }
 
 function baue(){
-  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./bauplan.css?v=2.3.1', import.meta.url).href;
+  const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = new URL('./bauplan.css?v=2.4.0', import.meta.url).href;
   document.head.appendChild(link);
   blatt = el('div', 'bauplan'); blatt.id = 'bauplan'; blatt.hidden = true;
   blatt.setAttribute('role', 'dialog'); blatt.setAttribute('aria-label', 'Bauplan');

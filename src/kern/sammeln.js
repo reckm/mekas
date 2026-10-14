@@ -6,10 +6,10 @@
 // Vor jeder Teilbelichtung kommt die Station `emulsion`: Dort können Module Gewicht und Farbempfindlichkeit ändern.
 // Ist ein Film eingelegt (Rezept der Gedächtnis-Schicht, kern/gedaechtnis.js), nimmt er jede Teilbelichtung so an,
 // wie es sein Zustand an dieser Stelle erlaubt (Wirkung, dazu wenn er will ein Zuschlag: Licht, das er selbst dazugibt), und jedes Kamerabild rechnet den Zustand weiter.
-import { ctx, intern, actx, mk } from './zustand.js?v=2.3.1';
-import { station } from './kette.js?v=2.3.1';
-import { sampleInto, vidCam, vidFile } from './quelle.js?v=2.3.1';
-import * as gedaechtnis from './gedaechtnis.js?v=2.3.1';
+import { ctx, intern, actx, mk } from './zustand.js?v=2.4.0';
+import { station } from './kette.js?v=2.4.0';
+import { sampleInto, vidCam, vidFile } from './quelle.js?v=2.4.0';
+import * as gedaechtnis from './gedaechtnis.js?v=2.4.0';
 
 export const sammeln = {
   id: 'sammeln',

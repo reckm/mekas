@@ -1,8 +1,8 @@
 // Anstossen: Stösse an die Kamera, vom Greifer-Pad (Tippen) und vom Gyroskop (ein Ruck mit dem Telefon).
 // Jedes Animationsbild steht die Summe der Stösse in ctx.stoss { x, y } (Bilder pro Sekunde, y nach oben).
 // Welche Module darauf reagieren und wie stark, entscheiden sie selbst.
-import { ctx } from './zustand.js?v=2.3.1';
-import { frage, hoere, drehung, bewegungStatus } from './bewegung.js?v=2.3.1';
+import { ctx } from './zustand.js?v=2.4.0';
+import { frage, hoere, drehung, bewegungStatus } from './bewegung.js?v=2.4.0';
 export { bewegungStatus };
 
 export const anstoss = {

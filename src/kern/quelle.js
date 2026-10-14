@@ -1,10 +1,10 @@
 // Was vor dem Objektiv ist: Demo, Kamera oder ein geladenes Video (der Film im Projektor).
-import { ctx, intern, einst, $, mkVideo, tctx, tmp, out } from './zustand.js?v=2.3.1';
-import { setSize, station, abbrechen } from './kette.js?v=2.3.1';
-import { persist } from './speicher.js?v=2.3.1';
-import { say, hideCard, closeSheets } from './bedienung.js?v=2.3.1';
-import { filmGoing, scrubPos, onDone } from './aufnahme.js?v=2.3.1';
-import { micLive, audioConstraints, uebernimmMikrofon, ensureFileAudio } from './ton.js?v=2.3.1';
+import { ctx, intern, einst, $, mkVideo, tctx, tmp, out } from './zustand.js?v=2.4.0';
+import { setSize, station, abbrechen } from './kette.js?v=2.4.0';
+import { persist } from './speicher.js?v=2.4.0';
+import { say, hideCard, closeSheets } from './bedienung.js?v=2.4.0';
+import { filmGoing, scrubPos, onDone } from './aufnahme.js?v=2.4.0';
+import { micLive, audioConstraints, uebernimmMikrofon, ensureFileAudio } from './ton.js?v=2.4.0';
 
 export const vidCam = mkVideo(true), vidFile = mkVideo(false);
 let camStream = null, srcW = 0, srcH = 0;

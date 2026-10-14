@@ -9,7 +9,7 @@
 // und rundherum weich zurück und der Anlauf beginnt von vorn: Bewegt bleibt kein Fleck im Bildfenster stehen.
 // Die Lichter laufen weich in eine Schulter aus und werden nie flächig weiss.
 // Die Maschine steht in kern/gedaechtnis.js, hier nur das Rezept.
-import { sammeltNeu } from '../kern/sammeln.js?v=2.3.1';
+import { sammeltNeu } from '../kern/sammeln.js?v=2.4.0';
 
 const TEILER = 4;          // ein Zustand pro 4×4 Bildpunkte. Die Kanten kommen ohnehin aus dem Bild (Schwelle pro Bildpunkt)
 const SELBST = 0.5;        // wie stark ein Schatten von selbst anfängt (die Nachbarn stecken mit 1 an). Nur was unter der Schwelle
